@@ -13253,7 +13253,7 @@ class L10nEn extends L10n {
   String get localeSystem => 'System';
 
   @override
-  String get localeZh => '简体中文';
+  String get localeZh => 'Chinese (Simplified)';
 
   @override
   String get localeEn => 'English';

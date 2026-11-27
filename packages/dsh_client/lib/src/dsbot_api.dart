@@ -1420,7 +1420,7 @@ class DsBotApi {
 
   /// The team; with [since] the host answers only the live part when nothing
   /// was saved since. Photos come as references ([DsBot.imageRef]).
-  Future<DsBotState> state({int? since, String? modelsKey, String locale = 'zh-CN'}) async => DsBotState.fromJson(
+  Future<DsBotState> state({int? since, String? modelsKey, String locale = 'en'}) async => DsBotState.fromJson(
     await call('state', {'since': ?since, 'models': ?modelsKey, 'locale': locale, 'avatars': 'ref'}),
   );
 

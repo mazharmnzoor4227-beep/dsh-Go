@@ -147,7 +147,7 @@ void main() {
       expect(search.title('zh'), '会话搜索');
       expect(search.title('en'), 'Session search');
       expect(search.title('zh-Hans-CN'), '会话搜索');
-      expect(search.summary(), '为智能体提供搜索历史会话的工具。');
+      expect(search.summary(), 'Give Agents tools to search earlier sessions.');
       expect(search.meta!.icon, startsWith('data:image/svg+xml'));
 
       final codex = bundles[2];

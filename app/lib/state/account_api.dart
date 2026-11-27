@@ -233,7 +233,7 @@ class AccountClientMetadata {
   /// The app's build (`1.0.0`), the way dsh-TUI reports its own version.
   factory AccountClientMetadata.current() => AccountClientMetadata(
     version: AppInfo.version.split('+').first,
-    locale: 'zh-CN',
+    locale: 'en',
     timezoneOffsetSeconds: DateTime.now().timeZoneOffset.inSeconds,
   );
 

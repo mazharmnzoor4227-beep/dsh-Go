@@ -10,7 +10,7 @@ String? localizedHostText(Map<String, String?> text, {required String locale, St
     // gen-l10n names the current Chinese instance 'zh', whereas the app
     // locale is zh_CN. Both must retain the same Simplified Chinese order.
     if (tag != 'zh') tag,
-    if (language == 'zh') ...['zh-CN', 'zh-Hans', 'zh', 'en'] else ...[language, 'en', 'zh-CN', 'zh-Hans', 'zh'],
+    if (language == 'zh') ...['zh-CN', 'zh-Hans', 'zh', 'en'] else ...[language, 'en'],
   };
   for (final key in keys) {
     final value = text[key]?.trim();

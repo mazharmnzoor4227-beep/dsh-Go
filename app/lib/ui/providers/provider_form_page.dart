@@ -331,11 +331,39 @@ class _ProviderFormPageState extends ConsumerState<ProviderFormPage> with FieldP
       _F.baseUrl: ?baseUrlError(_baseUrl.text),
       _F.key: ?providerKeyError(key, required: !_isEdit),
       _F.headers: ?_headersError(),
-      if (_models.isEmpty) _F.models: context.l10n.engineProviderNeedModel,
     };
     setState(() => _formError = null);
     _showErrors(errors);
     if (errors.isNotEmpty) return;
+    // Key-only flow: with no models picked yet, fetch them from the endpoint
+    // and add them automatically so pasting a key and tapping Save just works.
+    if (_models.isEmpty) {
+      setState(() => _discovering = true);
+      try {
+        final result = await ref
+            .read(providerActionsProvider)
+            .discover(
+              api: _api,
+              baseUrl: _baseUrlForRequest(_baseUrl.text, _api),
+              apiKey: key,
+              existingId: _editing?.id,
+              headers: _headersForRequest(),
+            );
+        if (!mounted) return;
+        if (result.models.isEmpty) {
+          setState(() => _modelsError = context.l10n.engineProviderNoDiscoveredModels);
+          return;
+        }
+        final free = [for (final m in result.models) if (m.id.endsWith(':free')) m];
+        final picked = (free.isNotEmpty ? free : result.models).take(50);
+        setState(() => _models = [for (final m in picked) _withModelDefaults(m.toSpec())]);
+      } catch (error) {
+        if (mounted) setState(() => _modelsError = describeProviderError(error));
+        return;
+      } finally {
+        if (mounted) setState(() => _discovering = false);
+      }
+    }
     final draft = ProviderDraft(
       name: _name.text,
       api: _api,

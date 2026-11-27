@@ -48,24 +48,80 @@ class LocalizedText {
   /// Language id (lowercase, `zh`, `zh-cn`, ...) or `''` for plain text.
   final Map<String, String> values;
 
+  /// English names for plugin texts that ship Chinese-only, keyed by the
+  /// Chinese string. Covers the official plugins and the MCP manager; any
+  /// other Chinese-only text resolves to '' in English so callers fall back
+  /// to the package name instead of showing Chinese.
+  static const _enOverrides = <String, String>{
+    '智能体团队': 'Agent Team',
+    '代理团队': 'Agent Team',
+    '开发者工具': 'Developer Tools',
+    '语音输入': 'Voice Input',
+    '自动授权审查': 'Auto Approval Review',
+    '思考过程机器翻译': 'Thinking Translation',
+    'DSH 徽章技能': 'DSH Badge Skills',
+    'Ralph 循环': 'Ralph Loop',
+    '随对话更新的标题': 'Conversation Titles',
+    '持久终端': 'Persistent Terminal',
+    'LiveShare 会话分享': 'LiveShare Session Sharing',
+    '会话搜索': 'Session Search',
+    'Git 工作树': 'Git Worktree',
+    'MCP 管理器': 'MCP Manager',
+    '管理器': 'Manager',
+    '服务器': 'Servers',
+    '添加服务器': 'Add server',
+    '刷新': 'Refresh',
+    '连接你的第一个 MCP 服务': 'Connect your first MCP service',
+    '添加服务器地址或本地启动程序，连接后自动发现工具。':
+        'Add a server address or a local launcher; tools are discovered after connecting.',
+  };
+
+  /// Word-level replacements for counted/labelled Chinese strings.
+  static const _enWords = <String, String>{
+    '个服务': ' services',
+    '个已连接': ' connected',
+    '个工具': ' tools',
+    '添加服务器': 'Add server',
+    '服务器': 'Servers',
+    '管理器': 'Manager',
+    '刷新': 'Refresh',
+    '连接': 'Connect',
+    '工具': 'tools',
+    '服务': 'services',
+  };
+
+  static String _englishOnly(String text) {
+    final exact = _enOverrides[text.trim()];
+    if (exact != null) return exact;
+    var out = text;
+    for (final e in _enWords.entries) {
+      out = out.replaceAll(e.key, e.value);
+    }
+    return _han.hasMatch(out) ? '' : out;
+  }
+
   /// Best text for [locale]: exact id, then its language, then any variant
-  /// of that language, then plain text written in it, then English (`en`,
-  /// then any variant), then plain text, then the first value.
+  /// of that language, then plain text written in it, then English.
   ///
-  /// Plain text is what `.description()` gave before `.i18n()` added
-  /// languages (schemastery keeps it under `''`): a Chinese plugin that only
-  /// translated into English must still read in Chinese for a Chinese UI.
-  String resolve([String locale = 'zh']) {
+  /// English never falls back to Chinese: a Chinese-only text resolves to
+  /// its English override when one is known, else '' (callers show the
+  /// package name). Plain text is what `.description()` gave before
+  /// `.i18n()` added languages (schemastery keeps it under `''`).
+  String resolve([String locale = 'en']) {
     final tagged = {for (final MapEntry(:key, :value) in values.entries) _tag(key): value};
     final wanted = _tag(locale);
     final language = wanted.split('-').first;
     String? of(String language) =>
         tagged[language] ?? tagged.entries.where((e) => e.key.startsWith('$language-')).map((e) => e.value).firstOrNull;
     final plain = tagged[''];
-    // Chinese is told apart by its characters; anything else counts as the
-    // other UI language.
-    final plainMatches = plain != null && _han.hasMatch(plain) == (language == 'zh');
-    return tagged[wanted] ?? of(language) ?? (plainMatches ? plain : null) ?? of('en') ?? plain ?? values.values.first;
+    if (language == 'zh') {
+      final plainMatches = plain != null && _han.hasMatch(plain);
+      return tagged[wanted] ?? of('zh') ?? (plainMatches ? plain : null) ?? of('en') ?? plain ?? values.values.first;
+    }
+    final candidate = tagged[wanted] ?? of(language) ?? of('en') ?? (plain != null && !_han.hasMatch(plain) ? plain : null);
+    if (candidate != null) return _han.hasMatch(candidate) ? _englishOnly(candidate) : candidate;
+    final chinese = of('zh') ?? plain;
+    return chinese == null ? '' : _englishOnly(chinese);
   }
 
   /// Every variant, for search.
@@ -265,9 +321,17 @@ class PluginBundle {
 
   bool get isOnDemand => official && !installed && availability == 'missing' && installTargetSpec != null;
 
-  String title([String locale = 'zh']) => meta?.title?.resolve(locale) ?? name;
+  String title([String locale = 'en']) {
+    final t = meta?.title?.resolve(locale);
+    return (t == null || t.isEmpty) ? name : t;
+  }
 
-  String? summary([String locale = 'zh']) => meta?.description?.resolve(locale) ?? description;
+  String? summary([String locale = 'en']) {
+    final s = meta?.description?.resolve(locale);
+    if (s != null && s.isNotEmpty) return s;
+    final d = description;
+    return (d == null || LocalizedText._han.hasMatch(d)) ? null : d;
+  }
 }
 
 /// One `pluginManager/listPlugins` entry.
@@ -852,9 +916,15 @@ class MarketPlugin {
 
   MarketVersion get latest => versions.first;
 
-  String displayTitle([String locale = 'zh']) => title?.resolve(locale) ?? name;
+  String displayTitle([String locale = 'en']) {
+    final t = title?.resolve(locale);
+    return (t == null || t.isEmpty) ? name : t;
+  }
 
-  String? displayDescription([String locale = 'zh']) => description?.resolve(locale);
+  String? displayDescription([String locale = 'en']) {
+    final s = description?.resolve(locale);
+    return (s == null || s.isEmpty) ? null : s;
+  }
 }
 
 class MarketIndex {
