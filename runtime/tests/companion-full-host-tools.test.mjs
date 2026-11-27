@@ -98,7 +98,7 @@ test('companion reads a file, writes and runs code, then fetches a fixture web p
   const names = f.requests[0].body.tools.map(tool => tool.name);
   for (const tool of ['read', 'write', 'bash', 'web_fetch']) assert(names.includes(tool), tool);
   assert(!names.includes('workspace'));
-  assert(requestSystemText(f.requests[0]).includes('查看输出后继续处理'));
+  assert(requestSystemText(f.requests[0]).includes('continue after seeing the output'));
   assert.deepEqual(seen.slice(1).map(block => block.tool_use_id), ['read-input', 'write-script', 'run-script', 'fetch-page']);
   assert(seen.slice(1).every(block => block.is_error !== true));
   assert.match(await readFile(script, 'utf8'), /2 \* 27/);

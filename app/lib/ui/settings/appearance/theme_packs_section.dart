@@ -138,7 +138,6 @@ class _ThemePacksSectionState extends ConsumerState<ThemePacksSection> {
   }
 
   Future<void> _removePack(ThemePack pack) async {
-    final english = AppLocale.isEnglish;
     final activeId = ref.read(appearanceProvider).themePackId;
     await ref.read(themeLibraryProvider).remove(pack.id);
     ref.invalidate(userThemesProvider);
@@ -173,7 +172,6 @@ class _ThemePacksSectionState extends ConsumerState<ThemePacksSection> {
 
   @override
   Widget build(BuildContext context) {
-    final english = AppLocale.isEnglish;
     final lang = 'en';
     final activeId = ref.watch(appearanceProvider.select((s) => s.themePackId));
     final userThemes = ref.watch(userThemesProvider).value ?? const <ThemePack>[];
@@ -293,7 +291,6 @@ class _ThemePackRow extends StatelessWidget {
             if (pack.typography.readingFont != 'system') pack.typography.readingFont,
             ...pack.tags,
           ].join(' · ');
-    final english = languageCode == 'en';
 
     return ListPageRow(
       leading: SizedBox(

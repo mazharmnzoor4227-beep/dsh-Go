@@ -75,11 +75,11 @@ test('authenticated phone is ready before the prompt; only a claimed owner turn 
   assert.equal((await missing.json()).error.code, 'companion/device-session-unavailable');
   assert.equal((await f.post('open', { sessionId: 'cabin', requestId: 'u', tools: [definition('bash')] })).status, 400);
   const phone = await f.open();
-  assert.throws(() => f.call('reminder'), /没有对应/);
+  assert.throws(() => f.call('reminder'), /no matching companion phone turn/);
   await f.claim('u1', 1, 'visitor');
-  assert.throws(() => f.call('reminder'), /没有对应/);
+  assert.throws(() => f.call('reminder'), /no matching companion phone turn/);
   await f.claim();
-  assert.throws(() => f.call('reminder', 'c2', {}, { agent: { ...f.agent } }), /没有对应/);
+  assert.throws(() => f.call('reminder', 'c2', {}, { agent: { ...f.agent } }), /no matching companion phone turn/);
   const pending = f.call('reminder', 'c3', { text: '午饭' });
   assert.deepEqual(await phone.next(), { type: 'call', callId: 'c3', name: 'reminder', input: { text: '午饭' } });
   const body = { callId: 'c3', content: 'alarm registered', isError: false };
@@ -87,7 +87,7 @@ test('authenticated phone is ready before the prompt; only a claimed owner turn 
   assert.equal((await phone.result(body)).status, 200);
   assert.equal(await pending, 'alarm registered');
   assert.equal((await phone.result(body)).status, 409);
-  assert.throws(() => f.call('reminder', 'c3'), /原回执/);
+  assert.throws(() => f.call('reminder', 'c3'), /original receipt/);
   await f.event('turn/end', { turn: 1 });
   assert.equal(await phone.next(), null); assert.equal(f.registered.size, 0);
 });
@@ -95,12 +95,12 @@ test('authenticated phone is ready before the prompt; only a claimed owner turn 
 test('late Android result cannot settle a new phone or a new claim; cancellation never replays', async t => {
   const f = await fixture(t), first = await f.open();
   await f.claim();
-  const outcome = assert.rejects(f.call('photos_recent'), /手机结果未知/);
+  const outcome = assert.rejects(f.call('photos_recent'), /phone result unknown/);
   assert.equal((await first.next()).name, 'photos_recent');
   const second = await f.open('u2');
   await outcome;
   assert.equal((await first.result({ callId: 't1', content: 'late', isError: false })).status, 409);
-  assert.throws(() => f.call('map_open'), /没有对应/);
+  assert.throws(() => f.call('map_open'), /no matching companion phone turn/);
   await f.claim('u2', 2);
   const ctl = new AbortController(), cancelled = assert.rejects(f.call('map_open', 'c2', {}, { signal: ctl.signal }), /stop/);
   assert.equal((await second.next()).type, 'call');
@@ -123,8 +123,8 @@ test('host web calls narrow existing-memory mutations for this turn', async t =>
   const same = await f.post('open', { sessionId: 'cabin', requestId: 'u1', tools: offered });
   assert.equal(same.status, 409);
   assert.equal((await same.json()).error.code, 'companion/device-request-in-use');
-  assert.throws(() => f.call('revise'), /外部网页/);
-  assert.throws(() => f.call('remember', 'c2', { card: 'old' }), /外部网页/);
+  assert.throws(() => f.call('revise'), /external web pages/);
+  assert.throws(() => f.call('remember', 'c2', { card: 'old' }), /external web pages/);
   const add = f.call('remember', 'c3', { text: '新事实' });
   await first.next(); await first.result({ callId: 'c3', content: 'recorded', isError: false });
   assert.equal(await add, 'recorded');

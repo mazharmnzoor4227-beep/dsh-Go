@@ -21,7 +21,7 @@ test('SOURCE_INTEGRATION actual ledger, selected files, one model candidate, one
   assert(s.steps.every(value => value.state === 'done'));
   const page = await f.store.artifact(f.body.taskId, s.artifacts[0].artifactId);
   assert.equal(page.status, 'available'); assert.match(page.content, /周五配镜/);
-  assert.match(page.content, /完整读回 1 份，列出 1 项/);
+  assert.match(page.content, /Read back in full: 1 of this run's fixed list; 1 items listed/);
   const receipt = s.steps[2].result.completion.usage;
   assert.equal(receipt.output_tokens, 13); assert.equal(receipt.input_uncached, null);
   assert.equal(receipt.start_usage.input_tokens, 17);
@@ -35,14 +35,14 @@ test('SOURCE_INTEGRATION actual ledger, selected files, one model candidate, one
 test('SOURCE_INTEGRATION zero confirmed todos still requires a real page and verified artifact', async t => {
   const f = await fixture(t, {proposal: {todos: []}}); await launch(f);
   await until(() => snapshot(f).state === 'done', 'empty valid page');
-  assert.match(await readFile(output(f), 'utf8'), /这些已读笔记中未见明确待办/);
+  assert.match(await readFile(output(f), 'utf8'), /No explicit to-dos in the notes read/);
   assert.equal(snapshot(f).steps.find(s => s.stepKey === 'model').result.completion.itemCount, 0);
 });
 test('SOURCE_INTEGRATION unreadable selected input yields a real partial page with a named gap', async t => {
   const f = await fixture(t); await writeNote(f.root, 'bad.md', Buffer.from([0xff, 0xfe])); await launch(f);
   await until(() => snapshot(f).state === 'partial', 'partial page');
   assert.equal(snapshot(f).artifacts[0].sourceCount, 1);
-  assert.match(await readFile(output(f), 'utf8'), /bad\.md：不是可读的 UTF-8 纯文本/);
+  assert.match(await readFile(output(f), 'utf8'), /bad\.md: not readable UTF-8 plain text\./);
   assert.equal(f.counters.modelCalls, 1);
 });
 test('SOURCE_INTEGRATION no matching sources creates no model request or file', async t => {

@@ -224,7 +224,7 @@ void main() {
         'overridden',
       ),
     );
-    expect(voice.label!.resolve('zh'), '语音输入', reason: 'the bundle title');
+    expect(voice.label!.resolve('zh'), 'Voice input', reason: 'English-only bundle title');
     expect((phone.owner, phone.bundle, phone.kind, phone.writable), ('overlay', null, 'overlay', false));
     expect((older.owner, older.bundle, older.kind, older.source, older.writable), (null, null, null, null, null));
   });

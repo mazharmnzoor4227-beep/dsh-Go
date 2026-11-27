@@ -98,6 +98,7 @@ Future<void> openVoiceCall(
     }
     return;
   }
+  if (!context.mounted) return;
   container.read(readAloudProvider.notifier).stop();
   await Navigator.of(context).push(
     PageRouteBuilder<void>(

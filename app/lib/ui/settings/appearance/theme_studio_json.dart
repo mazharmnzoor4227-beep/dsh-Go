@@ -49,7 +49,6 @@ class _ThemeStudioJsonSheetState extends State<ThemeStudioJsonSheet> with FieldP
   }
 
   void _check(String text) {
-    final english = AppLocale.isEnglish;
     _note = null;
     _parsed = null;
     _errorAt = null;
@@ -111,7 +110,6 @@ class _ThemeStudioJsonSheetState extends State<ThemeStudioJsonSheet> with FieldP
 
   @override
   Widget build(BuildContext context) {
-    final english = AppLocale.isEnglish;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final c = widget.controller;

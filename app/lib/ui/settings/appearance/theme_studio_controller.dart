@@ -32,7 +32,6 @@ enum ThemeImageSlot {
 
 const _fontExtensions = ['.ttf', '.otf'];
 
-String _t(String zh, String en) => AppLocale.isEnglish ? en : zh;
 
 Future<({String name, Uint8List bytes})?> _pickBounded(List<String> extensions, int maxBytes) async {
   final picked = await FilePicker.pickFile(type: FileType.custom, allowedExtensions: extensions);

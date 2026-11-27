@@ -72,12 +72,12 @@ test('SOURCE_UNIT proposal requires real source lines, literal task and explicit
 test('SOURCE_UNIT counts and empty valid page derive from actual inputs, not model assertions', () => {
   const empty = renderNotesPage(parse({todos: []}), inputs);
   assert.equal(empty.sourceCount, 1); assert.equal(empty.itemCount, 0); assert.equal(empty.state, 'done');
-  assert.match(empty.content, /这些已读笔记中未见明确待办/);
-  assert.match(empty.content, /完整读回 1 份，列出 0 项/);
+  assert.match(empty.content, /No explicit to-dos in the notes read/);
+  assert.match(empty.content, /Read back in full: 1 of this run's fixed list; 0 items listed/);
   const withGap = {...inputs, scope: {...inputs.scope, gaps: [{name: '另一份.md', reason: 'input_changed'}]}};
   const partial = renderNotesPage(parse({todos: [todo]}), withGap);
   assert.equal(partial.state, 'partial'); assert.equal(partial.sourceCount, 1);
-  assert.match(partial.content, /另一份\.md：所选版本已改变/);
+  assert.match(partial.content, /另一份\.md: the selected version has changed\./);
 });
 test('SOURCE_UNIT Markdown escape keeps literal evidence and filenames from becoming active links', () => {
   const special = {...inputs, entries: [{name: '[link](evil).md', text: 'TODO: [click](evil) <script>x</script>'}]};
@@ -95,9 +95,9 @@ test('SOURCE_UNIT plain text output keeps literal task, quote, filename and assi
   const proposal = readNotesProposal(JSON.stringify({todos: [item]}), plainInputs);
   const result = renderNotesPage(proposal, plainInputs, 'text/plain');
   assert.ok(result.content.includes('- [ ] 修复 user_id 字段'));
-  assert.ok(result.content.includes('来源：meeting_notes.txt'));
-  assert.ok(result.content.includes('负责人：dev_team'));
-  assert.ok(result.content.includes(`原文：${text}`));
+  assert.ok(result.content.includes('Source: meeting_notes.txt, line 1.'));
+  assert.ok(result.content.includes('Assignee: dev_team; date: not stated.'));
+  assert.ok(result.content.includes(`Original: ${text}`));
 });
 test('SOURCE_UNIT heuristic covers complete request and preserves unknown context window', () => {
   const body = JSON.stringify({system: notesSystem, messages: [{role: 'user', content: [{type: 'text', text: notesModelInput(inputs)}]}]});

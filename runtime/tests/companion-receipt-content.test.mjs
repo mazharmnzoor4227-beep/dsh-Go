@@ -63,7 +63,7 @@ test('J SOURCE_UNIT fully empty PDF text layer explicitly records unread text in
       {pageCount: 1, textLayerOnly: true, fullTextExtraction: true, pages: [{page: 1, lines: []}]}});
   assert.equal(value.source.reason, 'pdf_empty_text'); assert.equal(value.row.date.reason, 'pdf_empty_text');
   const report = receiptReport([observed(), observed(), observed(), value]);
-  assert.match(receiptGrid(report)[3][3], /未读到文字层/u);
+  assert.match(receiptGrid(report)[3][3], /no text layer read/u);
 });
 test('J SOURCE_UNIT four rows and coverage are derived exactly; invalidated source fields leave evidence out of the table', () => {
   const values = [observed(), observed(), observed(), observed('nothing here')];
@@ -73,7 +73,7 @@ test('J SOURCE_UNIT four rows and coverage are derived exactly; invalidated sour
   assert.equal(report.coverage.rowsWithVerifiedFields, 2); assert.equal(report.coverage.fullyVerifiedRows, 2);
   assert.equal(report.coverage.gaps.filter(value => value.field === 'verification').length, 1);
   for (const key of ['date', 'item', 'amount']) assert.equal(report.rows[0][key].evidence, null);
-  assert.match(receiptGrid(report)[0][2], /原件已换版/u);
+  assert.match(receiptGrid(report)[0][2], /original changed version/u);
 });
 test('J SOURCE_UNIT UTF8, long-line and text-line limits fail explicitly without truncated full-coverage results', () => {
   assert.throws(() => receiptTextLines(Buffer.from([0xc3, 0x28])), /input_not_utf8/u);

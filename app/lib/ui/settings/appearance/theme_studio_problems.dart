@@ -106,7 +106,7 @@ String? _fieldName(String path, bool english) {
     return color == null ? null : '${english ? en : zh} · $color';
   }
   // One half of a text the pack supplies in two languages.
-  for (final (suffix, zh, en) in const [('.zh', 'Chinese', 'Chinese'), ('.en', 'English', 'English')]) {
+  for (final (suffix, en) in const [('.zh', 'Chinese'), ('.en', 'English')]) {
     if (!path.endsWith(suffix)) continue;
     final base = pick(_fieldNames[path.substring(0, path.length - suffix.length)]);
     return base == null ? null : ('$base ($en)');
@@ -114,7 +114,6 @@ String? _fieldName(String path, bool english) {
   return null;
 }
 
-String _plain(String number) => number.replaceFirst(RegExp(r'\.0$'), '');
 
 /// [message] from the pack parser, said the way the studio's controls are labelled. A message in a form this
 /// does not know comes back as it was.

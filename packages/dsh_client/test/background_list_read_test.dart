@@ -181,7 +181,7 @@ void main() {
         final client = connect(server, background: background);
         final bundle = (await client.listBundles()).single;
         expect(bundle.name, 'test-bundle');
-        expect(bundle.meta!.title!.resolve('zh'), '语音');
+        expect(bundle.meta!.title!.resolve('zh'), 'Speech');
         expect(bundle.rows.single.entryId, 'include:test-plugin');
         final plugin = (await client.listPlugins()).single;
         expect(plugin.entryId, 'include:test-plugin');

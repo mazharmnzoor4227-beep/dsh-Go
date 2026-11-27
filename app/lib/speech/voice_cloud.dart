@@ -14,7 +14,6 @@ import 'package:http/http.dart' as http;
 import '../state/account_state.dart';
 import '../state/provider_keys.dart';
 import '../state/providers_state.dart';
-import '../state/connection_state.dart';
 import '../state/settings_state.dart';
 import '../state/voice_settings.dart';
 import 'deepseek_speech.dart';

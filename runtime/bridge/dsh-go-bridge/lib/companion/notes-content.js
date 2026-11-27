@@ -111,7 +111,7 @@ export function renderNotesPage(proposal, inputs, mediaType = 'text/markdown') {
   }
   if (gaps.length) {
     lines.push('## Not covered', '', 'This page covers only the notes read back in full above; the following were not treated as read:', '');
-    for (const gap of gaps) lines.push(`- ${inline(gap.name)}：${gapText(gap.reason)}。`);
+    for (const gap of gaps) lines.push(`- ${inline(gap.name)}: ${gapText(gap.reason)}.`);
     lines.push('');
   }
   const content = lines.join('\n');

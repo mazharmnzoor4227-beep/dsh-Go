@@ -273,7 +273,7 @@ void main() {
     expect(gate.receive(ingress, receipt.signal, provenance: proof), CompanionSignalAdmission.unavailable);
     expect(gate.receiveRun(ingress, receipt), CompanionSignalAdmission.accepted);
     final slot = gate.slots.single;
-    expect(gate.speechCandidate(slot)!.text, '测试命令执行成功，测试数量未知。');
+    expect(gate.speechCandidate(slot)!.text, 'The test command succeeded; test counts are unknown.');
     await sub.cancel();
     expect(gate.slotCurrent(slot), isFalse);
   });

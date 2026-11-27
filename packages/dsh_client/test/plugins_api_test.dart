@@ -144,9 +144,9 @@ void main() {
 
       final search = bundles[1];
       expect(search.official && search.optional, isTrue);
-      expect(search.title('zh'), '会话搜索');
+      expect(search.title('zh'), 'Session search');
       expect(search.title('en'), 'Session search');
-      expect(search.title('zh-Hans-CN'), '会话搜索');
+      expect(search.title('zh-Hans-CN'), 'Session search');
       expect(search.summary(), 'Give Agents tools to search earlier sessions.');
       expect(search.meta!.icon, startsWith('data:image/svg+xml'));
 
@@ -389,10 +389,10 @@ void main() {
   });
 
   group('LocalizedText', () {
-    test('resolution order', () {
+    test('English-only resolution order', () {
       final text = LocalizedText.fromJson({'en': 'Hello', 'zh-cn': '你好', 'ja': ''})!;
-      expect(text.resolve('zh'), '你好');
-      expect(text.resolve('zh-CN'), '你好');
+      expect(text.resolve('zh'), 'Hello');
+      expect(text.resolve('zh-CN'), 'Hello');
       expect(text.resolve('ko'), 'Hello');
       expect(text.values.containsKey('ja'), isFalse, reason: 'blank members dropped');
       expect(LocalizedText.fromJson('  '), isNull);
@@ -402,12 +402,12 @@ void main() {
 
     // What schemastery 3.18.5 `.description('…').i18n({…})` serializes:
     // mergeDesc keeps the plain description under '' beside each locale.
-    test('plain text written in the UI language beats English', () {
+    test('English beats Chinese plain text', () {
       final retries = LocalizedText.fromJson({'': '最大重试次数', 'en': 'Maximum retries'})!;
-      expect(retries.resolve('zh'), '最大重试次数');
+      expect(retries.resolve('zh'), 'Maximum retries');
       expect(retries.resolve('en'), 'Maximum retries');
       final endpoint = LocalizedText.fromJson({'': 'Upstream endpoint', 'zh-CN': '上游地址', 'en': 'Upstream'})!;
-      expect(endpoint.resolve('zh'), '上游地址');
+      expect(endpoint.resolve('zh'), 'Upstream');
       expect(endpoint.resolve('en'), 'Upstream');
       final english = LocalizedText.fromJson({'': 'Retries', 'ja': 'リトライ'})!;
       expect(english.resolve('zh'), 'Retries', reason: 'no Chinese: plain text before an unrelated language');
@@ -416,12 +416,12 @@ void main() {
     test('underscore ids and English variants', () {
       final region = LocalizedText.fromJson({'en_US': 'Region', 'zh_CN': '区域'})!;
       expect(region.values.keys, ['en-us', 'zh-cn']);
-      expect(region.resolve('zh'), '区域');
-      expect(region.resolve('zh_CN'), '区域');
+      expect(region.resolve('zh'), 'Region');
+      expect(region.resolve('zh_CN'), 'Region');
       expect(region.resolve('en'), 'Region');
       expect(LocalizedText.fromJson({'ja': 'リトライ', 'en-US': 'Retries'})!.resolve('zh'), 'Retries');
       // Strict market text keeps its keys as written; resolving still matches.
-      expect(const LocalizedText({'en': 'Weather', 'zh-CN': '天气'}).resolve('zh'), '天气');
+      expect(const LocalizedText({'en': 'Weather', 'zh-CN': '天气'}).resolve('zh'), 'Weather');
     });
   });
 }

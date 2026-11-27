@@ -8,13 +8,13 @@ import org.junit.Assume.assumeTrue
 import org.junit.Test
 
 class GuestAgentsModeTest {
-    @Test fun managedInstructionsUseTheSelectedLocale() {
+    @Test fun managedInstructionsAreEnglishOnly() {
         val root = kotlin.io.path.createTempDirectory("agents-locale").toFile()
         try {
             val file = File(root, "root/.dsh/AGENTS.md")
             GuestSetup.writeAgentsMd(root, phoneStorage = true, phoneControl = true)
             val original = file.readBytes()
-            assertTrue(file.readText().contains("# 运行环境（DSH 手机版）"))
+            assertTrue(file.readText().contains("# Runtime environment (DSH mobile app)"))
 
             GuestSetup.writeAgentsMd(root, phoneStorage = true, phoneControl = true, nativeLocale = "en")
             val english = file.readText()
@@ -167,7 +167,7 @@ class GuestAgentsModeTest {
             GuestSetup.writeAgentsMd(root, phoneStorage = true)
             val text = File(root, "root/.dsh/AGENTS.md").readText()
             // The folder FilesPlugin saves into and lists, with no space to quote in shell commands.
-            assertTrue(text.contains("给用户的产出文件放到 `/sdcard/Download/DSH-Go/`。"))
+            assertTrue(text.contains("put files produced for the user in `/sdcard/Download/DSH-Go/`"))
             assertFalse(text.contains("/sdcard/Download/DSH/"))
         } finally { root.deleteRecursively() }
     }
@@ -178,7 +178,7 @@ class GuestAgentsModeTest {
             val file = File(root, "root/.dsh/AGENTS.md")
             GuestSetup.writeAgentsMd(root, phoneStorage = false)
             val proot = file.readText()
-            assertTrue(proot.contains("## 本机诊断"))
+            assertTrue(proot.contains("## Local diagnostics"))
             assertTrue(proot.contains("`\$DSH_HOME/dsh-app/diagnostics.md`"))
             assertTrue(proot.contains("dsh-go-support"))
             GuestSetup.writeAgentsMd(root, phoneStorage = false, directEngine = true)

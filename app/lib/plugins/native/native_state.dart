@@ -51,7 +51,6 @@ final nativeLocaleProvider = Provider<String>((ref) {
     binding.addObserver(observer);
     ref.onDispose(() => binding.removeObserver(observer));
   }
-  final locale = AppLocale.resolve(chosen, binding.platformDispatcher.locales);
   return 'en';
 });
 

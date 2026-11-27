@@ -5,7 +5,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
-import '../../l10n/l10n.dart';
 import '../../themes/theme_pack.dart';
 import 'accent.dart';
 import 'highlight_theme.dart';

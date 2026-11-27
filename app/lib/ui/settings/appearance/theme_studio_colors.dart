@@ -482,7 +482,6 @@ class _ColorPickerState extends State<_ColorPicker> {
 
   @override
   Widget build(BuildContext context) {
-    final english = AppLocale.isEnglish;
     final theme = Theme.of(context);
     final color = _color.toColor(alpha: _alpha);
     final ink = ThemeData.estimateBrightnessForColor(color) == Brightness.dark && _alpha > 0.5

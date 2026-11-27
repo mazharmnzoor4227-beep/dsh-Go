@@ -29,7 +29,7 @@ test('J SOURCE_HTTP three readable originals plus one scan publish/reopen one re
   assert.equal(Number(downloaded.length), downloaded.bytes.length); assert.equal(downloaded.cache, 'no-store');
   assert.equal(createHash('sha256').update(downloaded.bytes).digest('hex'), snapshot.artifacts[0].sha256);
   const readback = parseActualWorkbook(f, snapshot, downloaded.bytes);
-  assert.equal(readback.cells, 20); assert.match(readback.rows[4][3], /未读到文字层/u);
+  assert.equal(readback.cells, 20); assert.match(readback.rows[4][3], /no text layer read/u);
   assert.deepEqual(await Promise.all(f.fixtures.map(value => readFile(join(f.root, 'notes', value.name)))), original);
   const cap = (await f.request('/capabilities')).body;
   assert.deepEqual(cap.receiptInputs, {formats: ['md', 'txt', 'pdf'], maxFiles: 4, maxBytes: 4194304, maxPdfPages: 5, workbookBytes: 262144});

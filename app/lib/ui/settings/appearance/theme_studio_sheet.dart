@@ -322,7 +322,6 @@ class _PreviewDock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final english = AppLocale.isEnglish;
     final screen = MediaQuery.sizeOf(context).height - MediaQuery.viewPaddingOf(context).top;
     final room = screen - MediaQuery.viewInsetsOf(context).bottom - _reserved;
     if (room < _least) return const SizedBox(height: 4);
