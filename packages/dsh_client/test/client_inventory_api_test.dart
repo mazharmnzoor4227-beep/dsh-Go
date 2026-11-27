@@ -208,7 +208,7 @@ void main() {
       ]);
       expect(sections[1].label?.resolve('zh'), '桌宠');
       expect(sections[1].label?.resolve('en'), 'Desktop pet');
-      expect(inventory.slots!['conversation.input.dock']!.first.label?.resolve(), '用量');
+      expect(inventory.slots!['conversation.input.dock']!.first.label?.resolve('zh'), '用量');
       expect(inventory.slots!.containsKey(''), isFalse);
     });
 

@@ -70,17 +70,17 @@ void main() {
         _url,
       );
       expect(index.title.resolve('zh'), 'dshfind · DSH 插件目录');
-      expect(index.description!.resolve(), '社区插件');
+      expect(index.description!.resolve('zh'), '社区插件');
       expect(index.categories.keys, ['tools', 'skin']);
-      expect(index.categories['tools']!.title.resolve(), '工具集成');
-      expect(index.labels['featured']!.title.resolve(), '编辑推荐');
+      expect(index.categories['tools']!.title.resolve('zh'), '工具集成');
+      expect(index.labels['featured']!.title.resolve('zh'), '编辑推荐');
       expect(index.sortKeys['stars']!.descending, isTrue);
       expect(index.issues, isEmpty);
 
       final plugin = index.plugins.single;
       expect(plugin.name, 'novel-writer');
       expect(plugin.displayTitle(), 'novel-writer');
-      expect(plugin.displayDescription(), startsWith('小说创作模式'));
+      expect(plugin.displayDescription('zh'), startsWith('小说创作模式'));
       expect(plugin.icon, 'https://avatars.githubusercontent.com/sailoumili?s=96');
       expect(plugin.author, 'sailoumili');
       expect(plugin.repositoryUrl, 'https://github.com/sailoumili/novel-writer');
