@@ -5223,6 +5223,8 @@
       }
     }
   },
+  "engineProviderQuickSetup": "Quick setup",
+  "engineProviderCustomServer": "Custom server",
   "featuresCordisSubtitle": "动态插件 · 引擎重启后清空",
   "featuresCordisUnavailable": "这个连接看不到 Cordis",
   "featuresCordisRemoteUnavailable": "经 DSH Remote 中转时不可用",

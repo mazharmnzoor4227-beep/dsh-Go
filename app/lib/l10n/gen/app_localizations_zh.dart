@@ -8934,6 +8934,12 @@ class L10nZh extends L10n {
   }
 
   @override
+  String get engineProviderQuickSetup => 'Quick setup';
+
+  @override
+  String get engineProviderCustomServer => 'Custom server';
+
+  @override
   String get featuresCordisSubtitle => '动态插件 · 引擎重启后清空';
 
   @override

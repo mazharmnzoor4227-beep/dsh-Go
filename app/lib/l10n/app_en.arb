@@ -2711,6 +2711,8 @@
   "engineSettingsHostChanged": "The host changed. Reopen these settings to edit.",
   "engineSecretTargetChanged": "This field changed. Reopen it to edit.",
   "engineSettingsGroupCount": "{count, plural, =1{1 setting} other{{count} settings}}",
+  "engineProviderQuickSetup": "Quick setup",
+  "engineProviderCustomServer": "Custom server",
   "featuresCordisSubtitle": "Dynamic plugins · Cleared when the engine restarts",
   "featuresCordisUnavailable": "Cordis isn’t available here",
   "featuresCordisRemoteUnavailable": "Unavailable over DSH Remote",

@@ -16404,6 +16404,18 @@ abstract class L10n {
   /// **'{count} 项'**
   String engineSettingsGroupCount(int count);
 
+  /// No description provided for @engineProviderQuickSetup.
+  ///
+  /// In zh, this message translates to:
+  /// **'Quick setup'**
+  String get engineProviderQuickSetup;
+
+  /// No description provided for @engineProviderCustomServer.
+  ///
+  /// In zh, this message translates to:
+  /// **'Custom server'**
+  String get engineProviderCustomServer;
+
   /// No description provided for @featuresCordisSubtitle.
   ///
   /// In zh, this message translates to:

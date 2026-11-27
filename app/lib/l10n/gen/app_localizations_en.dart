@@ -9927,6 +9927,12 @@ class L10nEn extends L10n {
   }
 
   @override
+  String get engineProviderQuickSetup => 'Quick setup';
+
+  @override
+  String get engineProviderCustomServer => 'Custom server';
+
+  @override
   String get featuresCordisSubtitle =>
       'Dynamic plugins · Cleared when the engine restarts';
 
