@@ -97,6 +97,8 @@ jobs:
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;28.2.13676358"
 
       - name: Build APK (slim, no bundled rootfs)
+        env:
+          DSH_SLIM_RUNTIME: '1'
         run: |
           ls "$ANDROID_HOME/ndk/"
           export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/28.2.13676358"
