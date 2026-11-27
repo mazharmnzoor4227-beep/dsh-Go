@@ -41,7 +41,7 @@ LOCKS="$HERE/locks"
 PY=(python3 -I "$HERE/lib/rtbuild.py")
 
 # ---- pinned inputs (override via environment; pinned hashes then must be updated too) ----
-RUNTIME_REVISION="${RUNTIME_REVISION:-r15}"  # r14 + per-family DNS under PRoot, input recovery, session deletion and upload resolver fixes, title and boot cache work; DSH as r12
+RUNTIME_REVISION="${RUNTIME_REVISION:-r16}"  # r15 + curl in the rootfs so CLI installs work out of the box; DSH as r12
 DSH_VERSION="${DSH_VERSION:-0.2.2-rc.1}"
 NODE_VERSION="${NODE_VERSION:-24.22.1}"
 # pnpm runs DSH's plugin installs (pluginManager / `dsh plugin`); the version the DSH repo pins.
@@ -52,7 +52,7 @@ UBUNTU_VERSION="${UBUNTU_VERSION:-24.04.5}"
 PROOT_VERSION="5.1.107.102"
 TALLOC_VERSION="2.5.0"
 SHMEM_VERSION="0.7"
-UBUNTU_EXTRA="${UBUNTU_EXTRA:-tzdata ca-certificates git}"   # extra noble debs (+ dependency closure)
+UBUNTU_EXTRA="${UBUNTU_EXTRA:-tzdata ca-certificates git curl}"   # extra noble debs (+ dependency closure)
 PYTHON_VERSION="${PYTHON_VERSION:-3.12.15}"
 PBS_RELEASE="${PBS_RELEASE:-20261021}"    # astral-sh/python-build-standalone release tag
 COMPRESS="${COMPRESS:-xz}"          # xz | gz
@@ -193,7 +193,7 @@ termux_deb() {  # $1 = package, $2 = version, $3 = termux arch; echoes path
   printf '%s' "$dest"
 }
 
-# Extra Ubuntu noble packages (tzdata, ca-certificates, git and their dependency closure).
+# Extra Ubuntu noble packages (tzdata, ca-certificates, git, curl and their dependency closure).
 # Chain of trust: InRelease of noble / noble-updates / noble-security verified with gpgv against
 # ubuntu-archive-keyring.gpg from the checksum-verified Ubuntu Base tarball -> Packages.xz hash
 # -> each .deb hash. The resolved set is pinned in runtime/locks/ubuntu-noble-<arch>.json

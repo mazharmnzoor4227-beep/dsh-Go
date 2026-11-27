@@ -14,12 +14,22 @@
   },
   "dshGo": {
     "v": 1,
-    "title": { "zh": "我的插件", "en": "My plugin" },
+    "title": {
+      "en": "My plugin"
+    },
     "icon": "bolt",
-    "wants": ["clipboard"],
+    "wants": [
+      "clipboard"
+    ],
     "contributes": {
       "composer.actions": [
-        { "id": "paste-quote", "label": { "zh": "引用剪贴板", "en": "Quote clip" }, "icon": "document" }
+        {
+          "id": "paste-quote",
+          "label": {
+            "en": "Quote clip"
+          },
+          "icon": "document"
+        }
       ]
     }
   }

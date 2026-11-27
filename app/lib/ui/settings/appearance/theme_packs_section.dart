@@ -42,16 +42,16 @@ final themePackPickerProvider = Provider<Future<File?> Function()>(
 );
 
 String themeImportProblemText(ThemeImportException error, {required bool english}) => switch (error.problem) {
-  ThemeImportProblem.notAZip => english ? 'Selected file is not a valid ZIP archive.' : '所选文件不是有效的 ZIP 压缩包。',
-  ThemeImportProblem.noPack => english ? 'No theme.json found in the archive.' : '压缩包中未找到 theme.json 清单。',
+  ThemeImportProblem.notAZip => 'Selected file is not a valid ZIP archive.',
+  ThemeImportProblem.noPack => 'No theme.json found in the archive.',
   ThemeImportProblem.badPack =>
-    english ? 'Invalid theme.json (${error.detail ?? 'schema'}).' : '主题配置格式有误（${error.detail ?? 'schema'}）。',
+    'Invalid theme.json (${error.detail ?? 'schema'}).',
   ThemeImportProblem.missingAsset =>
-    english ? 'Missing referenced asset: ${error.detail ?? ''}.' : '缺少主题引用的素材文件：${error.detail ?? ''}。',
+    'Missing referenced asset: ${error.detail ?? ''}.',
   ThemeImportProblem.badAsset =>
-    english ? 'Invalid image or font asset: ${error.detail ?? ''}.' : '主题图片或字体素材无效：${error.detail ?? ''}。',
-  ThemeImportProblem.tooLarge => english ? 'Theme pack or asset exceeds size limits.' : '主题包或素材体积超出上限。',
-  ThemeImportProblem.storage => english ? 'Could not write theme pack to local storage.' : '无法写入本地存储。',
+    'Invalid image or font asset: ${error.detail ?? ''}.',
+  ThemeImportProblem.tooLarge => 'Theme pack or asset exceeds size limits.',
+  ThemeImportProblem.storage => 'Could not write theme pack to local storage.',
 };
 
 class ThemePacksSection extends ConsumerStatefulWidget {
@@ -86,8 +86,8 @@ class _ThemePacksSectionState extends ConsumerState<ThemePacksSection> {
       showBriefNotice(
         context,
         replaced
-            ? (english ? 'Theme pack updated and applied.' : '主题包已更新并启用。')
-            : (english ? 'Theme pack imported and applied.' : '主题包已导入并启用。'),
+            ? ('Theme pack updated and applied.')
+            : ('Theme pack imported and applied.'),
       );
     } on ThemeImportException catch (error) {
       if (mounted) {
@@ -95,7 +95,7 @@ class _ThemePacksSectionState extends ConsumerState<ThemePacksSection> {
       }
     } on Object {
       if (mounted) {
-        showBriefNotice(context, english ? 'Failed to import theme pack.' : '导入主题包失败。');
+        showBriefNotice(context, 'Failed to import theme pack.');
       }
     } finally {
       if (zip != null) {
@@ -120,14 +120,14 @@ class _ThemePacksSectionState extends ConsumerState<ThemePacksSection> {
           .read(filesChannelProvider)
           .saveToDownloads(dest.path, name: fileName, mime: 'application/zip');
       if (!mounted) return;
-      showBriefNotice(context, english ? 'Exported $fileName ($where)' : '已导出 $fileName（$where）');
+      showBriefNotice(context, 'Exported $fileName ($where)');
     } on ThemeImportException catch (error) {
       if (mounted) {
         showBriefNotice(context, themeImportProblemText(error, english: english));
       }
     } on Object {
       if (mounted) {
-        showBriefNotice(context, english ? 'Failed to export theme pack.' : '导出主题包失败。');
+        showBriefNotice(context, 'Failed to export theme pack.');
       }
     } finally {
       if (tempDir != null) {
@@ -148,7 +148,7 @@ class _ThemePacksSectionState extends ConsumerState<ThemePacksSection> {
       await ref.read(appearanceProvider.notifier).selectThemePack(null);
     }
     if (!mounted) return;
-    showBriefNotice(context, english ? 'Removed "${pack.displayName('en')}".' : '已移除「${pack.displayName('zh')}」。');
+    showBriefNotice(context, 'Removed "${pack.displayName('en')}".');
   }
 
   Future<void> _openStudio([ThemePack? initial, bool editing = false]) async {
@@ -167,14 +167,14 @@ class _ThemePacksSectionState extends ConsumerState<ThemePacksSection> {
     if (!mounted) return;
     showBriefNotice(
       context,
-      AppLocale.isEnglish ? 'Saved and applied "${saved.displayName('en')}".' : '已保存并启用「${saved.displayName('zh')}」。',
+      'Saved and applied "${saved.displayName('en')}".',
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final english = AppLocale.isEnglish;
-    final lang = english ? 'en' : 'zh';
+    final lang = 'en';
     final activeId = ref.watch(appearanceProvider.select((s) => s.themePackId));
     final userThemes = ref.watch(userThemesProvider).value ?? const <ThemePack>[];
     final workshopAvailable = ref.watch(workshopAvailableProvider);
@@ -186,8 +186,8 @@ class _ThemePacksSectionState extends ConsumerState<ThemePacksSection> {
         ListPageRow(
           key: const ValueKey('theme-pack-default'),
           icon: AppIcons.theme,
-          title: english ? 'Mist Glass (Default)' : '晨雾玻璃（默认）',
-          subtitle: english ? 'Translucent glass chrome with ambient hue glow' : '半透明磨砂玻璃与柔和环境光晕',
+          title: 'Mist Glass (Default)',
+          subtitle: 'Translucent glass chrome with ambient hue glow',
           trailing: activeId == null
               ? Icon(AppIcons.selected, size: 18, color: Theme.of(context).colorScheme.primary)
               : null,
@@ -222,10 +222,8 @@ class _ThemePacksSectionState extends ConsumerState<ThemePacksSection> {
         ListPageRow(
           key: const ValueKey('theme-pack-studio'),
           icon: AppIcons.color,
-          title: english ? 'Create Custom Theme Pack' : '自定义并创建主题包',
-          subtitle: english
-              ? 'Live preview · any color, surface, local font & artwork'
-              : '实时预览 · 任意色号、材质、本地字体与背景/插画自由组合',
+          title: 'Create Custom Theme Pack',
+          subtitle: 'Live preview · any color, surface, local font & artwork',
           chevron: true,
           onTap: () => unawaited(_openStudio(ref.read(activeThemePackProvider))),
         ),
@@ -233,10 +231,8 @@ class _ThemePacksSectionState extends ConsumerState<ThemePacksSection> {
         ListPageRow(
           key: const ValueKey('theme-pack-import'),
           icon: AppIcons.download,
-          title: english ? 'Import Theme Pack (.zip)' : '导入主题包 (.zip)',
-          subtitle: english
-              ? 'Load a declarative theme.json archive with fonts or artwork'
-              : '导入含 theme.json、自定义字体或插画的主题压缩包',
+          title: 'Import Theme Pack (.zip)',
+          subtitle: 'Load a declarative theme.json archive with fonts or artwork',
           onTap: _busy ? null : () => unawaited(_importZip()),
         ),
         if (workshopAvailable) ...[
@@ -244,8 +240,8 @@ class _ThemePacksSectionState extends ConsumerState<ThemePacksSection> {
           ListPageRow(
             key: const ValueKey('theme-pack-workshop'),
             icon: AppIcons.workshop,
-            title: english ? 'Theme Workshop' : '主题创意工坊',
-            subtitle: english ? 'Discover community themes or publish your own' : '浏览安装社区创作者的主题，或将你的作品投稿上架',
+            title: 'Theme Workshop',
+            subtitle: 'Discover community themes or publish your own',
             chevron: true,
             onTap: () {
               ref.read(workshopCatalogProvider.notifier).setKind(WorkshopKindFilter.theme);
@@ -330,19 +326,19 @@ class _ThemePackRow extends StatelessWidget {
             ),
           PopupMenuButton<_PackMenuAction>(
             icon: Icon(AppIcons.more, size: 18, color: scheme.onSurfaceVariant),
-            tooltip: english ? 'More actions' : '更多操作',
+            tooltip: 'More actions',
             onSelected: (action) => switch (action) {
               _PackMenuAction.customize => onCustomize(),
               _PackMenuAction.exportZip => onExport(),
               _PackMenuAction.delete => onDelete?.call(),
             },
             itemBuilder: (_) => [
-              PopupMenuItem(value: _PackMenuAction.customize, child: Text(english ? 'Edit / Remix' : '以此为模板编辑')),
-              PopupMenuItem(value: _PackMenuAction.exportZip, child: Text(english ? 'Export ZIP' : '导出主题包 (.zip)')),
+              PopupMenuItem(value: _PackMenuAction.customize, child: Text('Edit / Remix')),
+              PopupMenuItem(value: _PackMenuAction.exportZip, child: Text('Export ZIP')),
               if (onDelete != null)
                 PopupMenuItem(
                   value: _PackMenuAction.delete,
-                  child: Text(english ? 'Remove' : '移除主题包', style: TextStyle(color: scheme.error)),
+                  child: Text('Remove', style: TextStyle(color: scheme.error)),
                 ),
             ],
           ),

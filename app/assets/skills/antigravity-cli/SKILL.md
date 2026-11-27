@@ -12,16 +12,39 @@ tool; do not try to run the desktop Antigravity app or IDE here.
 
 ## Install (once)
 
+Run the whole install as ONE bash call using this script. It is safe to
+re-run: every step checks what is already done, so if a call is
+interrupted (engine restart, timeout), run the same script again and it
+continues where it left off instead of starting over.
+
 ```bash
-curl -fsSL https://antigravity.google/cli/install.sh -o /tmp/agy-install.sh
-bash /tmp/agy-install.sh
 export PATH="$HOME/.local/bin:$PATH"
+if command -v agy >/dev/null 2>&1; then
+  agy --version
+  exit 0
+fi
+# curl ships with the current runtime; older runtimes may lack it.
+if ! command -v curl >/dev/null 2>&1; then
+  export DEBIAN_FRONTEND=noninteractive
+  apt-get update -qq
+  apt-get install -y -qq --no-install-recommends curl ca-certificates
+fi
+# Download with retries; -C - resumes a partial file after an interruption.
+curl -fsSL --retry 5 --retry-delay 3 -C - https://antigravity.google/cli/install.sh -o /tmp/agy-install.sh
+bash /tmp/agy-install.sh
 agy --version
 ```
 
-The installer detects arm64 and puts the binary in `~/.local/bin/agy`.
-Download the script first and run it as a file; piping straight to bash can
-time out.
+Notes:
+
+- The installer detects arm64 and puts the binary in `~/.local/bin/agy`.
+- Download the script first and run it as a file; piping straight to
+  bash can time out.
+- Never split the install across several short calls (a separate
+  `which curl`, then a separate `apt-get`): one call runs to completion,
+  and re-running it after an interruption is the recovery path.
+- If `apt-get` reports a lock or a half-configured package after an
+  interruption, run `dpkg --configure -a` once, then re-run the script.
 
 ## Sign in
 

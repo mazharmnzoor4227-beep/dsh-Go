@@ -97,20 +97,16 @@ Future<CompanionLines?> companionLinesWrite({
   required String persona,
   required String language,
 }) async {
-  final zh = language == 'zh';
-  final system = zh
-      ? '你在为一个陪伴角色写她被触碰、或使用小屋里的东西时脱口而出的短句。'
-            '完全按下面的人设说话：语气、自称、口癖都要像她，不要套用别的角色的身份、外形或物品。'
-            '每个场景写 3 句，每句不超过 16 个字。只输出一个 JSON 对象，键是场景名，值是字符串数组。'
-      : 'You write the short things a companion character says when touched or when using the things in her room. '
+  final system =
+      'You write the short things a companion character says when touched or when using the things in her room. '
             'Speak exactly as the persona below: her tone, how she refers to herself, her habits; never borrow another '
             "character's identity, looks or belongings. Write 3 lines per moment, each at most 60 characters. Output "
             'only one JSON object whose keys are the moment names and whose values are arrays of strings.';
   final request = StringBuffer()
-    ..writeln(zh ? '人设：' : 'Persona:')
+    ..writeln('Persona:')
     ..writeln(persona)
     ..writeln()
-    ..writeln(zh ? '场景：' : 'Moments:');
+    ..writeln('Moments:');
   for (final entry in CompanionLines.moments.entries) {
     request.writeln('- ${entry.key}: ${entry.value}');
   }

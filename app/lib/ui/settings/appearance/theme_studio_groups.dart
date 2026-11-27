@@ -40,7 +40,7 @@ class StudioInfoGroup extends _Group {
     final p = c.pack;
     return StudioGroup(
       id: 'info',
-      title: _t('基本信息', 'Basics'),
+      title: 'Basics',
       open: open,
       onToggle: onToggle,
       basics: [
@@ -48,21 +48,21 @@ class StudioInfoGroup extends _Group {
           key: const ValueKey('theme-studio-name'),
           value: p.name,
           onChanged: c.setName,
-          label: _t('主题名称', 'Theme name'),
-          hint: _t('例如：松烟纸墨', 'e.g. Warm Paper'),
+          label: 'Theme name',
+          hint: 'e.g. Warm Paper',
         ),
         StudioField.text(
           key: const ValueKey('theme-studio-id'),
           value: p.id,
           onChanged: (text) => c.update(c.pack.copyWith(id: text)),
-          label: _t('主题 ID（小写字母、数字、连字符）', 'Theme ID (lower-case letters, digits, hyphens)'),
+          label: 'Theme ID (lower-case letters, digits, hyphens)',
           hint: 'warm-paper',
         ),
         StudioField.text(
           key: const ValueKey('theme-studio-description'),
           value: p.description,
           onChanged: (text) => c.update(c.pack.copyWith(description: text)),
-          label: _t('一句话简介（可选）', 'Summary (optional)'),
+          label: 'Summary (optional)',
         ),
       ],
       more: [
@@ -73,8 +73,8 @@ class StudioInfoGroup extends _Group {
               child: StudioField.text(
                 value: p.titleZh ?? '',
                 onChanged: (text) => c.setMeta(titleZh: () => _blankToNull(text)),
-                label: _t('中文名称', 'Chinese name'),
-                hint: _t('不填就用主题名称', 'Defaults to the theme name'),
+                label: 'Chinese name',
+                hint: 'Defaults to the theme name',
               ),
             ),
             const SizedBox(width: 8),
@@ -82,8 +82,8 @@ class StudioInfoGroup extends _Group {
               child: StudioField.text(
                 value: p.titleEn ?? '',
                 onChanged: (text) => c.setMeta(titleEn: () => _blankToNull(text)),
-                label: _t('英文名称', 'English name'),
-                hint: _t('不填就用主题名称', 'Defaults to the theme name'),
+                label: 'English name',
+                hint: 'Defaults to the theme name',
               ),
             ),
           ],
@@ -91,26 +91,26 @@ class StudioInfoGroup extends _Group {
         StudioField<List<String>>(
           value: p.tags,
           read: _readTags,
-          show: (tags) => tags.join(_t('、', ', ')),
+          show: (tags) => tags.join(', '),
           same: listEquals,
           onChanged: (tags) => c.update(c.pack.copyWith(tags: tags)),
-          label: _t('标签（用逗号隔开，最多 8 个）', 'Tags (comma separated, up to 8)'),
+          label: 'Tags (comma separated, up to 8)',
         ),
         StudioField.text(
           value: p.author ?? '',
           onChanged: (text) => c.setMeta(author: () => _blankToNull(text)),
-          label: _t('作者', 'Author'),
+          label: 'Author',
         ),
         StudioField.text(
           value: p.license ?? '',
           onChanged: (text) => c.setMeta(license: () => _blankToNull(text)),
-          label: _t('许可协议', 'License'),
+          label: 'License',
           hint: 'CC-BY-4.0',
         ),
         StudioField.text(
           value: p.source ?? '',
           onChanged: (text) => c.setMeta(source: () => _blankToNull(text)),
-          label: _t('来源链接', 'Source link'),
+          label: 'Source link',
           hint: 'https://',
         ),
       ],
@@ -130,15 +130,15 @@ class StudioColorGroup extends _Group {
   final bool previewDark;
 
   static const _seeds = <(int, String, String, double)>[
-    (0xFFA14732, '赤陶', 'Terracotta', 74),
-    (0xFF2B6A58, '青瓷', 'Celadon', 162),
-    (0xFF4B67B4, '雾蓝', 'Mist Blue', 260),
-    (0xFF0D736A, '矩阵青', 'Matrix Teal', 192),
-    (0xFF9A5B1F, '琥珀', 'Amber', 52),
-    (0xFF5F7A55, '苔绿', 'Moss', 140),
-    (0xFF726291, '暮紫', 'Dusk', 295),
-    (0xFFB85A7C, '落樱', 'Sakura', 342),
-    (0xFF4E525B, '石墨', 'Graphite', 262),
+    (0xFFA14732, 'Terracotta', 'Terracotta', 74),
+    (0xFF2B6A58, 'Celadon', 'Celadon', 162),
+    (0xFF4B67B4, 'Mist Blue', 'Mist Blue', 260),
+    (0xFF0D736A, 'Matrix Teal', 'Matrix Teal', 192),
+    (0xFF9A5B1F, 'Amber', 'Amber', 52),
+    (0xFF5F7A55, 'Moss', 'Moss', 140),
+    (0xFF726291, 'Dusk', 'Dusk', 295),
+    (0xFFB85A7C, 'Sakura', 'Sakura', 342),
+    (0xFF4E525B, 'Graphite', 'Graphite', 262),
   ];
 
   /// What [token] looks like in the draft now, set or not.
@@ -160,7 +160,7 @@ class StudioColorGroup extends _Group {
     final hue = palette.tintHue;
     return StudioGroup(
       id: 'colors',
-      title: _t('颜色', 'Colors'),
+      title: 'Colors',
       open: open,
       onToggle: onToggle,
       basics: [
@@ -187,7 +187,7 @@ class StudioColorGroup extends _Group {
                 onChanged: (argb) {
                   if (argb != null) c.setSeed(argb);
                 },
-                label: _t('自定义主色', 'Custom accent'),
+                label: 'Custom accent',
                 onPick: () => unawaited(_pick(context, Color(palette.seed), c.setSeed, opacity: false)),
               ),
             ),
@@ -197,7 +197,7 @@ class StudioColorGroup extends _Group {
                 key: const ValueKey('theme-studio-bubble-hex'),
                 value: palette.light.userBubble,
                 onChanged: c.setUserBubble,
-                label: _t('我的气泡（可选）', 'My bubble (optional)'),
+                label: 'My bubble (optional)',
                 hint: '#ECE8E2',
                 onPick: () => unawaited(_pick(context, _now('userBubble'), c.setUserBubble)),
               ),
@@ -212,7 +212,7 @@ class StudioColorGroup extends _Group {
                 key: const ValueKey('theme-studio-light-bg-hex'),
                 value: palette.light.backdropTop,
                 onChanged: (argb) => c.setBackdropColor(argb, dark: false),
-                label: _t('浅色背景（可选）', 'Light page (optional)'),
+                label: 'Light page (optional)',
                 hint: '#F7F4EC',
                 onPick: () =>
                     unawaited(_pick(context, _now('backdropTop'), (argb) => c.setBackdropColor(argb, dark: false))),
@@ -224,7 +224,7 @@ class StudioColorGroup extends _Group {
                 key: const ValueKey('theme-studio-dark-bg-hex'),
                 value: palette.dark.backdropTop,
                 onChanged: (argb) => c.setBackdropColor(argb, dark: true),
-                label: _t('深色背景（可选）', 'Dark page (optional)'),
+                label: 'Dark page (optional)',
                 hint: '#181614',
                 onPick: () => unawaited(
                   _pick(context, _now('backdropTop', dark: true), (argb) => c.setBackdropColor(argb, dark: true)),
@@ -234,8 +234,8 @@ class StudioColorGroup extends _Group {
           ],
         ),
         StudioChoice<double>(
-          label: _t('背景光晕', 'Backdrop glow'),
-          items: [(0.0, _t('没有', 'None')), (0.45, _t('柔和', 'Soft')), (1.0, _t('明显', 'Full'))],
+          label: 'Backdrop glow',
+          items: [(0.0, 'None'), (0.45, 'Soft'), (1.0, 'Full')],
           value: palette.glowOpacity,
           onChanged: (v) => c.palette((p) => p.copyWith(glowOpacity: v)),
         ),
@@ -245,7 +245,7 @@ class StudioColorGroup extends _Group {
             key: const ValueKey('theme-studio-all-colors'),
             icon: const Icon(AppIcons.color, size: 16),
             label: Text(
-              changed == 0 ? _t('全部颜色', 'All colors') : _t('全部颜色 · 已改 $changed 项', 'All colors · $changed changed'),
+              changed == 0 ? 'All colors' : 'All colors · $changed changed',
             ),
             onPressed: () => unawaited(
               showAppSheet<void>(
@@ -261,7 +261,7 @@ class StudioColorGroup extends _Group {
         StudioHexField(
           value: palette.seedDark,
           onChanged: (argb) => c.palette((p) => p.copyWith(seedDark: () => argb)),
-          label: _t('深色模式的主色（不填自动算）', 'Accent in dark mode (derived when empty)'),
+          label: 'Accent in dark mode (derived when empty)',
           onPick: () => unawaited(
             _pick(
               context,
@@ -280,10 +280,10 @@ class StudioColorGroup extends _Group {
               child: Row(
                 children: [
                   Expanded(
-                    child: Text(_t('背景和文字偏向的色调', 'Tint of backgrounds and text'), style: theme.textTheme.bodyMedium),
+                    child: Text('Tint of backgrounds and text', style: theme.textTheme.bodyMedium),
                   ),
                   Text(
-                    hue == null ? _t('跟随主色', 'Follows the accent') : '${hue.round()}°',
+                    hue == null ? 'Follows the accent' : '${hue.round()}°',
                     style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                   ),
                   if (hue != null)
@@ -295,7 +295,7 @@ class StudioColorGroup extends _Group {
                         minimumSize: const Size(0, 28),
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
-                      child: Text(_t('跟随主色', 'Follow the accent')),
+                      child: Text('Follow the accent'),
                     ),
                 ],
               ),
@@ -308,7 +308,7 @@ class StudioColorGroup extends _Group {
           ],
         ),
         StudioSlider(
-          label: _t('色调的浓淡', 'Tint strength'),
+          label: 'Tint strength',
           value: palette.tintChroma,
           min: 0,
           max: 2,
@@ -317,7 +317,7 @@ class StudioColorGroup extends _Group {
           onChanged: (v) => c.palette((p) => p.copyWith(tintChroma: v)),
         ),
         StudioSlider(
-          label: _t('光晕强度', 'Glow strength'),
+          label: 'Glow strength',
           value: palette.glowOpacity,
           min: 0,
           max: 1,
@@ -361,31 +361,31 @@ class StudioSurfaceGroup extends _Group {
       min: 0,
       max: max,
       effective: effective,
-      follows: _t('跟随材质', 'Follows material'),
+      follows: 'Follows material',
       step: step,
       format: format,
       onChanged: (v) => c.surfaces((_) => write(v)),
     );
     return StudioGroup(
       id: 'surfaces',
-      title: _t('材质与背景', 'Material & backdrop'),
+      title: 'Material & backdrop',
       open: open,
       onToggle: onToggle,
       basics: [
         StudioChoice<ThemeSurfacePreset>(
-          label: _t('材质', 'Material'),
+          label: 'Material',
           items: [
-            (ThemeSurfacePreset.glass, _t('磨砂玻璃', 'Frosted glass')),
-            (ThemeSurfacePreset.paper, _t('实心纸面', 'Solid paper')),
-            (ThemeSurfacePreset.flat, _t('纯平', 'Flat')),
-            (ThemeSurfacePreset.outlined, _t('线框', 'Outlined')),
+            (ThemeSurfacePreset.glass, 'Frosted glass'),
+            (ThemeSurfacePreset.paper, 'Solid paper'),
+            (ThemeSurfacePreset.flat, 'Flat'),
+            (ThemeSurfacePreset.outlined, 'Outlined'),
           ],
           value: s.preset,
           onChanged: c.setPreset,
         ),
         StudioAssetRow(
-          title: _t('背景图', 'Backdrop'),
-          pickLabel: _t('选择背景图（PNG / WebP / GIF）', 'Pick a backdrop (PNG / WebP / GIF)'),
+          title: 'Backdrop',
+          pickLabel: 'Pick a backdrop (PNG / WebP / GIF)',
           fileName: s.backdropImage,
           missing: c.isMissing(s.backdropImage),
           onPick: () => unawaited(c.pickImage(ThemeImageSlot.backdrop)),
@@ -393,7 +393,7 @@ class StudioSurfaceGroup extends _Group {
         ),
         if (hasImage) ...[
           StudioSlider(
-            label: _t('背景图不透明度', 'Backdrop opacity'),
+            label: 'Backdrop opacity',
             value: s.backdropOpacity,
             min: 0,
             max: 1,
@@ -403,7 +403,7 @@ class StudioSurfaceGroup extends _Group {
             onChanged: (v) => c.surfaces((s) => s.copyWith(backdropOpacity: v)),
           ),
           StudioSwitch(
-            label: _t('小图平铺', 'Tile the image'),
+            label: 'Tile the image',
             value: s.backdropRepeat,
             onChanged: (v) => c.surfaces((s) => s.copyWith(backdropRepeat: v)),
           ),
@@ -412,7 +412,7 @@ class StudioSurfaceGroup extends _Group {
       more: [
         if (hasImage) ...[
           StudioSlider(
-            label: _t('背景图模糊', 'Backdrop blur'),
+            label: 'Backdrop blur',
             value: s.backdropBlur,
             min: 0,
             max: 40,
@@ -421,37 +421,37 @@ class StudioSurfaceGroup extends _Group {
             onChanged: (v) => c.surfaces((s) => s.copyWith(backdropBlur: v)),
           ),
           StudioChoice<ThemeBackdropAlign>(
-            label: _t('背景图对齐', 'Backdrop alignment'),
+            label: 'Backdrop alignment',
             items: [
-              (ThemeBackdropAlign.center, _t('居中', 'Center')),
-              (ThemeBackdropAlign.top, _t('靠上', 'Top')),
-              (ThemeBackdropAlign.bottom, _t('靠下', 'Bottom')),
+              (ThemeBackdropAlign.center, 'Center'),
+              (ThemeBackdropAlign.top, 'Top'),
+              (ThemeBackdropAlign.bottom, 'Bottom'),
             ],
             value: s.backdropAlign,
             onChanged: (v) => c.surfaces((s) => s.copyWith(backdropAlign: v)),
           ),
           StudioSwitch(
-            label: _t('动图保持播放', 'Keep animated images playing'),
+            label: 'Keep animated images playing',
             value: s.backdropAnimate,
             onChanged: (v) => c.surfaces((s) => s.copyWith(backdropAnimate: v)),
           ),
         ],
         StudioChoice<ThemeBackdropPattern>(
-          label: _t('背景纹理', 'Backdrop pattern'),
+          label: 'Backdrop pattern',
           items: [
-            (ThemeBackdropPattern.none, _t('没有', 'None')),
-            (ThemeBackdropPattern.dots, _t('圆点', 'Dots')),
-            (ThemeBackdropPattern.grid, _t('网格', 'Grid')),
-            (ThemeBackdropPattern.lines, _t('横线', 'Lines')),
-            (ThemeBackdropPattern.diagonal, _t('斜线', 'Diagonal')),
-            (ThemeBackdropPattern.grain, _t('颗粒', 'Grain')),
+            (ThemeBackdropPattern.none, 'None'),
+            (ThemeBackdropPattern.dots, 'Dots'),
+            (ThemeBackdropPattern.grid, 'Grid'),
+            (ThemeBackdropPattern.lines, 'Lines'),
+            (ThemeBackdropPattern.diagonal, 'Diagonal'),
+            (ThemeBackdropPattern.grain, 'Grain'),
           ],
           value: s.pattern,
           onChanged: (v) => c.surfaces((s) => s.copyWith(pattern: v)),
         ),
         if (s.pattern != ThemeBackdropPattern.none) ...[
           StudioSlider(
-            label: _t('纹理深浅', 'Pattern strength'),
+            label: 'Pattern strength',
             value: s.patternOpacity,
             min: 0,
             max: 1,
@@ -461,7 +461,7 @@ class StudioSurfaceGroup extends _Group {
             onChanged: (v) => c.surfaces((s) => s.copyWith(patternOpacity: v)),
           ),
           StudioSlider(
-            label: _t('纹理疏密', 'Pattern spacing'),
+            label: 'Pattern spacing',
             value: s.patternScale,
             min: 0.5,
             max: 3,
@@ -472,19 +472,19 @@ class StudioSurfaceGroup extends _Group {
           ),
         ],
         StudioChoice<ThemeGlowLayout>(
-          label: _t('光晕位置', 'Glow position'),
+          label: 'Glow position',
           items: [
-            (ThemeGlowLayout.corners, _t('两角', 'Corners')),
-            (ThemeGlowLayout.top, _t('顶部', 'Top')),
-            (ThemeGlowLayout.bottom, _t('底部', 'Bottom')),
-            (ThemeGlowLayout.center, _t('中间', 'Center')),
+            (ThemeGlowLayout.corners, 'Corners'),
+            (ThemeGlowLayout.top, 'Top'),
+            (ThemeGlowLayout.bottom, 'Bottom'),
+            (ThemeGlowLayout.center, 'Center'),
           ],
           value: s.glowLayout,
           onChanged: (v) => c.surfaces((s) => s.copyWith(glowLayout: v)),
         ),
-        StudioCaption(_t('材质微调（没动过的跟着材质走）', 'Material tuning (untouched values follow the material)')),
+        StudioCaption('Material tuning (untouched values follow the material)'),
         tune(
-          _t('顶栏模糊', 'Top bar blur'),
+          'Top bar blur',
           s.chromeBlur,
           40,
           glass.chrome.blurSigma,
@@ -492,7 +492,7 @@ class StudioSurfaceGroup extends _Group {
           step: 1,
         ),
         tune(
-          _t('面板模糊', 'Sheet blur'),
+          'Sheet blur',
           s.sheetBlur,
           40,
           glass.sheet.blurSigma,
@@ -500,7 +500,7 @@ class StudioSurfaceGroup extends _Group {
           step: 1,
         ),
         tune(
-          _t('卡片不透明度', 'Card opacity'),
+          'Card opacity',
           s.cardOpacity,
           1,
           glass.card.fill.a,
@@ -508,7 +508,7 @@ class StudioSurfaceGroup extends _Group {
           format: StudioSlider.percent,
         ),
         tune(
-          _t('胶囊不透明度', 'Pill opacity'),
+          'Pill opacity',
           s.pillOpacity,
           1,
           glass.pill.fill.a,
@@ -516,7 +516,7 @@ class StudioSurfaceGroup extends _Group {
           format: StudioSlider.percent,
         ),
         tune(
-          _t('描边粗细', 'Edge width'),
+          'Edge width',
           s.hairlineWidth,
           3,
           glass.chrome.hairlineWidth,
@@ -525,7 +525,7 @@ class StudioSurfaceGroup extends _Group {
         ),
         // The last two scale what the material has: untouched is all of it.
         tune(
-          _t('边缘高光', 'Edge highlight'),
+          'Edge highlight',
           s.rimOpacity,
           1,
           1,
@@ -533,7 +533,7 @@ class StudioSurfaceGroup extends _Group {
           format: StudioSlider.percent,
         ),
         tune(
-          _t('阴影', 'Shadow'),
+          'Shadow',
           s.shadowOpacity,
           1,
           1,
@@ -562,8 +562,8 @@ class _FontChoice extends StatelessWidget {
         ? (current == 'mono' ? 'monospace' : current)
         : (current == 'monospace' || current == 'JetBrainsMono' ? 'mono' : current);
     final builtIn = code
-        ? [('JetBrainsMono', 'JetBrains Mono'), ('monospace', _t('系统等宽', 'System mono'))]
-        : [('system', _t('系统', 'System')), ('serif', _t('衬线', 'Serif')), ('mono', _t('等宽', 'Mono'))];
+        ? [('JetBrainsMono', 'JetBrains Mono'), ('monospace', 'System mono')]
+        : [('system', 'System'), ('serif', 'Serif'), ('mono', 'Mono')];
     final files = {...c.fontFiles, if (ThemeTypographySpec.isCustomFontAsset(current)) current};
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -588,7 +588,7 @@ class _FontChoice extends StatelessWidget {
             ActionChip(
               key: ValueKey('theme-studio-font-${role.name}'),
               avatar: const Icon(AppIcons.add, size: 14),
-              label: Text(_t('选字体文件', 'Pick a font file')),
+              label: Text('Pick a font file'),
               visualDensity: VisualDensity.compact,
               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               shape: const StadiumBorder(),
@@ -610,33 +610,33 @@ class StudioTypographyGroup extends _Group {
     final t = c.pack.typography;
     return StudioGroup(
       id: 'typography',
-      title: _t('字体', 'Fonts'),
+      title: 'Fonts',
       open: open,
       onToggle: onToggle,
       basics: [
         _FontChoice(
           c: c,
           role: ThemeFontRole.reading,
-          label: _t('回复字体（.ttf / .otf 也可以）', 'Reply font (.ttf / .otf work too)'),
+          label: 'Reply font (.ttf / .otf work too)',
         ),
         StudioChoice<double>(
-          label: _t('回复行距', 'Reply line spacing'),
-          items: [(1.45, _t('紧凑', 'Compact')), (1.55, _t('标准', 'Standard')), (1.68, _t('舒展', 'Open'))],
+          label: 'Reply line spacing',
+          items: [(1.45, 'Compact'), (1.55, 'Standard'), (1.68, 'Open')],
           value: t.readingLineHeight,
           onChanged: (v) => c.typography((t) => t.copyWith(readingLineHeight: v)),
         ),
       ],
       more: [
-        _FontChoice(c: c, role: ThemeFontRole.ui, label: _t('界面字体', 'Interface font')),
-        _FontChoice(c: c, role: ThemeFontRole.heading, label: _t('标题字体', 'Heading font')),
-        _FontChoice(c: c, role: ThemeFontRole.code, label: _t('代码字体', 'Code font')),
+        _FontChoice(c: c, role: ThemeFontRole.ui, label: 'Interface font'),
+        _FontChoice(c: c, role: ThemeFontRole.heading, label: 'Heading font'),
+        _FontChoice(c: c, role: ThemeFontRole.code, label: 'Code font'),
         StudioSwitch(
-          label: _t('回复正文用回复字体', 'Use the reply font for replies'),
+          label: 'Use the reply font for replies',
           value: c.pack.components.useReadingFontForReply,
           onChanged: (v) => c.components((p) => p.copyWith(useReadingFontForReply: v)),
         ),
         StudioSlider(
-          label: _t('回复字号', 'Reply size'),
+          label: 'Reply size',
           value: t.readingScale,
           min: 0.85,
           max: 1.25,
@@ -646,7 +646,7 @@ class StudioTypographyGroup extends _Group {
           onChanged: (v) => c.typography((t) => t.copyWith(readingScale: v)),
         ),
         StudioSlider(
-          label: _t('回复行距（精确）', 'Reply line spacing (exact)'),
+          label: 'Reply line spacing (exact)',
           value: t.readingLineHeight,
           min: 1.2,
           max: 2,
@@ -655,7 +655,7 @@ class StudioTypographyGroup extends _Group {
           onChanged: (v) => c.typography((t) => t.copyWith(readingLineHeight: v)),
         ),
         StudioSlider(
-          label: _t('回复字距', 'Reply letter spacing'),
+          label: 'Reply letter spacing',
           value: t.readingLetterSpacing,
           min: -0.5,
           max: 2,
@@ -664,7 +664,7 @@ class StudioTypographyGroup extends _Group {
           onChanged: (v) => c.typography((t) => t.copyWith(readingLetterSpacing: v)),
         ),
         StudioSlider(
-          label: _t('标题字号', 'Heading size'),
+          label: 'Heading size',
           value: t.headingScale,
           min: 0.85,
           max: 1.35,
@@ -674,7 +674,7 @@ class StudioTypographyGroup extends _Group {
           onChanged: (v) => c.typography((t) => t.copyWith(headingScale: v)),
         ),
         StudioSlider(
-          label: _t('标题字距', 'Heading letter spacing'),
+          label: 'Heading letter spacing',
           value: t.headingLetterSpacing,
           min: -1,
           max: 4,
@@ -683,16 +683,16 @@ class StudioTypographyGroup extends _Group {
           onChanged: (v) => c.typography((t) => t.copyWith(headingLetterSpacing: v)),
         ),
         StudioChoice<int?>(
-          label: _t('标题粗细', 'Heading weight'),
+          label: 'Heading weight',
           items: [
-            (null, _t('默认', 'Default')),
+            (null, 'Default'),
             for (final weight in const [300, 400, 500, 600, 700, 800, 900]) (weight, '$weight'),
           ],
           value: t.headingWeight,
           onChanged: (v) => c.typography((t) => t.copyWith(headingWeight: () => v)),
         ),
         StudioSlider(
-          label: _t('代码字号', 'Code size'),
+          label: 'Code size',
           value: t.codeScale,
           min: 0.85,
           max: 1.2,
@@ -730,29 +730,29 @@ class StudioShapeGroup extends _Group {
           max: 36,
           step: 1,
           effective: effective,
-          follows: _t('跟随整体', 'Follows overall'),
+          follows: 'Follows overall',
           onChanged: (v) => c.shapes((_) => write(v)),
         );
     return StudioGroup(
       id: 'shapes',
-      title: _t('形状与间距', 'Shape & spacing'),
+      title: 'Shape & spacing',
       open: open,
       onToggle: onToggle,
       basics: [
         StudioChoice<double>(
-          label: _t('圆角', 'Corners'),
+          label: 'Corners',
           items: [
-            (0.28, _t('硬朗', 'Sharp')),
-            (0.85, _t('微圆', 'Gentle')),
-            (1.0, _t('标准', 'Standard')),
-            (1.32, _t('圆润', 'Soft')),
+            (0.28, 'Sharp'),
+            (0.85, 'Gentle'),
+            (1.0, 'Standard'),
+            (1.32, 'Soft'),
           ],
           value: s.cornerScale,
           onChanged: (v) => c.shapes((s) => s.copyWith(cornerScale: v)),
         ),
         StudioChoice<double>(
-          label: _t('疏密', 'Density'),
-          items: [(16.0, _t('紧凑', 'Compact')), (24.0, _t('标准', 'Standard')), (30.0, _t('宽松', 'Airy'))],
+          label: 'Density',
+          items: [(16.0, 'Compact'), (24.0, 'Standard'), (30.0, 'Airy')],
           value: s.turnGap,
           // One choice sets all three gaps; each has its own slider under 「更多选项」.
           onChanged: (v) => c.shapes(
@@ -766,27 +766,27 @@ class StudioShapeGroup extends _Group {
       ],
       more: [
         StudioChoice<ThemeCornerStyle>(
-          label: _t('角型', 'Corner style'),
+          label: 'Corner style',
           items: [
-            (ThemeCornerStyle.squircle, _t('圆润', 'Smooth')),
-            (ThemeCornerStyle.round, _t('正圆角', 'Round')),
-            (ThemeCornerStyle.bevel, _t('切角', 'Bevel')),
+            (ThemeCornerStyle.squircle, 'Smooth'),
+            (ThemeCornerStyle.round, 'Round'),
+            (ThemeCornerStyle.bevel, 'Bevel'),
           ],
           value: s.cornerStyle,
           onChanged: (v) => c.shapes((s) => s.copyWith(cornerStyle: v)),
         ),
         StudioChoice<ThemeBubbleCorners>(
-          label: _t('气泡四角', 'Bubble corners'),
+          label: 'Bubble corners',
           items: [
-            (ThemeBubbleCorners.uniform, _t('四角一样', 'Even')),
-            (ThemeBubbleCorners.tail, _t('带小尾巴', 'Tail')),
-            (ThemeBubbleCorners.leaf, _t('叶片', 'Leaf')),
+            (ThemeBubbleCorners.uniform, 'Even'),
+            (ThemeBubbleCorners.tail, 'Tail'),
+            (ThemeBubbleCorners.leaf, 'Leaf'),
           ],
           value: s.bubbleCorners,
           onChanged: (v) => c.shapes((s) => s.copyWith(bubbleCorners: v)),
         ),
         StudioSlider(
-          label: _t('整体圆角', 'Overall roundness'),
+          label: 'Overall roundness',
           value: s.cornerScale,
           min: 0,
           max: 1.6,
@@ -796,26 +796,26 @@ class StudioShapeGroup extends _Group {
           onChanged: (v) => c.shapes((s) => s.copyWith(cornerScale: v)),
         ),
         radius(
-          _t('气泡圆角', 'Bubble radius'),
+          'Bubble radius',
           s.bubbleRadius,
           style.bubbleRadius,
           (v) => s.copyWith(bubbleRadius: () => v),
         ),
-        radius(_t('卡片圆角', 'Card radius'), s.cardRadius, style.cardRadius, (v) => s.copyWith(cardRadius: () => v)),
+        radius('Card radius', s.cardRadius, style.cardRadius, (v) => s.copyWith(cardRadius: () => v)),
         radius(
-          _t('代码块圆角', 'Code block radius'),
+          'Code block radius',
           s.codeRadius,
           style.codeRadius,
           (v) => s.copyWith(codeRadius: () => v),
         ),
         radius(
-          _t('输入框圆角', 'Composer radius'),
+          'Composer radius',
           s.composerRadius,
           style.composerRadius,
           (v) => s.copyWith(composerRadius: () => v),
         ),
         StudioSlider(
-          label: _t('气泡左右留白', 'Bubble side padding'),
+          label: 'Bubble side padding',
           value: s.bubblePadH,
           min: 10,
           max: 24,
@@ -824,7 +824,7 @@ class StudioShapeGroup extends _Group {
           onChanged: (v) => c.shapes((s) => s.copyWith(bubblePadH: v)),
         ),
         StudioSlider(
-          label: _t('气泡上下留白', 'Bubble top and bottom padding'),
+          label: 'Bubble top and bottom padding',
           value: s.bubblePadV,
           min: 6,
           max: 16,
@@ -833,7 +833,7 @@ class StudioShapeGroup extends _Group {
           onChanged: (v) => c.shapes((s) => s.copyWith(bubblePadV: v)),
         ),
         StudioSlider(
-          label: _t('描边粗细', 'Border width'),
+          label: 'Border width',
           value: s.borderWidth,
           min: 0,
           max: 2.5,
@@ -842,7 +842,7 @@ class StudioShapeGroup extends _Group {
           onChanged: (v) => c.shapes((s) => s.copyWith(borderWidth: v)),
         ),
         StudioSlider(
-          label: _t('两轮对话之间', 'Between turns'),
+          label: 'Between turns',
           value: s.turnGap,
           min: 12,
           max: 40,
@@ -851,7 +851,7 @@ class StudioShapeGroup extends _Group {
           onChanged: (v) => c.shapes((s) => s.copyWith(turnGap: v)),
         ),
         StudioSlider(
-          label: _t('同一轮里的消息之间', 'Within a turn'),
+          label: 'Within a turn',
           value: s.inTurnGap,
           min: 4,
           max: 20,
@@ -860,7 +860,7 @@ class StudioShapeGroup extends _Group {
           onChanged: (v) => c.shapes((s) => s.copyWith(inTurnGap: v)),
         ),
         StudioSlider(
-          label: _t('左右页边距', 'Side margin'),
+          label: 'Side margin',
           value: s.gutter,
           min: 10,
           max: 28,
@@ -881,70 +881,70 @@ class StudioComponentGroup extends _Group {
     final p = c.pack.components;
     return StudioGroup(
       id: 'components',
-      title: _t('界面组件', 'Components'),
+      title: 'Components',
       open: open,
       onToggle: onToggle,
       basics: [
         StudioChoice<ThemeHeaderStyle>(
-          label: _t('顶栏', 'Top bar'),
+          label: 'Top bar',
           items: [
-            (ThemeHeaderStyle.glass, _t('玻璃', 'Glass')),
-            (ThemeHeaderStyle.ghost, _t('透明无框', 'Ghost')),
-            (ThemeHeaderStyle.outlined, _t('细线框', 'Outlined')),
-            (ThemeHeaderStyle.minimal, _t('柔和实底', 'Minimal')),
+            (ThemeHeaderStyle.glass, 'Glass'),
+            (ThemeHeaderStyle.ghost, 'Ghost'),
+            (ThemeHeaderStyle.outlined, 'Outlined'),
+            (ThemeHeaderStyle.minimal, 'Minimal'),
           ],
           value: p.headerStyle,
           onChanged: (v) => c.components((p) => p.copyWith(headerStyle: v)),
         ),
         StudioChoice<ThemeComposerStyle>(
-          label: _t('输入框', 'Composer'),
+          label: 'Composer',
           items: [
-            (ThemeComposerStyle.floatingGlass, _t('玻璃', 'Glass')),
-            (ThemeComposerStyle.solidPaper, _t('实心纸面', 'Solid paper')),
-            (ThemeComposerStyle.outlined, _t('线框', 'Outlined')),
+            (ThemeComposerStyle.floatingGlass, 'Glass'),
+            (ThemeComposerStyle.solidPaper, 'Solid paper'),
+            (ThemeComposerStyle.outlined, 'Outlined'),
           ],
           value: p.composerStyle,
           onChanged: (v) => c.components((p) => p.copyWith(composerStyle: v)),
         ),
         StudioChoice<ThemeSendButtonStyle>(
-          label: _t('发送键', 'Send button'),
+          label: 'Send button',
           items: [
-            (ThemeSendButtonStyle.primary, _t('主色', 'Accent')),
-            (ThemeSendButtonStyle.ink, _t('深墨反白', 'Ink')),
-            (ThemeSendButtonStyle.tonal, _t('柔和浅底', 'Tonal')),
-            (ThemeSendButtonStyle.outlined, _t('线框', 'Outlined')),
+            (ThemeSendButtonStyle.primary, 'Accent'),
+            (ThemeSendButtonStyle.ink, 'Ink'),
+            (ThemeSendButtonStyle.tonal, 'Tonal'),
+            (ThemeSendButtonStyle.outlined, 'Outlined'),
           ],
           value: p.sendButtonStyle,
           onChanged: (v) => c.components((p) => p.copyWith(sendButtonStyle: v)),
         ),
         StudioChoice<ThemeUserBubbleStyle>(
-          label: _t('我的消息', 'My messages'),
+          label: 'My messages',
           items: [
-            (ThemeUserBubbleStyle.soft, _t('软气泡', 'Soft')),
-            (ThemeUserBubbleStyle.outlined, _t('细框', 'Outlined')),
-            (ThemeUserBubbleStyle.accent, _t('主色浅底', 'Accent')),
-            (ThemeUserBubbleStyle.minimal, _t('右侧竖线', 'Side rule')),
+            (ThemeUserBubbleStyle.soft, 'Soft'),
+            (ThemeUserBubbleStyle.outlined, 'Outlined'),
+            (ThemeUserBubbleStyle.accent, 'Accent'),
+            (ThemeUserBubbleStyle.minimal, 'Side rule'),
           ],
           value: p.userBubbleStyle,
           onChanged: (v) => c.components((p) => p.copyWith(userBubbleStyle: v)),
         ),
         StudioChoice<ThemeAssistantStyle>(
-          label: _t('助手回复', 'Replies'),
+          label: 'Replies',
           items: [
-            (ThemeAssistantStyle.plain, _t('直接排版', 'Plain')),
-            (ThemeAssistantStyle.card, _t('卡片', 'Card')),
-            (ThemeAssistantStyle.leftRule, _t('左侧引线', 'Side rule')),
-            (ThemeAssistantStyle.quote, _t('引用块', 'Quote')),
+            (ThemeAssistantStyle.plain, 'Plain'),
+            (ThemeAssistantStyle.card, 'Card'),
+            (ThemeAssistantStyle.leftRule, 'Side rule'),
+            (ThemeAssistantStyle.quote, 'Quote'),
           ],
           value: p.assistantStyle,
           onChanged: (v) => c.components((p) => p.copyWith(assistantStyle: v)),
         ),
         StudioChoice<ThemeCodeBlockStyle>(
-          label: _t('代码块', 'Code blocks'),
+          label: 'Code blocks',
           items: [
-            (ThemeCodeBlockStyle.well, _t('深底', 'Well')),
-            (ThemeCodeBlockStyle.outlined, _t('线框', 'Outlined')),
-            (ThemeCodeBlockStyle.card, _t('卡片', 'Card')),
+            (ThemeCodeBlockStyle.well, 'Well'),
+            (ThemeCodeBlockStyle.outlined, 'Outlined'),
+            (ThemeCodeBlockStyle.card, 'Card'),
           ],
           value: p.codeBlockStyle,
           onChanged: (v) => c.components((p) => p.copyWith(codeBlockStyle: v)),
@@ -952,97 +952,97 @@ class StudioComponentGroup extends _Group {
       ],
       more: [
         StudioChoice<ThemeSendButtonShape>(
-          label: _t('发送键形状', 'Send button shape'),
+          label: 'Send button shape',
           items: [
-            (ThemeSendButtonShape.circle, _t('圆形', 'Circle')),
-            (ThemeSendButtonShape.squircle, _t('圆角方', 'Rounded')),
-            (ThemeSendButtonShape.square, _t('方形', 'Square')),
+            (ThemeSendButtonShape.circle, 'Circle'),
+            (ThemeSendButtonShape.squircle, 'Rounded'),
+            (ThemeSendButtonShape.square, 'Square'),
           ],
           value: p.sendButtonShape,
           onChanged: (v) => c.components((p) => p.copyWith(sendButtonShape: v)),
         ),
         StudioChoice<ThemeCodeHeaderStyle>(
-          label: _t('代码块标题条', 'Code block header'),
+          label: 'Code block header',
           items: [
-            (ThemeCodeHeaderStyle.bar, _t('填色', 'Filled')),
-            (ThemeCodeHeaderStyle.plain, _t('只留文字', 'Text only')),
+            (ThemeCodeHeaderStyle.bar, 'Filled'),
+            (ThemeCodeHeaderStyle.plain, 'Text only'),
           ],
           value: p.codeHeaderStyle,
           onChanged: (v) => c.components((p) => p.copyWith(codeHeaderStyle: v)),
         ),
         StudioChoice<ThemeTurnDivider>(
-          label: _t('两轮对话之间的分隔', 'Divider between turns'),
+          label: 'Divider between turns',
           items: [
-            (ThemeTurnDivider.none, _t('没有', 'None')),
-            (ThemeTurnDivider.hairline, _t('细线', 'Hairline')),
-            (ThemeTurnDivider.dashed, _t('虚线', 'Dashed')),
-            (ThemeTurnDivider.dots, _t('圆点', 'Dots')),
+            (ThemeTurnDivider.none, 'None'),
+            (ThemeTurnDivider.hairline, 'Hairline'),
+            (ThemeTurnDivider.dashed, 'Dashed'),
+            (ThemeTurnDivider.dots, 'Dots'),
           ],
           value: p.turnDivider,
           onChanged: (v) => c.components((p) => p.copyWith(turnDivider: v)),
         ),
         StudioChoice<ThemeHeadingStyle>(
-          label: _t('回复里的标题', 'Headings in replies'),
+          label: 'Headings in replies',
           items: [
-            (ThemeHeadingStyle.plain, _t('普通', 'Plain')),
-            (ThemeHeadingStyle.accent, _t('上色', 'Coloured')),
-            (ThemeHeadingStyle.underline, _t('下划线', 'Underlined')),
-            (ThemeHeadingStyle.marker, _t('小竖条', 'Marker')),
+            (ThemeHeadingStyle.plain, 'Plain'),
+            (ThemeHeadingStyle.accent, 'Coloured'),
+            (ThemeHeadingStyle.underline, 'Underlined'),
+            (ThemeHeadingStyle.marker, 'Marker'),
           ],
           value: p.headingStyle,
           onChanged: (v) => c.components((p) => p.copyWith(headingStyle: v)),
         ),
         StudioChoice<ThemeBulletStyle>(
-          label: _t('列表符号', 'List bullets'),
+          label: 'List bullets',
           items: [
-            (ThemeBulletStyle.dot, _t('圆点 •', 'Dot •')),
-            (ThemeBulletStyle.dash, _t('短横 –', 'Dash –')),
-            (ThemeBulletStyle.diamond, _t('菱形 ◆', 'Diamond ◆')),
-            (ThemeBulletStyle.arrow, _t('箭头 ›', 'Arrow ›')),
-            (ThemeBulletStyle.square, _t('方块 ▪', 'Square ▪')),
+            (ThemeBulletStyle.dot, 'Dot •'),
+            (ThemeBulletStyle.dash, 'Dash –'),
+            (ThemeBulletStyle.diamond, 'Diamond ◆'),
+            (ThemeBulletStyle.arrow, 'Arrow ›'),
+            (ThemeBulletStyle.square, 'Square ▪'),
           ],
           value: p.bulletStyle,
           onChanged: (v) => c.components((p) => p.copyWith(bulletStyle: v)),
         ),
         StudioChoice<ThemeHeaderTitleFont>(
-          label: _t('顶栏标题用哪种字体', 'Top bar title font'),
+          label: 'Top bar title font',
           items: [
-            (ThemeHeaderTitleFont.ui, _t('界面字体', 'Interface')),
-            (ThemeHeaderTitleFont.heading, _t('标题字体', 'Heading')),
-            (ThemeHeaderTitleFont.code, _t('代码字体', 'Code')),
+            (ThemeHeaderTitleFont.ui, 'Interface'),
+            (ThemeHeaderTitleFont.heading, 'Heading'),
+            (ThemeHeaderTitleFont.code, 'Code'),
           ],
           value: p.headerTitleFont,
           onChanged: (v) => c.components((p) => p.copyWith(headerTitleFont: v)),
         ),
         StudioLocalizedText(
-          label: _t('我的小标签', 'My label'),
+          label: 'My label',
           value: p.userLabel,
           maxLength: 16,
           onChanged: (v) => c.components((p) => p.copyWith(userLabel: () => v)),
         ),
         StudioLocalizedText(
-          label: _t('助手小标签', 'Assistant label'),
+          label: 'Assistant label',
           value: p.assistantLabel,
           maxLength: 16,
           onChanged: (v) => c.components((p) => p.copyWith(assistantLabel: () => v)),
         ),
         StudioLocalizedText(
-          label: _t('输入框提示语', 'Composer hint'),
+          label: 'Composer hint',
           value: p.composerHint,
           maxLength: 30,
           onChanged: (v) => c.components((p) => p.copyWith(composerHint: () => v)),
         ),
         StudioAssetRow(
-          title: _t('助手头像', 'Assistant avatar'),
-          pickLabel: _t('选择助手头像', 'Pick an assistant avatar'),
+          title: 'Assistant avatar',
+          pickLabel: 'Pick an assistant avatar',
           fileName: p.assistantAvatar,
           missing: c.isMissing(p.assistantAvatar),
           onPick: () => unawaited(c.pickImage(ThemeImageSlot.assistantAvatar)),
           onClear: () => c.setImage(ThemeImageSlot.assistantAvatar, null),
         ),
         StudioAssetRow(
-          title: _t('我的头像', 'My avatar'),
-          pickLabel: _t('选择我的头像', 'Pick my avatar'),
+          title: 'My avatar',
+          pickLabel: 'Pick my avatar',
           fileName: p.userAvatar,
           missing: c.isMissing(p.userAvatar),
           onPick: () => unawaited(c.pickImage(ThemeImageSlot.userAvatar)),
@@ -1062,29 +1062,29 @@ class StudioEmptyStateGroup extends _Group {
     final drawsGlyph = e.heroStyle == ThemeHeroStyle.glyph || e.heroStyle == ThemeHeroStyle.seal;
     return StudioGroup(
       id: 'empty',
-      title: _t('新对话页', 'New chat page'),
+      title: 'New chat page',
       open: open,
       onToggle: onToggle,
       basics: [
         StudioChoice<ThemeEmptyLayout>(
-          label: _t('版式', 'Layout'),
+          label: 'Layout',
           items: [
-            (ThemeEmptyLayout.centered, _t('居中', 'Centered')),
-            (ThemeEmptyLayout.editorial, _t('靠左', 'Left aligned')),
-            (ThemeEmptyLayout.compact, _t('紧凑', 'Compact')),
+            (ThemeEmptyLayout.centered, 'Centered'),
+            (ThemeEmptyLayout.editorial, 'Left aligned'),
+            (ThemeEmptyLayout.compact, 'Compact'),
           ],
           value: e.layout,
           onChanged: (v) => c.emptyState((e) => e.copyWith(layout: v)),
         ),
         StudioChoice<ThemeHeroStyle>(
-          label: _t('主视觉', 'Hero'),
+          label: 'Hero',
           items: [
-            (ThemeHeroStyle.whale, _t('鲸尾', 'Whale')),
-            (ThemeHeroStyle.badge, _t('徽章', 'Badge')),
-            (ThemeHeroStyle.glyph, _t('文字', 'Glyph')),
-            (ThemeHeroStyle.seal, _t('印章', 'Seal')),
-            (ThemeHeroStyle.customImage, _t('自选图片', 'Own image')),
-            (ThemeHeroStyle.hidden, _t('不显示', 'Hidden')),
+            (ThemeHeroStyle.whale, 'Whale'),
+            (ThemeHeroStyle.badge, 'Badge'),
+            (ThemeHeroStyle.glyph, 'Glyph'),
+            (ThemeHeroStyle.seal, 'Seal'),
+            (ThemeHeroStyle.customImage, 'Own image'),
+            (ThemeHeroStyle.hidden, 'Hidden'),
           ],
           value: e.heroStyle,
           // Without an image yet, the choice only takes once one is picked.
@@ -1097,25 +1097,25 @@ class StudioEmptyStateGroup extends _Group {
             key: const ValueKey('theme-studio-hero-glyph'),
             value: e.heroGlyph ?? '',
             onChanged: (text) => c.emptyState((e) => e.copyWith(heroGlyph: () => _blankToNull(text))),
-            label: _t('主视觉上的字（1–4 个）', 'Hero characters (1–4)'),
+            label: 'Hero characters (1–4)',
             maxLength: 4,
-            errorText: e.heroGlyph == null ? _t('这里要填', 'Required') : null,
+            errorText: e.heroGlyph == null ? 'Required' : null,
           ),
         if (e.heroStyle == ThemeHeroStyle.customImage)
           StudioAssetRow(
-            title: _t('主视觉图', 'Hero image'),
-            pickLabel: _t('选择主视觉图（PNG / WebP / GIF）', 'Pick a hero image (PNG / WebP / GIF)'),
+            title: 'Hero image',
+            pickLabel: 'Pick a hero image (PNG / WebP / GIF)',
             fileName: e.heroImage,
             missing: c.isMissing(e.heroImage),
             onPick: () => unawaited(c.pickImage(ThemeImageSlot.hero)),
             onClear: () => c.setImage(ThemeImageSlot.hero, null),
           ),
         StudioChoice<ThemeSuggestionsDisplay>(
-          label: _t('建议卡', 'Suggestions'),
+          label: 'Suggestions',
           items: [
-            (ThemeSuggestionsDisplay.expanded, _t('展开', 'Expanded')),
-            (ThemeSuggestionsDisplay.grid, _t('双列', 'Two columns')),
-            (ThemeSuggestionsDisplay.collapsible, _t('折叠', 'Collapsed')),
+            (ThemeSuggestionsDisplay.expanded, 'Expanded'),
+            (ThemeSuggestionsDisplay.grid, 'Two columns'),
+            (ThemeSuggestionsDisplay.collapsible, 'Collapsed'),
           ],
           value: e.suggestionsDisplay,
           // The collapsed list is a quieter page: no connection subtitle, paper cards.
@@ -1134,7 +1134,7 @@ class StudioEmptyStateGroup extends _Group {
       ],
       more: [
         StudioSlider(
-          label: _t('主视觉大小', 'Hero size'),
+          label: 'Hero size',
           value: e.heroScale,
           min: 0.6,
           max: 2,
@@ -1143,34 +1143,34 @@ class StudioEmptyStateGroup extends _Group {
           onChanged: (v) => c.emptyState((e) => e.copyWith(heroScale: v)),
         ),
         StudioLocalizedText(
-          label: _t('问候语', 'Greeting'),
+          label: 'Greeting',
           value: e.greeting,
           maxLength: 40,
           onChanged: (v) => c.emptyState((e) => e.copyWith(greeting: () => v)),
         ),
         StudioLocalizedText(
-          label: _t('副标题', 'Subtitle'),
+          label: 'Subtitle',
           value: e.subtitle,
           maxLength: 60,
           onChanged: (v) => c.emptyState((e) => e.copyWith(subtitle: () => v)),
         ),
         StudioSwitch(
-          label: _t('问候语用回复字体', 'Use the reply font for the greeting'),
+          label: 'Use the reply font for the greeting',
           value: e.useReadingFontForGreeting,
           onChanged: (v) => c.emptyState((e) => e.copyWith(useReadingFontForGreeting: v)),
         ),
         StudioSwitch(
-          label: _t('连上后显示副标题', 'Show the subtitle once connected'),
+          label: 'Show the subtitle once connected',
           value: e.showConnectedSubtitle,
           onChanged: (v) => c.emptyState((e) => e.copyWith(showConnectedSubtitle: v)),
         ),
         StudioChoice<ThemeSuggestionCardStyle>(
-          label: _t('建议卡样式', 'Suggestion card style'),
+          label: 'Suggestion card style',
           items: [
-            (ThemeSuggestionCardStyle.glass, _t('玻璃', 'Glass')),
-            (ThemeSuggestionCardStyle.paper, _t('纸面', 'Paper')),
-            (ThemeSuggestionCardStyle.outlined, _t('线框', 'Outlined')),
-            (ThemeSuggestionCardStyle.minimal, _t('极简', 'Minimal')),
+            (ThemeSuggestionCardStyle.glass, 'Glass'),
+            (ThemeSuggestionCardStyle.paper, 'Paper'),
+            (ThemeSuggestionCardStyle.outlined, 'Outlined'),
+            (ThemeSuggestionCardStyle.minimal, 'Minimal'),
           ],
           value: c.pack.components.suggestionCardStyle,
           onChanged: (v) => c.components((p) => p.copyWith(suggestionCardStyle: v)),

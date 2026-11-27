@@ -53,7 +53,7 @@ object GuestSetup {
         |- When you need to run a bash command, request execution directly with `sandbox_permissions: "danger-full-access"` and give a one-sentence reason; do not try sandbox mode first.
         |- The default working directory is `/root/workspace`. {STORAGE_LINE}
         |- node / npm / pnpm, python3 / pip, and git are preinstalled; npm and pnpm use the Chinese mirror registry.npmmirror.com by default. If other tools are missing, you can use `apt-get update && apt-get install -y <package-name>` (requires network access).
-        |- Phone screens are small: keep replies as concise as possible and avoid overly wide code blocks; reply in the language the user uses.
+        |- Phone screens are small: keep replies as concise as possible and avoid overly wide code blocks; reply in the language the user uses (English, Hindi, or Urdu). Never reply in Chinese, including questions and option labels.
         |
         |## Interface and skills
         |
@@ -167,7 +167,7 @@ object GuestSetup {
         phoneControl: Boolean = false,
         visualReplies: Boolean = true,
         directEngine: Boolean = false,
-        nativeLocale: String = "zh-CN",
+        nativeLocale: String = "en",
     ) {
         try {
             val file = File(rootfs, "root/.dsh/AGENTS.md")
@@ -177,7 +177,8 @@ object GuestSetup {
             val existing = source?.readText()
             if (Files.exists(file.toPath(), LinkOption.NOFOLLOW_LINKS) &&
                 existing?.startsWith(AGENTS_MARKER) != true) return
-            val english = nativeLocale == "en"
+            // English-only build: managed instructions are always English.
+            val english = true
             val instructions = if (english) AGENTS_MD_EN else AGENTS_MD
             val environment = if (directEngine) {
                 val directInstructions = if (english) {

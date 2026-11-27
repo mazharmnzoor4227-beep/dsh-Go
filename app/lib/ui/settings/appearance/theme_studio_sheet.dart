@@ -22,13 +22,13 @@ import 'theme_studio_problems.dart';
 
 /// The groups in page order, with the names the jump row shows.
 const _groups = <(String id, String zh, String en)>[
-  ('info', '基本信息', 'Basics'),
-  ('colors', '颜色', 'Colors'),
-  ('surfaces', '材质与背景', 'Material'),
-  ('typography', '字体', 'Fonts'),
-  ('shapes', '形状与间距', 'Shape'),
-  ('components', '界面组件', 'Components'),
-  ('empty', '新对话页', 'New chat'),
+  ('info', 'Basics', 'Basics'),
+  ('colors', 'Colors', 'Colors'),
+  ('surfaces', 'Material', 'Material'),
+  ('typography', 'Fonts', 'Fonts'),
+  ('shapes', 'Shape', 'Shape'),
+  ('components', 'Components', 'Components'),
+  ('empty', 'New chat', 'New chat'),
 ];
 
 /// Creates a theme from [initial] as a template, or edits it in place when [editing]. Pops with the saved pack.
@@ -201,12 +201,12 @@ class _ThemeStudioSheetState extends ConsumerState<ThemeStudioSheet> {
         mainAxisSize: MainAxisSize.min,
         children: [
           SheetHeader(
-            english ? 'Theme Studio' : '主题工坊创作器',
+            'Theme Studio',
             actions: [
               SheetIconButton(
                 key: const ValueKey('theme-studio-json'),
                 icon: AppIcons.code,
-                tooltip: english ? 'Edit as JSON' : '直接编辑 JSON',
+                tooltip: 'Edit as JSON',
                 onPressed: () => unawaited(_editJson()),
               ),
             ],
@@ -284,7 +284,7 @@ class _ThemeStudioSheetState extends ConsumerState<ThemeStudioSheet> {
                     FilledButton(
                       key: const ValueKey('theme-studio-save'),
                       onPressed: _saving ? null : () => unawaited(_save()),
-                      child: Text(english ? 'Save & Apply Theme Pack' : '保存并启用主题包'),
+                      child: Text('Save & Apply Theme Pack'),
                     ),
                   ],
                 ),
@@ -344,17 +344,17 @@ class _PreviewDock extends StatelessWidget {
               spacing: 12,
               children: [
                 StudioChoice<StudioPreviewPage>(
-                  label: english ? 'Preview' : '预览哪一页',
+                  label: 'Preview',
                   items: [
-                    (StudioPreviewPage.chat, english ? 'Chat' : '对话'),
-                    (StudioPreviewPage.newChat, english ? 'New chat' : '新对话页'),
+                    (StudioPreviewPage.chat, 'Chat'),
+                    (StudioPreviewPage.newChat, 'New chat'),
                   ],
                   value: page,
                   onChanged: onPage,
                 ),
                 StudioChoice<bool>(
-                  label: english ? 'Appearance' : '明暗',
-                  items: [(false, english ? 'Light' : '浅色'), (true, english ? 'Dark' : '深色')],
+                  label: 'Appearance',
+                  items: [(false, 'Light'), (true, 'Dark')],
                   value: dark,
                   onChanged: onDark,
                 ),

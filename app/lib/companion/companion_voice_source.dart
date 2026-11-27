@@ -17,13 +17,14 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../speech/deepseek_speech.dart';
+import 'kokoro_voice.dart';
 
 /// The order the voice page lists them in. [deepseek] is DeepSeek's own speech
 /// API, paid by the signed-in account or the API key (deepseek_speech.dart).
-enum CompanionVoiceSource { deepseek, system, preset, openai, custom }
+enum CompanionVoiceSource { deepseek, system, preset, openai, custom, kokoro }
 
 /// Her style, for services that take one, when the person hasn't written their own.
-const companionVoiceStyleDefault = '用自然、温柔、带一点俏皮的少女语气说，像在陪朋友聊天。';
+const companionVoiceStyleDefault = 'Speak in a natural, warm, friendly tone, like chatting with a friend.';
 
 /// A voice a preset offers: its id at the service, and what kind it is.
 typedef CompanionPresetVoice = ({String id, String? kind});
@@ -202,6 +203,7 @@ class CompanionVoiceSettings {
     this.customHeaders = '',
     this.customBody = '{"text": "{text}"}',
     this.customField = '',
+    this.kokoroVoice = 31,
   });
 
   final bool on;
@@ -247,6 +249,9 @@ class CompanionVoiceSettings {
   /// when the reply is the audio itself.
   final String customField;
 
+  /// The Kokoro speaker id (kokoro_voice.dart): 31–34 Hindi, 0 English.
+  final int kokoroVoice;
+
   CompanionVoicePreset get presetInfo => companionVoicePreset(preset);
 
   /// The voice chosen for the current preset (its first until one is picked).
@@ -264,7 +269,7 @@ class CompanionVoiceSettings {
   /// Whether the chosen source has what it needs to be asked at all.
   bool get configured => switch (source) {
     // Who pays is only known when asking (deepseek_speech.dart).
-    CompanionVoiceSource.deepseek || CompanionVoiceSource.system => true,
+    CompanionVoiceSource.deepseek || CompanionVoiceSource.system || CompanionVoiceSource.kokoro => true,
     CompanionVoiceSource.preset =>
       presetKey.trim().isNotEmpty && (cloning ? cloneSample.isNotEmpty : presetVoice.trim().isNotEmpty),
     CompanionVoiceSource.openai => openaiBase.trim().isNotEmpty && openaiVoice.trim().isNotEmpty,
@@ -292,6 +297,7 @@ class CompanionVoiceSettings {
     String? customHeaders,
     String? customBody,
     String? customField,
+    int? kokoroVoice,
   }) => CompanionVoiceSettings(
     on: on ?? this.on,
     follow: follow ?? this.follow,
@@ -313,6 +319,7 @@ class CompanionVoiceSettings {
     customHeaders: customHeaders ?? this.customHeaders,
     customBody: customBody ?? this.customBody,
     customField: customField ?? this.customField,
+    kokoroVoice: kokoroVoice ?? this.kokoroVoice,
   );
 
   /// The part kept in plain preferences: no keys, no headers.
@@ -332,6 +339,7 @@ class CompanionVoiceSettings {
     'customPost': customPost,
     'customBody': customBody,
     'customField': customField,
+    'kokoroVoice': kokoroVoice,
   };
 
   /// Settings as kept; [defaults] for what was never saved. Settings saved
@@ -367,6 +375,7 @@ class CompanionVoiceSettings {
       customPost: map['customPost'] is bool ? map['customPost'] as bool : d.customPost,
       customBody: text('customBody', d.customBody),
       customField: text('customField', d.customField),
+      kokoroVoice: map['kokoroVoice'] is int ? map['kokoroVoice'] as int : d.kokoroVoice,
     );
   }
 }
@@ -530,6 +539,13 @@ Future<CompanionVoiceAudio> fetchCompanionVoice(
   DeepSeekSpeechResolver? deepseek,
 }) async {
   if (settings.source == CompanionVoiceSource.deepseek) return _deepseek(settings, text, deepseek, timeout);
+  if (settings.source == CompanionVoiceSource.kokoro) {
+    try {
+      return CompanionVoiceAudio(await synthesizeKokoro(text, settings.kokoroVoice), 'wav');
+    } on Object catch (error) {
+      throw CompanionVoiceError(error.toString().split('\n').first);
+    }
+  }
   if (settings.cloning) {
     final voice = await companionCloneVoice(settings.cloneSample);
     settings = settings.copyWith(presetVoices: {...settings.presetVoices, settings.preset: voice});
@@ -556,6 +572,7 @@ Future<CompanionVoiceAudio> fetchCompanionVoice(
       CompanionVoiceSource.custom => _custom(settings, text, client),
       CompanionVoiceSource.deepseek ||
       CompanionVoiceSource.system ||
+      CompanionVoiceSource.kokoro ||
       CompanionVoiceSource.preset => throw const CompanionVoiceError('system voice is not fetched'),
     }.timeout(timeout);
   } on TimeoutException {

@@ -20,8 +20,8 @@ enum AppLanguage {
     AppLanguage.en => AppLocale.en,
   };
 
-  static AppLanguage parse(String? v) =>
-      AppLanguage.values.firstWhere((l) => l.name == v, orElse: () => AppLanguage.en);
+  /// English-only build: every stored or requested value reads as English.
+  static AppLanguage parse(String? v) => AppLanguage.en;
 }
 
 class AppLanguageController extends Notifier<AppLanguage> {
@@ -48,6 +48,8 @@ class AppLanguageController extends Notifier<AppLanguage> {
   AppLanguage build() => initial;
 
   Future<void> set(AppLanguage language) async {
+    // English-only build: the choice is fixed.
+    language = AppLanguage.en;
     if (language == state) return;
     state = language;
     final prefs = await SharedPreferences.getInstance();

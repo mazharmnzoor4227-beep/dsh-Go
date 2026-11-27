@@ -674,7 +674,7 @@ class RuntimeController private constructor(private val app: Context) : DshProce
                     // SafeMode.prepare writes its own briefing; leave the original home untouched.
                     if (!safe) GuestSetup.writeAgentsMd(
                         installer.rootfs, storage, phone && PhoneControl.switchedOn(app), pendingVisualReplies, actualDirect,
-                        nativeLocale = if (AppStrings.isEnglish(app)) "en" else "zh-CN",
+                        nativeLocale = "en",
                     )
                 }
                 if (phone) PhoneControl.get(app).launched(p.phoneMounted)

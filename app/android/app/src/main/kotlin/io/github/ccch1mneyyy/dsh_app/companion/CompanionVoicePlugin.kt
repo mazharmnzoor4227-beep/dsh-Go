@@ -67,7 +67,7 @@ class CompanionVoicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
-            "ready" -> ready(call.argument<String>("language") ?: "zh-CN", result)
+            "ready" -> ready(call.argument<String>("language") ?: "en-US", result)
             "speak" -> result.success(speak(call))
             "play" -> result.success(play(call))
             "stop" -> {

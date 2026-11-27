@@ -209,12 +209,11 @@ def check(repo: Path, guide: Path) -> list[str]:
     for required in ('SKILL.md', 'README.md'):
         if not (guide / required).is_file():
             return [f'{guide}: missing {required}']
+    # English-only build: only the English pages are checked and shipped.
+    # The zh pages remain in docs as reference and are not validated here.
     pages = {locale: {p.name for p in source_files(guide / locale, '*.md')} for locale in LOCALES}
-    if not pages['zh']:
-        errors.append(f'{guide}/zh: no pages')
-    if pages['zh'] != pages['en']:
-        errors.append(f'zh/en pages differ: only zh {sorted(pages["zh"] - pages["en"])}, '
-                      f'only en {sorted(pages["en"] - pages["zh"])}')
+    if not pages['en']:
+        errors.append(f'{guide}/en: no pages')
     harmony = harmony_files(guide)
     ours = {*guide_files(guide), *(f'{HARMONY}/{target}' for target in harmony)}
     for other in guide.rglob('*'):
@@ -226,9 +225,6 @@ def check(repo: Path, guide: Path) -> list[str]:
     for target in sorted(harmony.keys() - guide_files(guide).keys()):
         errors.append(f'{HARMONY}/{target}: takes the place of nothing in the guide')
     only = {locale: {t.split('/')[1] for t in harmony if t.startswith(f'{locale}/')} for locale in LOCALES}
-    if only['zh'] != only['en']:
-        errors.append(f'{HARMONY}: zh/en pages differ: only zh {sorted(only["zh"] - only["en"])}, '
-                      f'only en {sorted(only["en"] - only["zh"])}')
     version = app_version(repo / 'app/pubspec.yaml')
     for name, readme in (('README.md', guide / 'README.md'), (f'{HARMONY}/README.md', harmony.get('README.md'))):
         if readme is None:
@@ -241,7 +237,7 @@ def check(repo: Path, guide: Path) -> list[str]:
         errors += [f'{HARMONY}/{error}' for error in check_skill(harmony['SKILL.md'].read_text(encoding='utf-8'))]
     ids = read_page_ids(repo / 'app/lib/links/page_links.dart', repo / 'app/lib/ui/settings/index/spots.dart')
     res = repo / 'app/android/app/src/main/res'
-    for locale in LOCALES:
+    for locale in ('en',):
         arb = read_arb(repo / 'app/lib/l10n/parts', locale)
         labels = set(arb.values()) | read_android(res, locale)
         for page in sorted(source_files(guide / locale, '*.md')):
@@ -257,11 +253,13 @@ def check(repo: Path, guide: Path) -> list[str]:
 
 
 def assets(guide: Path) -> dict[str, bytes]:
-    files = guide_files(guide)
+    # English-only build: the shipped guide carries the English pages only.
+    # The zh pages stay in docs for reference but never reach the app.
+    files = {t: p for t, p in guide_files(guide).items() if not t.startswith('zh/')}
     manifest = {target.replace('/', '-'): target for target in files}
     out = {flat: files[target].read_bytes() for flat, target in manifest.items()}
     record: dict[str, object] = {'name': SKILL, 'files': manifest}
-    harmony = harmony_files(guide)
+    harmony = {t: p for t, p in harmony_files(guide).items() if not t.startswith('zh/')}
     if harmony:
         record[HARMONY] = {f'{HARMONY}-' + target.replace('/', '-'): target for target in harmony}
         out.update({f'{HARMONY}-' + target.replace('/', '-'): page.read_bytes() for target, page in harmony.items()})

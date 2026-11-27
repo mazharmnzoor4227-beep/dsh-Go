@@ -2,7 +2,7 @@
 <!-- SPDX-FileCopyrightText: 2026 CikeSeven -->
 <!-- SPDX-License-Identifier: MIT -->
 <!-- See THIRD_PARTY_NOTICES.md. -->
-<!-- DSH 手机操控 (phone/a11y/PhoneA11yService).
+<!-- DSH phone control (phone/a11y/PhoneA11yService).
      Not an accessibility tool (isAccessibilityTool=false): Play / Play Protect rules, and
      accessibilityDataSensitive views stay hidden from us, which is the safe side.
      Selection events and no notificationTimeout: some apps send a view's text only in events

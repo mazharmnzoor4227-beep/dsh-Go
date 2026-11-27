@@ -24,47 +24,6 @@ const ICONS = new Set(JSON.parse(readFileSync(new URL('../schema/view.schema.jso
 // ── words (the check's own; issue texts come from the app / bridge) ─────────
 
 const WORDS = {
-  zh: {
-    error: '错误', warn: '提示', note: '提示', fatal: '错误',
-    plugin: (name, version) => `${name}${version ? ` ${version}` : ''}`,
-    noDshGo: '没有 dshGo 清单：只有工具卡（presentationMeta）这类零成本扩展',
-    manifest: { ok: '原生界面能显示', invalid: '清单无效，原生部分不显示', unsupported: '协议版本不被支持，原生部分不显示', 'needs-app': 'App 版本太低，原生部分不显示', degraded: '已降级' },
-    counts: (c) => [
-      c['composer.actions'] && `胶囊 ${c['composer.actions']}`,
-      c['message.actions'] && `菜单 ${c['message.actions']}`,
-      c['composer.strip'] && `状态条 ${c['composer.strip']}`,
-      c.panels && `面板 ${c.panels}`,
-      c['composer.tools'] && `加号工具 ${c['composer.tools']}`,
-      c['session.actions'] && `对话操作 ${c['session.actions']}`,
-      c['turn.note'] && `回合尾注 ${c['turn.note']}`,
-    ].filter(Boolean).join(' · '),
-    view: (where, budget) => `视图 ${where}（${{ toolCard: '工具卡', panel: '面板', strip: '状态条' }[budget]}）`,
-    viewOk: '能显示', viewFatal: '整块无法显示：', viewProblems: (n) => `，${n} 处问题`,
-    unknownIcon: '不认识的图标，已换成默认图标',
-    notBundle: '不是 DSH 组合包：package.json 缺 dsh.bundle.patch，DSH 装不上',
-    patchMissing: (p) => `找不到组合包补丁文件 ${p}`,
-    noEngines: '没写 engines.dsh：DSH 不检查版本，装到不兼容的 DSH 上会在运行时出错',
-    noName: '缺少 name',
-    cardBindings: '工具卡没有数据模型，绑定都会显示成「—」',
-    cardTaps: '工具卡（第 0 期）不能点：按钮、确认不显示，选项只读',
-    loadHint: '加 --load 再查处理函数和视图函数',
-    loaded: (n) => `已加载宿主半侧：${n} 项可用`,
-    loadedTools: '已加载',
-    loadFailed: (m) => `宿主半侧加载失败：${m}`,
-    optionalInject: "写成了 ctx.inject(['dshGo?'])：cordis 没有可选依赖语法，这个回调永远不执行，改成 ['dshGo']",
-    topInject: '插件顶层的 inject 里有 dshGo：没有桥接的主机上整个插件起不来，改用 ctx.inject([\'dshGo\'], …)',
-    viewFailed: (id, m) => `面板 ${id} 的视图函数出错：${m}`,
-    stripText: (id, n) => `状态条 ${id} 的文字超过 24 字（${n} 字），会被截断`,
-    stripEmit: (id, m) => `状态条 ${id}：${m}`,
-    tools: (names) => `注册了工具：${names}`,
-    missing: (p) => `找不到 ${p}`,
-    readFailed: (p, m) => `读不了 ${p}：${m}`,
-    notJson: (m) => `不是合法的 JSON（${m}）`,
-    packageObject: 'package.json 必须是 JSON 对象',
-    optionValue: (name) => `${name} 缺少值`,
-    unknownOption: (name) => `不认识的选项 ${name}；以 - 开头的文件名请放在 -- 后面`,
-    invalidOption: (name, values) => `${name} 必须是 ${values}`,
-  },
   en: {
     error: 'error', warn: 'note', note: 'note', fatal: 'error',
     plugin: (name, version) => `${name}${version ? ` ${version}` : ''}`,
@@ -108,12 +67,12 @@ const WORDS = {
   },
 }
 
-const words = (lang) => WORDS[lang === 'en' ? 'en' : 'zh']
+const words = () => WORDS.en
 
 // ── manifest ──────────────────────────────────────────────────────────────
 
 const FEED_SETTLE_MS = 2000
-const LOCALES = ['zh-CN', 'en-US']
+const LOCALES = ['en-US']
 
 /** App-side icon problems (the app draws unknown names as its default glyph). */
 function iconIssues(pkgJson, w) {
@@ -483,7 +442,7 @@ export function formatReport(report, lang) {
 function parseArgs(argv) {
   const opts = { targets: [], json: false, load: false, lang: undefined, budget: undefined, app: undefined }
   const optionArgs = argv.slice(0, argv.indexOf('--') < 0 ? argv.length : argv.indexOf('--'))
-  const w = words(optionArgs.some((a, i) => a === '--lang=en' || (a === '--lang' && optionArgs[i + 1] === 'en')) ? 'en' : 'zh')
+  const w = words()
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i]
     if (a === '--') {
@@ -502,7 +461,7 @@ function parseArgs(argv) {
     else opts.targets.push(a)
   }
   if (opts.lang !== undefined && !['zh', 'en'].includes(opts.lang)) throw new Error(w.invalidOption('--lang', 'zh, en'))
-  opts.lang ??= 'zh'
+  opts.lang ??= 'en'
   if (opts.budget !== undefined && !Object.hasOwn(BUDGETS, opts.budget)) throw new Error(w.invalidOption('--budget', Object.keys(BUDGETS).join(', ')))
   if (opts.app !== undefined && !SEMVER.test(opts.app)) throw new Error(w.invalidOption('--app', 'x.y.z'))
   if (opts.targets.length === 0) opts.targets.push('.')

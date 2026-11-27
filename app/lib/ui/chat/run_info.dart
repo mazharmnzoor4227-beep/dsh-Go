@@ -436,7 +436,7 @@ RunActivity? runActivityOf(ChatState s) {
     return make(
       ActivityKind.question,
       appL10n.commonWaitingAnswer,
-      detail: question.trim().replaceAll(RegExp(r'\s+'), ' '),
+      detail: RegExp(r'[\u3400-\u9fff]').hasMatch(question) ? '' : question.trim().replaceAll(RegExp(r'\s+'), ' '),
       since: openSince((sp) => sp.kind == TraceKind.question),
     );
   }

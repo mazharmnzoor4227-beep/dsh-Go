@@ -183,7 +183,7 @@ export function createNotesToTodosRunner({ctx, store, execution}) {
     if (!requestedMode) throw new NotesTaskError('output_policy_unavailable');
     guard(record.taskId, record.taskRev, signal, owner, store.stored);
     return owner.approve('writePage', {requestedMode,
-      justification: `只在 ${directory.target.displayPath} 新建《${record.agreement.args.outputName}》以整理本次选定笔记；不覆盖已有文件，不改原笔记。`}, signal);
+      justification: `Create only ${record.agreement.args.outputName} in ${directory.target.displayPath} to organise the notes selected this time; overwrite nothing and change no original note.`}, signal);
   }
 
   async function generateCandidate(id, rev, controller, owner) {

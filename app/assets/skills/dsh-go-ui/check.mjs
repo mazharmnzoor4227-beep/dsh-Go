@@ -22,7 +22,7 @@ import { fileURLToPath } from 'node:url';
 const here = dirname(fileURLToPath(import.meta.url));
 const schemaPath = [join(here, '..', 'schema.json'), join(here, 'schema.json')].find((p) => existsSync(p));
 if (!schemaPath) {
-  process.stderr.write('找不到 schema.json（应在 check.mjs 同级或上一级）\n');
+  process.stderr.write('schema.json not found (expected next to check.mjs or one level up)\n');
   process.exit(3);
 }
 const schema = JSON.parse(readFileSync(schemaPath, 'utf8'));
@@ -57,50 +57,50 @@ const S = {
 
 const runes = (s) => [...s];
 const M = {
-  fileTooLarge: '文件超过 64 KiB',
-  rootNotObject: '顶层必须是对象',
-  versionMissing: '缺少 version',
-  versionNotInt: 'version 必须是整数',
-  versionTooLow: 'version 从 1 开始',
-  versionTooHigh: (v) => `需要更新 App 才能使用版本 ${v}`,
-  notObject: '应该是对象',
-  notArray: '应该是数组',
-  notString: '应该是字符串',
-  notBool: '应该是 true 或 false',
-  empty: '不能为空',
-  unknownKey: '未知的键，已忽略',
-  duplicateKey: '重复的键，只认最后一个',
-  duplicateItem: '重复了，已忽略',
-  missing: (k) => `缺少 ${k}`,
-  truncated: (n) => `超过 ${n} 个字，已截断`,
-  tooLong: (n) => `超过 ${n} 个字`,
-  tooMany: (n) => `最多 ${n} 个，多出的已忽略`,
-  badValue: (value, options, noun = '值') => {
+  fileTooLarge: 'file is over 64 KiB',
+  rootNotObject: 'the top level must be an object',
+  versionMissing: 'missing version',
+  versionNotInt: 'version must be an integer',
+  versionTooLow: 'version starts at 1',
+  versionTooHigh: (v) => `update the app to use version ${v}`,
+  notObject: 'should be an object',
+  notArray: 'should be an array',
+  notString: 'should be a string',
+  notBool: 'should be true or false',
+  empty: 'must not be empty',
+  unknownKey: 'unknown key, ignored',
+  duplicateKey: 'duplicate key; only the last counts',
+  duplicateItem: 'duplicate, ignored',
+  missing: (k) => `missing ${k}`,
+  truncated: (n) => `over ${n} characters, truncated`,
+  tooLong: (n) => `over ${n} characters`,
+  tooMany: (n) => `at most ${n}; extras ignored`,
+  badValue: (value, options, noun = 'value') => {
     const r = runes(value);
     const shown = r.length <= 32 ? value : `${r.slice(0, 32).join('')}…`;
-    const base = `不支持的${noun}「${shown}」`;
-    return options.length <= 8 ? `${base}，可选：${options.join('、')}` : base;
+    const base = `unsupported ${noun} "${shown}"`;
+    return options.length <= 8 ? `${base}; options: ${options.join(', ')}` : base;
   },
-  headerItem: '应该是按钮 id 或对象',
-  headerId: 'id 只能用字母、数字和 -，以小写字母开头',
-  idTaken: 'id 重复',
-  commandSlash: '命令名不带 /，已去掉',
-  commandName: '命令名只能用字母、数字和 : . _ -',
-  noNewline: '不能换行',
-  httpsOnly: '只支持 https 链接',
-  badUrl: '链接格式不对',
-  accentFormat: '颜色要写成 #RRGGBB',
-  accentBoth: '和 accentPreset 二选一，已用 accentPreset',
-  petId: 'id 只能用小写字母、数字和 -',
-  keysFormat: '写法不对，例如 ctrl+k',
-  systemKey: '不能用系统键',
-  needModifier: '要带 ctrl 或 alt',
-  reserved: '被系统或输入法占用',
-  duplicateShortcut: (p) => `和 ${p} 重复`,
-  slotName: 'slot 名格式不对',
-  unknownSlot: '当前 DSH 没有这个 slot，先保留',
-  unseatableSlot: '这个位置不放插件',
-  packageName: '包名格式不对',
+  headerItem: 'should be a button id or an object',
+  headerId: 'id may use letters, digits and -, starting with a lowercase letter',
+  idTaken: 'duplicate id',
+  commandSlash: 'command names take no /; removed',
+  commandName: 'command names may use letters, digits and : . _ -',
+  noNewline: 'must not contain a newline',
+  httpsOnly: 'only https links are supported',
+  badUrl: 'malformed link',
+  accentFormat: 'write the colour as #RRGGBB',
+  accentBoth: 'choose accent or accentPreset, not both; accentPreset used',
+  petId: 'id may use lowercase letters, digits and -',
+  keysFormat: 'malformed; for example ctrl+k',
+  systemKey: 'system keys are not allowed',
+  needModifier: 'needs ctrl or alt',
+  reserved: 'taken by the system or the input method',
+  duplicateShortcut: (p) => `duplicates ${p}`,
+  slotName: 'malformed slot name',
+  unknownSlot: 'this DSH has no such slot; kept for now',
+  unseatableSlot: 'this spot takes no plugins',
+  packageName: 'malformed package name',
 };
 
 // ── Strict JSON reader (twin of ui_json_reader.dart) ──────────────────────
@@ -114,7 +114,7 @@ class JNum {
 
 class SyntaxErr extends Error {
   constructor(line, column, reason) {
-    super(`第 ${line} 行第 ${column} 列：${reason}`);
+    super(`line ${line}, column ${column}: ${reason}`);
     this.line = line;
     this.column = column;
     this.reason = reason;
@@ -153,7 +153,7 @@ function readJson(s) {
 
   function value(pointer, depth) {
     ws();
-    if (end()) fail(i, '文件不完整');
+    if (end()) fail(i, 'file is incomplete');
     const ch = c();
     if (ch === 0x7b) return object(pointer, depth + 1);
     if (ch === 0x5b) return array(pointer, depth + 1);
@@ -171,14 +171,14 @@ function readJson(s) {
       i += 4;
       return null;
     }
-    if (ch === 0x2f) fail(i, '不支持注释');
-    if (ch === 0x27) fail(i, '字符串要用双引号');
-    if (ch === 0x7d || ch === 0x5d || ch === 0x2c) fail(i, '这里缺少一个值');
-    fail(i, `无法识别的内容「${s[i]}」`);
+    if (ch === 0x2f) fail(i, 'comments are not supported');
+    if (ch === 0x27) fail(i, 'strings need double quotes');
+    if (ch === 0x7d || ch === 0x5d || ch === 0x2c) fail(i, 'a value is missing here');
+    fail(i, `unrecognised content "${s[i]}"`);
   }
 
   function object(pointer, depth) {
-    if (depth > S.maxDepth) fail(i, '嵌套太深');
+    if (depth > S.maxDepth) fail(i, 'nested too deeply');
     i++;
     const map = new Map();
     ws();
@@ -189,26 +189,26 @@ function readJson(s) {
     let comma = -1;
     for (;;) {
       ws();
-      if (end()) fail(i, '文件不完整');
+      if (end()) fail(i, 'file is incomplete');
       const ch = c();
       if (ch !== 0x22) {
-        if (ch === 0x7d && comma >= 0) fail(comma, '多余的逗号');
-        if (ch === 0x2f) fail(i, '不支持注释');
-        if (ch === 0x27) fail(i, '字符串要用双引号');
-        if (identStart(ch)) fail(i, '键要用双引号括起来');
-        fail(i, '这里应该是一个键');
+        if (ch === 0x7d && comma >= 0) fail(comma, 'extra comma');
+        if (ch === 0x2f) fail(i, 'comments are not supported');
+        if (ch === 0x27) fail(i, 'strings need double quotes');
+        if (identStart(ch)) fail(i, 'keys need double quotes');
+        fail(i, 'a key belongs here');
       }
       const key = string();
       ws();
-      if (end()) fail(i, '文件不完整');
-      if (c() !== 0x3a) fail(i, '键后面缺少冒号');
+      if (end()) fail(i, 'file is incomplete');
+      if (c() !== 0x3a) fail(i, 'missing colon after the key');
       i++;
       const child = `${pointer}/${escapeToken(key)}`;
       const v = value(child, depth);
       if (map.has(key)) duplicates.push(child);
       map.set(key, v);
       ws();
-      if (end()) fail(i, '文件不完整');
+      if (end()) fail(i, 'file is incomplete');
       const next = c();
       if (next === 0x2c) {
         comma = i;
@@ -219,14 +219,14 @@ function readJson(s) {
         i++;
         return map;
       }
-      if (next === 0x2f) fail(i, '不支持注释');
-      if (startsValue(next)) fail(i, '这里缺少逗号');
-      fail(i, `这里不应该出现「${s[i]}」`);
+      if (next === 0x2f) fail(i, 'comments are not supported');
+      if (startsValue(next)) fail(i, 'a comma is missing here');
+      fail(i, `"${s[i]}" does not belong here`);
     }
   }
 
   function array(pointer, depth) {
-    if (depth > S.maxDepth) fail(i, '嵌套太深');
+    if (depth > S.maxDepth) fail(i, 'nested too deeply');
     i++;
     const list = [];
     ws();
@@ -237,10 +237,10 @@ function readJson(s) {
     let comma = -1;
     for (;;) {
       ws();
-      if (!end() && c() === 0x5d && comma >= 0) fail(comma, '多余的逗号');
+      if (!end() && c() === 0x5d && comma >= 0) fail(comma, 'extra comma');
       list.push(value(`${pointer}/${list.length}`, depth));
       ws();
-      if (end()) fail(i, '文件不完整');
+      if (end()) fail(i, 'file is incomplete');
       const next = c();
       if (next === 0x2c) {
         comma = i;
@@ -251,9 +251,9 @@ function readJson(s) {
         i++;
         return list;
       }
-      if (next === 0x2f) fail(i, '不支持注释');
-      if (startsValue(next)) fail(i, '这里缺少逗号');
-      fail(i, `这里不应该出现「${s[i]}」`);
+      if (next === 0x2f) fail(i, 'comments are not supported');
+      if (startsValue(next)) fail(i, 'a comma is missing here');
+      fail(i, `"${s[i]}" does not belong here`);
     }
   }
 
@@ -262,14 +262,14 @@ function readJson(s) {
     i++;
     let out = '';
     for (;;) {
-      if (end()) fail(start, '字符串没有结束');
+      if (end()) fail(start, 'unterminated string');
       const ch = c();
       if (ch === 0x22) {
         i++;
         return out;
       }
       if (ch === 0x5c) {
-        if (i + 1 >= s.length) fail(start, '字符串没有结束');
+        if (i + 1 >= s.length) fail(start, 'unterminated string');
         const e = s.charCodeAt(i + 1);
         switch (e) {
           case 0x22:
@@ -294,19 +294,19 @@ function readJson(s) {
             break;
           case 0x75: {
             const hex = s.substring(i + 2, i + 6);
-            if (i + 6 > s.length || !/^[0-9A-Fa-f]{4}$/.test(hex)) fail(i, '字符串里的转义不对');
+            if (i + 6 > s.length || !/^[0-9A-Fa-f]{4}$/.test(hex)) fail(i, 'bad escape in string');
             out += String.fromCharCode(parseInt(hex, 16));
             i += 4;
             break;
           }
           default:
-            fail(i, '字符串里的转义不对');
+            fail(i, 'bad escape in string');
         }
         i += 2;
         continue;
       }
-      if (ch === 0x0a || ch === 0x0d) fail(i, '字符串里不能直接换行');
-      if (ch < 0x20) fail(i, '字符串里有控制字符');
+      if (ch === 0x0a || ch === 0x0d) fail(i, 'no literal newline inside a string');
+      if (ch < 0x20) fail(i, 'control character in string');
       out += s[i];
       i++;
     }
@@ -315,22 +315,22 @@ function readJson(s) {
   function number() {
     const start = i;
     if (c() === 0x2d) i++;
-    if (end()) fail(i, '数字格式不对');
+    if (end()) fail(i, 'malformed number');
     if (c() === 0x30) i++;
     else if (digit(c())) while (!end() && digit(c())) i++;
-    else fail(i, '数字格式不对');
+    else fail(i, 'malformed number');
     let integer = true;
     if (!end() && c() === 0x2e) {
       integer = false;
       i++;
-      if (end() || !digit(c())) fail(i, '数字格式不对');
+      if (end() || !digit(c())) fail(i, 'malformed number');
       while (!end() && digit(c())) i++;
     }
     if (!end() && (c() === 0x65 || c() === 0x45)) {
       integer = false;
       i++;
       if (!end() && (c() === 0x2b || c() === 0x2d)) i++;
-      if (end() || !digit(c())) fail(i, '数字格式不对');
+      if (end() || !digit(c())) fail(i, 'malformed number');
       while (!end() && digit(c())) i++;
     }
     const literal = s.substring(start, i);
@@ -340,10 +340,10 @@ function readJson(s) {
 
   if (!end() && c() === 0xfeff) i++;
   ws();
-  if (end()) fail(i, '文件是空的');
+  if (end()) fail(i, 'the file is empty');
   const v = value('', 0);
   ws();
-  if (!end()) fail(i, '后面还有多余的内容');
+  if (!end()) fail(i, 'extra content after the end');
   return { value: v, duplicates };
 }
 
@@ -384,7 +384,7 @@ function validate(root, duplicates) {
     issue(p, M.notArray);
     return null;
   };
-  const choice = (v, p, options, noun = '值') => {
+  const choice = (v, p, options, noun = 'value') => {
     if (!isString(v)) {
       issue(p, M.notString);
       return null;
@@ -433,7 +433,7 @@ function validate(root, duplicates) {
       issue(tp, M.missing('type'));
       return null;
     }
-    const type = choice(map.get('type'), tp, S.actionTypes, '动作');
+    const type = choice(map.get('type'), tp, S.actionTypes, 'action');
     if (type === null) return null;
     switch (type) {
       case 'send': {
@@ -468,7 +468,7 @@ function validate(root, duplicates) {
           issue(fp, M.missing('page'));
           return null;
         }
-        const page = choice(map.get('page'), fp, S.pages, '页面');
+        const page = choice(map.get('page'), fp, S.pages, 'page');
         return page === null ? null : { type: 'open', page };
       }
       case 'command': {
@@ -555,7 +555,7 @@ function validate(root, duplicates) {
     list.forEach((item, index) => {
       const ip = `${ap}/${index}`;
       if (isString(item)) {
-        const id = choice(item, ip, S.headerBuiltins, '按钮');
+        const id = choice(item, ip, S.headerBuiltins, 'button');
         if (id === null) return;
         if (seen.has(id)) {
           issue(ip, M.duplicateItem, 'ignored');
@@ -606,7 +606,7 @@ function validate(root, duplicates) {
     if (!map.has('icon')) {
       issue(iconp, M.missing('icon'));
       ok = false;
-    } else if (choice(map.get('icon'), iconp, S.icons, '图标') === null) {
+    } else if (choice(map.get('icon'), iconp, S.icons, 'icon') === null) {
       ok = false;
     }
     const labelp = child(p, 'label');
@@ -971,7 +971,7 @@ function defaultPath() {
   return join(homedir(), '.dsh', 'dsh-go', 'ui.json');
 }
 
-const kindLabel = { fatal: '错误', invalid: '错误', ignored: '忽略', adjusted: '提示' };
+const kindLabel = { fatal: 'error', invalid: 'error', ignored: 'ignored', adjusted: 'note' };
 
 function main(argv) {
   const json = argv.includes('--json');
@@ -984,7 +984,7 @@ function main(argv) {
     } else {
       if (!existsSync(path)) {
         if (json) process.stdout.write(`${JSON.stringify({ file: path, missing: true })}\n`);
-        else process.stdout.write(`还没有 ui.json：${path}\n`);
+        else process.stdout.write(`no ui.json yet: ${path}\n`);
         return 3;
       }
       if (statSync(path).size > S.maxBytes) {
@@ -994,7 +994,7 @@ function main(argv) {
       }
     }
   } catch (e) {
-    process.stdout.write(`读不了 ${path}：${e.message}\n`);
+    process.stdout.write(`cannot read ${path}: ${e.message}\n`);
     return 3;
   }
   const result =
@@ -1006,9 +1006,9 @@ function main(argv) {
   } else {
     const dropped = result.issues.filter((i) => i.kind !== 'adjusted').length;
     if (result.fatal) {
-      process.stdout.write(`ui.json 没有生效：${result.issues[0].pointer ? `${result.issues[0].pointer}：` : ''}${result.issues[0].message}\n`);
+      process.stdout.write(`ui.json not applied: ${result.issues[0].pointer ? `${result.issues[0].pointer}: ` : ''}${result.issues[0].message}\n`);
     } else {
-      process.stdout.write(`ui.json：已应用 ${result.applied} 项${dropped > 0 ? `，${dropped} 处没生效` : ''}\n`);
+      process.stdout.write(`ui.json: ${result.applied} item(s) applied${dropped > 0 ? `, ${dropped} without effect` : ''}\n`);
       for (const i of result.issues) {
         process.stdout.write(`${kindLabel[i.kind]} ${i.pointer ? `${i.pointer}：` : ''}${i.message}\n`);
       }

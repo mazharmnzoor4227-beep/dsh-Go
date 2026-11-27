@@ -152,7 +152,8 @@ class SettingsSearchIndex {
       _spots.add((
         spot: spot,
         langs: [
-          for (final l in [zh, en])
+          // English-only build: Chinese titles/synonyms are not indexed or shown.
+          for (final l in [en])
             _Words(spot.titleOn(harmony: harmony)(l), [
               ..._split((harmony ? spot.ohosKeywords ?? spot.keywords : spot.keywords)?.call(l)),
               ?spot.altTitle?.call(l),
@@ -168,7 +169,7 @@ class SettingsSearchIndex {
           item: item,
           section: section,
           langs: [
-            for (final l in [zh, en]) _Words(item.titleIn(l), const [], section.titleIn(l)),
+            for (final l in [en]) _Words(item.titleIn(l), const [], section.titleIn(l)),
           ],
         ));
       }

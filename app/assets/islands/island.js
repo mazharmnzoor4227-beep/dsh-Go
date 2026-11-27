@@ -292,7 +292,7 @@
   }
 
   // An island of several slots (`slots`, stretch 'common': the chat page's
-  // 「插件」 sheet) shows every one of them that has something on screen.
+  // Plugins sheet) shows every one of them that has something on screen.
   function slotsOf(cfg) {
     return cfg && cfg.slots && cfg.slots.length ? cfg.slots : [cfg.slot];
   }
@@ -813,7 +813,7 @@
       if (c) return c;
       var back = byName(root, 'button', labels.pluginsBack);
       if (back) back.click();
-      // Bundles past the first few sit behind a group's 更多.
+      // Bundles past the first few sit behind a group's More.
       var more = byName(root, 'button', labels.more);
       if (more) more.click();
       return null;
@@ -919,7 +919,7 @@
   }
 
   // A conversation view (conversation.view, rc.4): its tab in the View row,
-  // or its row under 「更多会话视图」. Tabs carry no ids, so a name only picks
+  // or its row under More conversation views. Tabs carry no ids, so a name only picks
   // the control to press: the one control that goes by exactly one of the
   // view's names; none when two do (which is which can't be told). What says
   // which view is on screen is the client's own record: picking a view

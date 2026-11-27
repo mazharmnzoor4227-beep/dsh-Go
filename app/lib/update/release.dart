@@ -298,12 +298,14 @@ Map<String, String> parseSha256Sums(String text) {
 /// `### 中文 … ### English …` (the changelog's form); Chinese when there is
 /// nothing in [language]; the notes as they are when they have no sections.
 String releaseNotesFor(ReleaseInfo release, String language) {
-  final lang = language == 'en' ? 'en' : 'zh';
+  // English-only build: Chinese notes are never shown. Without an English
+  // section, plain notes show only when they carry no Han text.
   final split = release.notesByLocale;
-  if (split[lang]?.trim() case final text? when text.isNotEmpty) return text;
-  if (split['zh']?.trim() case final text? when text.isNotEmpty) return text;
+  if (split['en']?.trim() case final text? when text.isNotEmpty) return text;
   final sections = _notesSections(release.notes);
-  return (sections[lang] ?? sections['zh'] ?? release.notes).trim();
+  if (sections['en'] case final text?) return text;
+  if (sections.isNotEmpty) return '';
+  return RegExp(r'[\u3400-\u9fff]').hasMatch(release.notes) ? '' : release.notes.trim();
 }
 
 /// `### 中文` / `### English` sections of [notes]; empty without them.

@@ -44,7 +44,7 @@
   const DPR_CAP = Math.min(FLOAT ? 4 : 3, BUDGET_DPR > 0 ? Math.max(0.5, BUDGET_DPR) : Infinity);
   // Clip masks: the renderer packs them into textures of four channels, at
   // most 36 different masks in one texture, 32 each when there are several.
-  // A model that needs more (a detailed one: 49 for 大肥鱼 4096) gets more
+  // A model that needs more (a detailed one: 49 for a 4096px model) gets more
   // textures, and past MASK_TEXTURES_MAX each mask drawn as it's needed.
   const MASKS_IN_ONE = 36;
   const MASKS_PER_TEXTURE = 32;

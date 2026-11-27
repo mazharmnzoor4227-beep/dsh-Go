@@ -2,7 +2,7 @@
 <!-- SPDX-FileCopyrightText: Google -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 <!-- See THIRD_PARTY_NOTICES.md. -->
-<!-- Quick Settings tile 「新对话」: Material `add_comment_outlined` at 24dp. The system tints it, so only
+<!-- Quick Settings tile "New chat": Material `add_comment_outlined` at 24dp. The system tints it, so only
      the alpha counts. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"

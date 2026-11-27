@@ -65,7 +65,7 @@ class StudioGroup extends StatelessWidget {
                 foregroundColor: theme.colorScheme.onSurfaceVariant,
               ),
               icon: Icon(open ? AppIcons.collapse : AppIcons.expand, size: 14),
-              label: Text(open ? studioText('收起', 'Show less') : studioText('更多选项', 'More options')),
+              label: Text(open ? 'Show less' : 'More options'),
             ),
           ),
           ExpandReveal(
@@ -176,12 +176,12 @@ class StudioSlider extends StatelessWidget {
     final scheme = theme.colorScheme;
     final value = this.value;
     String number(double v) => format?.call(v) ?? v.toStringAsFixed(_decimals);
-    final following = follows ?? studioText('默认', 'Default');
+    final following = follows ?? 'Default';
     final shown = value != null
         ? number(value)
         : (effective == null
               ? following
-              : studioText('$following · 当前 ${number(effective!)}', '$following · now ${number(effective!)}'));
+              : '$following · now ${number(effective!)}');
     // Faint but solid: a see-through thumb would show the track through it.
     final resting = Color.alphaBlend(scheme.onSurfaceVariant.withValues(alpha: 0.32), scheme.surface);
     return Column(
@@ -203,7 +203,7 @@ class StudioSlider extends StatelessWidget {
                     minimumSize: const Size(0, 28),
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
-                  child: Text(fallback == null && follows != null ? follows! : studioText('恢复默认', 'Reset')),
+                  child: Text(fallback == null && follows != null ? follows! : 'Reset'),
                 ),
             ],
           ),
@@ -451,12 +451,12 @@ class StudioHexField extends StatelessWidget {
     hint: hint,
     dense: dense,
     mono: true,
-    invalidText: studioText('写成 #RRGGBB', 'Use #RRGGBB'),
+    invalidText: 'Use #RRGGBB',
     prefix: onPick == null
         ? null
         : Semantics(
             button: true,
-            label: studioText('选颜色', 'Pick a color'),
+            label: 'Pick a color',
             child: InkResponse(
               radius: 20,
               onTap: onPick,
@@ -512,7 +512,7 @@ class StudioLocalizedText extends StatelessWidget {
             child: StudioField.text(
               value: value?.zh ?? '',
               onChanged: (text) => _write(zh: text, en: value?.en),
-              label: studioText('中文', 'Chinese'),
+              label: 'Chinese',
               maxLength: maxLength,
             ),
           ),
@@ -521,7 +521,7 @@ class StudioLocalizedText extends StatelessWidget {
             child: StudioField.text(
               value: value?.en ?? '',
               onChanged: (text) => _write(zh: value?.zh, en: text),
-              label: studioText('英文', 'English'),
+              label: 'English',
               maxLength: maxLength,
             ),
           ),
@@ -571,7 +571,7 @@ class StudioAssetRow extends StatelessWidget {
               label: Text(fileName == null ? pickLabel : '$title · $fileName'),
               onPressed: onPick,
             ),
-            if (fileName != null) TextButton(onPressed: onClear, child: Text(studioText('清除', 'Clear'))),
+            if (fileName != null) TextButton(onPressed: onClear, child: Text('Clear')),
           ],
         ),
         if (missing) StudioMissingNote(fileName!),
@@ -591,7 +591,7 @@ class StudioMissingNote extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(top: 4),
       child: Text(
-        studioText('还缺文件 $fileName，重新选一个才能保存。', 'The file $fileName is missing. Pick one again before saving.'),
+        'The file $fileName is missing. Pick one again before saving.',
         style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.error),
       ),
     );

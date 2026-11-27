@@ -1,29 +1,6 @@
-# dsh-go 使用说明（鸿蒙版） · User guide (HarmonyOS)
+# dsh-go user guide (HarmonyOS)
 
-> dsh-go 1.4.6
-
-## 中文
-
-- [对话](zh/01-chat.md)：新对话、模型、图片与语音、插话与排队、提问与授权、消息菜单、对话列表、外接键盘
-- [模型与渠道](zh/02-models.md)：切换模型、思考深度、自定义渠道、模型设置、DeepSeek 账号与 API Key
-- [本机引擎与远程主机](zh/03-engine-hosts.md)：本机或远程、启动与自动启动、Linux 环境、重置、卸载、切换主机、SSH、DSH Remote
-- [系统操作](zh/04-phone-control.md)：鸿蒙版用它代替手机操控，开启、能做什么、做不到什么、确认方式、交还给你、记录
-- [网页模式](zh/05-web.md)：切换界面、网页里的 App 功能、网页版手机布局
-- [宠物](zh/06-pets.md)：选择宠物、气泡、伙伴小屋、创意工坊
-- [分享与回放](zh/07-sharing.md)：一个面板分享链接、图片、文件或文字，回放与接着聊
-- [插件](zh/08-plugins.md)：安装、开关、更新与卸载、原生设置与网页版编辑、原生界面
-- [外观](zh/09-appearance.md)：明暗、配色、图标、启动画面、壁纸、对话字号
-- [设置](zh/10-settings.md)：设置页每一项的作用、检查更新
-- [常见问题](zh/11-faq.md)：连不上、闪退与自动故障分析、键盘挡住输入框、后台暂停、引擎启动、headless 凭据、系统操作、Linux 环境、宠物、插件、App 发送的数据
-- [DS Bot](zh/12-bots.md)：手机端支持、工作目录、复制 Bot
-- [酒馆](zh/13-tavern.md)：导入角色卡、书架与对话、舞台、群聊、排版和备份
-- [全部功能](zh/14-all-features.md)：网页版功能的总目录、当前对话的入口、插件面板、分享配置
-- [子代理与智能体团队](zh/15-agents.md)：子代理谱系、团队三栏、开启团队、子代理设置
-- [终端](zh/16-terminal.md)：鸿蒙本机没有交互终端，连 SSH 主机时的页签与按键
-- [工作区](zh/17-workspaces.md)：添加与切换目录、重命名、置顶与分组、移除
-- [自动化任务](zh/18-schedules.md)：定时与周期任务、新建与编辑、运行历史、本机任务要应用在运行
-
-## English
+> dsh-go 1.4.7
 
 - [Chat](en/01-chat.md): new chats, models, images and voice, steering and queueing, questions and approvals, message menu, chat list, hardware keyboard
 - [Models and providers](en/02-models.md): switching models, thinking effort, custom providers, model settings, DeepSeek account and API key

@@ -761,15 +761,21 @@ class _BotQuestionCardState extends State<BotQuestionCard> {
     final theme = Theme.of(context);
     final dsh = DshColors.of(context);
     final q = widget.question;
+    final han = RegExp(r'[\u3400-\u9fff]');
+    final chinese = han.hasMatch(q.question) || han.hasMatch(q.detail ?? '') || q.options.any((o) => han.hasMatch(o.label) || han.hasMatch(o.description ?? ''));
+    final shownQuestion = LocalizedText.englishText(q.question).trim().isEmpty
+        ? 'The assistant asked a question in Chinese. Please answer in your own words.'
+        : LocalizedText.englishText(q.question).trim();
+    final shownDetail = q.detail == null ? null : LocalizedText.englishText(q.detail!).trim();
     final ready = _picked.isNotEmpty || _custom.text.trim().isNotEmpty;
     return ChatCard(
       icon: AppIcons.question,
-      title: q.question,
+      title: shownQuestion,
       titleMaxLines: 3,
       tone: ChatCardTone.ask,
       trailing: CardCloseKey(onTap: widget.onDismiss),
       children: [
-        if (q.detail case final detail?)
+        if (shownDetail case final detail? when detail.isNotEmpty)
           Padding(
             padding: const EdgeInsets.fromLTRB(ChatCard.inset, 0, ChatCard.inset, 8),
             child: Text(detail, style: theme.textTheme.bodySmall?.copyWith(color: dsh.textTertiary)),
@@ -780,11 +786,12 @@ class _BotQuestionCardState extends State<BotQuestionCard> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              for (final option in q.options)
-                Tooltip(
-                  message: option.description ?? '',
-                  child: CapsuleChoiceChip(
-                    label: option.label,
+              if (!chinese)
+                for (final option in q.options)
+                  Tooltip(
+                    message: LocalizedText.englishText(option.description ?? ''),
+                    child: CapsuleChoiceChip(
+                      label: LocalizedText.englishText(option.label).trim().isEmpty ? 'Option' : LocalizedText.englishText(option.label).trim(),
                     selected: _picked.contains(option.label),
                     onSelected: () {
                       if (!_sending) _tap(option.label);
@@ -794,7 +801,7 @@ class _BotQuestionCardState extends State<BotQuestionCard> {
             ],
           ),
         ),
-        if (q.allowCustom)
+        if (q.allowCustom || chinese)
           Padding(
             padding: const EdgeInsets.fromLTRB(ChatCard.inset, 8, ChatCard.inset, 0),
             child: TextField(

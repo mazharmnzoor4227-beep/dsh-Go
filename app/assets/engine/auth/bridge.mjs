@@ -54,26 +54,26 @@ const FINISHED_KEEP_MS = 10 * 60 * 1000
 const MAX_KEPT_ATTEMPTS = 16
 const MAX_ANSWER_LENGTH = 8192
 
-/** Product copy shown by the app (Chinese, short). */
+/** Product copy shown by the app (English, short). */
 export const COPY = Object.freeze({
-  starting: '正在准备登录…',
-  open: '在浏览器里完成登录',
-  device: '在打开的网页里输入下面的代码',
-  prompt: '在浏览器里登录后，把地址栏里的完整网址复制下来，粘贴到这里',
-  finishing: '正在完成登录…',
+  starting: 'Preparing sign-in…',
+  open: 'Finish signing in in your browser',
+  device: 'Enter the code below on the page that opened',
+  prompt: 'After signing in in the browser, copy the full address from the address bar and paste it here',
+  finishing: 'Finishing sign-in…',
 })
 
 export const ERRORS = Object.freeze({
-  cancelled: '登录已取消',
-  timeout: '登录超时了，再试一次',
-  denied: '授权被拒绝了，再试一次',
-  network: '网络连不上，检查网络后再试',
-  badPaste: '粘贴的内容不对，再试一次',
-  unavailable: '引擎暂时不能登录，重启引擎后再试',
-  busy: '上一次登录还没结束，稍后再试',
-  generic: '授权没有完成，再试一次',
-  expired: '这次登录已失效，请重新开始',
-  signOut: '退出登录没有完成，再试一次',
+  cancelled: 'Sign-in cancelled',
+  timeout: 'Sign-in timed out. Try again.',
+  denied: 'Authorization was denied. Try again.',
+  network: 'No network connection. Check your network and try again.',
+  badPaste: 'What you pasted does not look right. Try again.',
+  unavailable: 'The engine cannot sign in right now. Restart the engine and try again.',
+  busy: 'The last sign-in is still running. Try again in a moment.',
+  generic: 'Authorization did not finish. Try again.',
+  expired: 'This sign-in has expired. Start again.',
+  signOut: 'Sign-out did not finish. Try again.',
 })
 
 /**
@@ -427,7 +427,7 @@ export class AuthBridge {
   async begin(provider, newAccount) {
     const spec = this.#spec(provider)
     if (newAccount === true && !spec.siwc) {
-      throw new this.#RemoteError('app-auth/unknown-provider', '不支持这个登录方式', {})
+      throw new this.#RemoteError('app-auth/unknown-provider', 'This sign-in method is not supported', {})
     }
     this.#prune()
     // Tapping "sign in" again replaces the attempt in flight (DSH runs one per key).
@@ -462,9 +462,9 @@ export class AuthBridge {
     const attempt = this.#attempts.get(String(attemptId))
     if (attempt === undefined || !attempt.live) throw new this.#RemoteError('app-auth/attempt-over', ERRORS.expired, {})
     const pending = attempt.pending
-    if (pending === undefined) throw new this.#RemoteError('app-auth/not-waiting', '现在不需要粘贴内容', {})
+    if (pending === undefined) throw new this.#RemoteError('app-auth/not-waiting', 'Nothing needs pasting right now', {})
     const text = typeof value === 'string' ? value.trim() : ''
-    if (text.length === 0) throw new this.#RemoteError('app-auth/empty-answer', '先粘贴授权信息', {})
+    if (text.length === 0) throw new this.#RemoteError('app-auth/empty-answer', 'Paste the authorization info first', {})
     if (text.length > MAX_ANSWER_LENGTH) throw new this.#RemoteError('app-auth/answer-too-long', ERRORS.badPaste, {})
     attempt.pending = undefined
     attempt.placeholder = undefined
@@ -500,7 +500,7 @@ export class AuthBridge {
         await signOut
       } catch (error) {
         if (error?.code === 'siwc_revocation_unconfirmed') {
-          throw new this.#RemoteError('app-auth/revocation-unconfirmed', '已退出本机。请在 ChatGPT 设置中检查应用授权', {})
+          throw new this.#RemoteError('app-auth/revocation-unconfirmed', 'Signed out on this device. Check app authorizations in ChatGPT settings.', {})
         }
         throw new this.#RemoteError('app-auth/sign-out-failed', ERRORS.signOut, {})
       }
@@ -708,7 +708,7 @@ export class AuthBridge {
       if (siwc) return { siwc }
     }
     const spec = typeof provider === 'string' && Object.hasOwn(PROVIDERS, provider) ? PROVIDERS[provider] : undefined
-    if (spec === undefined) throw new this.#RemoteError('app-auth/unknown-provider', '不支持这个登录方式', {})
+    if (spec === undefined) throw new this.#RemoteError('app-auth/unknown-provider', 'This sign-in method is not supported', {})
     return spec
   }
 

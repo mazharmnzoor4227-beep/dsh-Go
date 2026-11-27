@@ -1,50 +1,58 @@
 ---
 # dsh-go:managed — delete this line to keep your own edits.
 name: pet-theme
-description: 把宠物素材做成 dsh-go 可导入的宠物包：clawd-on-desk 主题、GIF/PNG/WebP 表情包、逐帧目录、Aseprite 导出或单张图片。用于「把这个主题做成宠物」「把表情包做成宠物」「这个能导入吗」和 /pet-theme。
+description: Turn pet material into a pet pack dsh-go can import — a clawd-on-desk theme, GIF/PNG/WebP stickers, a frame folder, an Aseprite export, or a single image. Use for "make this theme into a pet", "turn these stickers into a pet", "can this be imported?" and /pet-theme.
 ---
 
-# 做一只宠物
+# Make a pet
 
-把素材目录转成宠物包 zip，用户在「设置 → 宠物 → 导入」里选它。脚本在 scripts/ 下。
+Convert a material folder into a pet pack zip; the person picks it under
+Settings → Pets → Import. The scripts live in scripts/.
 
-支持（按目录内容自动识别，一个目录只放一种）：
+Supported (detected from the folder's contents; one kind per folder):
 
-- clawd-on-desk 主题：theme.json + assets/
-- 图片：GIF / APNG / WebP / PNG，一个文件一个动画；文件名自动认状态
-  （idle、thinking、working、error、done、sleep、walk、poke、drag、tickle 等中英文）
-- 逐帧目录：walk/01.png、hello_01.png，目录或前缀即动画名
-- Aseprite 导出：JSON + 图集 PNG，按 frameTags 分动画
-- 单张图片：做一只静态待机
+- clawd-on-desk theme: theme.json + assets/
+- Images: GIF / APNG / WebP / PNG, one animation per file; the filename
+  gives the state (idle, thinking, working, error, done, sleep, walk,
+  poke, drag, tickle, and similar English or Chinese words)
+- Frame folders: walk/01.png, hello_01.png — the folder or prefix is the
+  animation name
+- Aseprite exports: JSON + atlas PNG, split by frameTags
+- A single image: a static idle pet
 
-没认出来的动画自动进待机小剧场，不会浪费。
+Animations that match no state go to the idle theatre, so nothing is wasted.
 
-## 步骤
+## Steps
 
-1. 拿到素材目录（用户给链接就 git clone --depth 1，给 zip 就解压）。目录里没有
-   theme.json 也没有图片就停下，说清楚支持什么。
-2. 缺依赖才装：python3 -m pip install -i https://pypi.tuna.tsinghua.edu.cn/simple Pillow numpy
-3. 转：
+1. Get the material folder (git clone --depth 1 for a link, unzip for a
+   zip). If the folder has neither theme.json nor images, stop and say
+   what is supported.
+2. Install dependencies only if missing: python3 -m pip install Pillow numpy
+3. Convert:
 
-       python3 <scripts>/pet_theme_convert.py --input <目录> --out /tmp/pet-pack --id <id> --input-name <名字> [--source <链接>]
+       python3 <scripts>/pet_theme_convert.py --input <folder> --out /tmp/pet-pack --id <id> --input-name <name> [--source <link>]
 
-   像素画（小图、硬边）自动保持尺寸锐利绘制；其它素材自动用 144 画布平滑绘制。
-   想强制锐利加 --crisp。
-4. 校验，必须 PASS：
+   Pixel art (small, hard edges) keeps its size and draws crisply; other
+   material is drawn smoothly on a 144 canvas. Add --crisp to force crisp.
+4. Validate — it must PASS:
 
        python3 <scripts>/pet_pack_check.py /tmp/pet-pack/<id> --compat-reactions
 
-5. 打包：
+5. Pack:
 
-       cd /tmp/pet-pack/<id> && python3 -m zipfile -c <输出路径>/<id>.zip pack.json *.png
+       cd /tmp/pet-pack/<id> && python3 -m zipfile -c <output path>/<id>.zip pack.json *.png
 
-   手机输出到 /sdcard/Download/DSH-Go/。
-6. 收尾：告诉用户导入路径，作者与授权显示在宠物页底部；只做自用转换，第三方素材
-   （尤其 CC BY-NC-SA 同人作品）不要打包进发行版或市场。
+   On the phone, output to /sdcard/Download/DSH-Go/.
+6. Finish: tell the person where to import it; the author and license show
+   at the bottom of the pet page. Conversions are for personal use only —
+   never bundle third-party material (especially CC BY-NC-SA fan work)
+   into a release or the market.
 
-## 边界
+## Boundaries
 
-- 一个目录只识别一种素材，混放请分开。
-- 整张精灵表请先拆帧或导出 Aseprite JSON。
-- 状态靠文件名匹配；都没认出来时第一张当待机，其余进小剧场。
-- 不手改生成的 pack.json，不跳过校验，不把用户素材上传。
+- One kind of material per folder; keep mixed material separate.
+- Split sprite sheets into frames first, or export Aseprite JSON.
+- States come from filename matching; when nothing matches, the first
+  image is the idle and the rest go to the theatre.
+- Do not hand-edit the generated pack.json, do not skip validation, and
+  do not upload the person's material anywhere.

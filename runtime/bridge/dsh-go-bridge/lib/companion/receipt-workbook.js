@@ -3,7 +3,7 @@
 import {zipSync, unzipSync, strToU8} from '../vendor/receipt-sheet/fflate.mjs';
 import {RECEIPT_LIMITS, ReceiptTaskError} from './receipt-content.js';
 
-export const receiptHeaders = Object.freeze(['日期', '项目', '金额', '来源']);
+export const receiptHeaders = Object.freeze(['Date', 'Item', 'Amount', 'Source']);
 const main = 'http://schemas.openxmlformats.org/spreadsheetml/2006/main';
 const rel = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
 const packageRel = 'http://schemas.openxmlformats.org/package/2006/relationships';
@@ -11,7 +11,7 @@ const declaration = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
 const staticParts = Object.freeze({
   '[Content_Types].xml': `${declaration}<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>`,
   '_rels/.rels': `${declaration}<Relationships xmlns="${packageRel}"><Relationship Id="rId1" Type="${rel}/officeDocument" Target="xl/workbook.xml"/></Relationships>`,
-  'xl/workbook.xml': `${declaration}<workbook xmlns="${main}" xmlns:r="${rel}"><sheets><sheet name="差旅小表" sheetId="1" r:id="rId1"/></sheets></workbook>`,
+  'xl/workbook.xml': `${declaration}<workbook xmlns="${main}" xmlns:r="${rel}"><sheets><sheet name="Travel receipts" sheetId="1" r:id="rId1"/></sheets></workbook>`,
   'xl/_rels/workbook.xml.rels': `${declaration}<Relationships xmlns="${packageRel}"><Relationship Id="rId1" Type="${rel}/worksheet" Target="worksheets/sheet1.xml"/></Relationships>`,
 });
 const sheetName = 'xl/worksheets/sheet1.xml';
@@ -87,7 +87,7 @@ export function verifyReceiptWorkbook(bytes, expectedRows) {
     }
     consume(sheetSuffix);
     if (cursor !== xml.length) fail();
-    return {sheet: '差旅小表', cells: 20, rows: actual};
+    return {sheet: 'Travel receipts', cells: 20, rows: actual};
   } catch (error) {
     if (error instanceof ReceiptTaskError) throw error;
     fail();

@@ -72,17 +72,17 @@ void main() {
 
   test('the report has the sections a support skill needs', () {
     final text = diagnosticsMarkdown(snapshot());
-    expect(text, contains('# DSH Go 本机诊断'));
-    expect(text, contains('## 环境'));
+    expect(text, contains('# DSH Go on-device diagnostics'));
+    expect(text, contains('## Environment'));
     expect(text, contains('vivo'));
     expect(text, contains('V2405A'));
     expect(text, contains('Android 16 (SDK 36)'));
     expect(text, contains('设备资源：内存 12288 MB · 剩余存储 4096 MB'));
     expect(text, contains('0.2.1-rc.4'));
-    expect(text, contains('## 设置'));
+    expect(text, contains('## Settings'));
     expect(text, contains('API Key：已设置'));
-    expect(text, contains('## 连接'));
-    expect(text, contains('## 性能'));
+    expect(text, contains('## Connection'));
+    expect(text, contains('## Performance'));
   });
 
   test('resource sizes preserve native MB, including small and missing values', () {

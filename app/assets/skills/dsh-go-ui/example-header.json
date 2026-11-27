@@ -3,16 +3,56 @@
   "header": {
     "actions": [
       "newChat",
-      { "id": "todo", "icon": "todo", "label": "待办", "action": { "type": "send", "text": "读一下 TODO.md，告诉我今天先做什么" } },
-      { "id": "files", "icon": "folder", "label": "文件", "action": { "type": "open", "page": "files" } }
+      {
+        "id": "todo",
+        "icon": "todo",
+        "label": "To-dos",
+        "action": {
+          "type": "send",
+          "text": "Read TODO.md and tell me what to do first today"
+        }
+      },
+      {
+        "id": "files",
+        "icon": "folder",
+        "label": "Files",
+        "action": {
+          "type": "open",
+          "page": "files"
+        }
+      }
     ]
   },
   "composer": {
     "quickActions": [
-      { "label": "继续", "action": { "type": "send", "text": "继续" } },
-      { "label": "解释代码", "action": { "type": "send", "text": "逐段解释上面这段代码在做什么" } },
-      { "label": "压缩上下文", "action": { "type": "command", "name": "compact" } },
-      { "label": "更新日志", "action": { "type": "link", "url": "https://github.com/ccch1mneyyy/dsh-Go/releases" } }
+      {
+        "label": "Continue",
+        "action": {
+          "type": "send",
+          "text": "Continue"
+        }
+      },
+      {
+        "label": "Explain code",
+        "action": {
+          "type": "send",
+          "text": "Explain what the code above does, section by section"
+        }
+      },
+      {
+        "label": "Compact context",
+        "action": {
+          "type": "command",
+          "name": "compact"
+        }
+      },
+      {
+        "label": "Changelog",
+        "action": {
+          "type": "link",
+          "url": "https://github.com/ccch1mneyyy/dsh-Go/releases"
+        }
+      }
     ]
   }
 }

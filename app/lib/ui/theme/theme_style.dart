@@ -76,7 +76,7 @@ class DshThemeStyle extends ThemeExtension<DshThemeStyle> {
   int get assetRevision => pack?.assetRevision ?? 0;
 
   /// The pack's own copy in the app's language.
-  String? localized(ThemeLocalizedText? text) => text?.resolve(AppLocale.isEnglish ? 'en' : 'zh');
+  String? localized(ThemeLocalizedText? text) => text?.resolve('en');
 
   /// A bundled image, or null for a built-in pack (it has no folder).
   File? assetFile(String? name) {

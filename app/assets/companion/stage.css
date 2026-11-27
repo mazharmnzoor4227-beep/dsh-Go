@@ -1,4 +1,4 @@
-/* 伙伴小屋's scene. Everything here is either static or a composited transform,
+/* The companion room's scene. Everything here is either static or a composited transform,
    so the water costs almost nothing next to the model. Nothing animates on a
    clock of its own: stage.js moves the shafts and the whale on the frames it
    draws anyway (`water`). Colours follow the hour (`data-tod` on <html>, set by

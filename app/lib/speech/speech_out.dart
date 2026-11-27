@@ -670,6 +670,19 @@ SpeechOut speechOutFor(
   // not depend on a DeepSeek credential being present. If Gemini's voice
   // fails before any sound, the phone's own voice takes over so the reply
   // is still heard.
+  if (call) {
+    // Live calls speak with Gemini, falling back to the phone's own voice
+    // only — never another cloud or preset voice.
+    SpeakerOut phoneVoice() {
+      speaker.settings = settings.copyWith(source: CompanionVoiceSource.system);
+      return SpeakerOut(speaker, onPlaying: (on) => unawaited(audio.playing(on)));
+    }
+
+    if (geminiKey != null && Platform.operatingSystem != 'ohos') {
+      return FallbackSpeechOut(GeminiOut(geminiKey, audio, call: true, levels: levels), phoneVoice);
+    }
+    return phoneVoice();
+  }
   if (geminiKey != null && Platform.operatingSystem != 'ohos') {
     return FallbackSpeechOut(
       GeminiOut(geminiKey, audio, call: call, levels: levels),

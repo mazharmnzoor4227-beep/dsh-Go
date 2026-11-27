@@ -80,7 +80,7 @@ Approval cards: check the command, files and reason, then tap **Allow once** or 
 
 ### Separate authorization for scheduled tasks
 
-With the patched bundled engine, creating a task or changing its name, instructions or timing requires a separate confirmation. The question shows the complete instructions, rule, time zone and resolved trigger time. Review them, select "授权 / Authorize", then submit. Full access, Auto review and chat-wide auto-approval cannot replace this confirmation. While saving in the task editor, the confirmation appears there; tasks requested in a chat are confirmed in that chat.
+With the patched bundled engine, creating a task or changing its name, instructions or timing requires a separate confirmation. The question shows the complete instructions, rule, time zone and resolved trigger time. Review them, select "Authorize", then submit. Full access, Auto review and chat-wide auto-approval cannot replace this confirmation. While saving in the task editor, the confirmation appears there; tasks requested in a chat are confirmed in that chat.
 
 Rejection, no answer, a two-minute authorization timeout or an unavailable confirmation interface does not save the change. A trigger time that has already passed must be proposed and confirmed again. A rejected edit leaves the existing task unchanged. Cancelling a save, leaving the editor or switching hosts attempts to reject that page's outstanding requests; it cannot undo an operation another client already confirmed first.
 

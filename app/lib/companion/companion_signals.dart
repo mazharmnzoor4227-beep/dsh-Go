@@ -488,7 +488,7 @@ final class CompanionSignalGate {
 
   bool slotCurrent(CompanionSignalSlot slot) => _slotCurrent(slot);
 
-  CompanionSignalSpeech? speechCandidate(CompanionSignalSlot slot, {String language = 'zh'}) {
+  CompanionSignalSpeech? speechCandidate(CompanionSignalSlot slot, {String language = 'en'}) {
     if (!_slotCurrent(slot, speech: true) ||
         slot.signal.reconciled ||
         !const {'task.terminal', 'run.result', 'app.late_use'}.contains(slot.signal.kind)) {
@@ -508,7 +508,7 @@ final class CompanionSignalGate {
       _consents[speech.slot._ingress.source]?.voice == speech.voice &&
       _consents[speech.slot._ingress.source]?.nightCare == speech.nightCare;
 
-  CompanionSignalPreview? previewMetadata(CompanionSignalSlot slot, {String language = 'zh'}) =>
+  CompanionSignalPreview? previewMetadata(CompanionSignalSlot slot, {String language = 'en'}) =>
       _slotCurrent(slot) ? CompanionSignalPreview._(this, slot, _template(slot.signal, language), false) : null;
 
   /// A user-selected DSH result only. The loader receives the exact client,

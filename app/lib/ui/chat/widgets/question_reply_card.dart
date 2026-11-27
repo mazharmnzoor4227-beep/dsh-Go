@@ -1,3 +1,4 @@
+import 'package:dsh_client/dsh_client.dart' show LocalizedText;
 import 'package:flutter/material.dart';
 
 import '../../../l10n/l10n.dart';
@@ -41,12 +42,12 @@ class QuestionReplyCard extends StatelessWidget {
               for (final reply in replies) ...[
                 const SizedBox(height: 8),
                 SecretText(
-                  reply.question,
+                  LocalizedText.englishText(reply.question).trim().isEmpty ? 'Question' : LocalizedText.englishText(reply.question).trim(),
                   style: AppType.chatBody(context, scale: 14 / 16, color: colors.onSurfaceVariant),
                 ),
                 const SizedBox(height: 2),
                 SecretText(
-                  reply.answer,
+                  LocalizedText.englishText(reply.answer).trim().isEmpty ? 'Answered' : LocalizedText.englishText(reply.answer).trim(),
                   key: ValueKey(reply.id),
                   style: AppType.chatBody(context, color: colors.onSurface),
                   interactive: true,

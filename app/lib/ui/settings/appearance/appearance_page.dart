@@ -124,7 +124,7 @@ class AppearancePage extends ConsumerWidget {
         ),
         if (includeThemePacks)
           SettingsSection(
-            title: AppLocale.isEnglish ? 'Theme Packs & Workshop' : '主题包与创意工坊',
+            title: 'Theme Packs & Workshop',
             children: const [ThemePacksSection()],
           ),
       ],

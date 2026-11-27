@@ -88,6 +88,16 @@ Future<void> openVoiceCall(
   CallBackdrop? backdrop,
 }) async {
   final container = ProviderScope.containerOf(context, listen: false);
+  // Live calls are Gemini only, from every entry point.
+  final geminiKey = await container.read(geminiApiKeyProvider.future);
+  if (geminiKey == null) {
+    if (context.mounted) {
+      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+        const SnackBar(content: Text('Add your Gemini key in Settings → Providers to use voice call.')),
+      );
+    }
+    return;
+  }
   container.read(readAloudProvider.notifier).stop();
   await Navigator.of(context).push(
     PageRouteBuilder<void>(
@@ -654,10 +664,7 @@ class _VoiceCallPageState extends ConsumerState<VoiceCallPage> with WidgetsBindi
                           live: !ended && _since != null,
                           blur: keyBlur,
                           onTranscript: _openTranscript,
-                          onBackdrop: ended
-                              ? null
-                              // Trying voices out plays on her speaker: she stops this reply first.
-                              : () => unawaited(showCallBackdropSheet(context, inCall: true, beforeVoice: _call.skip)),
+                          onBackdrop: null,
                         ),
                         distance: -14,
                       ),
@@ -862,14 +869,7 @@ class _TopBar extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 10),
-          _RoundKey(
-            key: const ValueKey('call-backdrop'),
-            icon: AppIcons.settings,
-            label: l10n.speechCallSettings,
-            blur: blur,
-            onTap: onBackdrop,
-          ),
+
         ],
       ),
     );

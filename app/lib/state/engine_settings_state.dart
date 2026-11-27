@@ -1098,21 +1098,16 @@ class InventoryItem {
   }
 }
 
-final _cjk = RegExp(r'[\u3400-\u9fff]');
-
-/// The Chinese variant of a package text (`zh`, `zh-CN`…, or plain text
-/// written in Chinese); null when the package has none — English is never
-/// shown in its place.
-String? chineseText(LocalizedText? text) {
-  if (text == null) return null;
-  for (final MapEntry(:key, :value) in text.values.entries) {
-    if ((key == 'zh' || key.startsWith('zh-')) && value.trim().isNotEmpty) return value.trim();
-  }
-  final plain = text.values[''];
-  return plain != null && _cjk.hasMatch(plain) ? plain.trim() : null;
+/// The English variant of a package text; null when the package has none
+/// that reads as English. Chinese text is never shown in this build:
+/// [LocalizedText.resolve] converts known Chinese wording to English and
+/// drops anything it cannot convert.
+String? englishTextOf(LocalizedText? text) {
+  final resolved = text?.resolve('en').trim();
+  return resolved == null || resolved.isEmpty ? null : resolved;
 }
 
-/// The inventory joined with the bundle list: titles in Chinese, the bundle
+/// The inventory joined with the bundle list: titles in English, the bundle
 /// and version each entry comes from. Pure for testing.
 ({List<InventoryItem> global, Map<String, List<InventoryItem>> presets}) inventoryItems(
   PluginInventory inventory,
@@ -1136,7 +1131,7 @@ String? chineseText(LocalizedText? text) {
     return (source: name, bundle: owner.name, version: owner.version);
   }
 
-  String titleOf(PluginDisplayMeta? meta, String moduleName) => chineseText(meta?.title) ?? shortModuleName(moduleName);
+  String titleOf(PluginDisplayMeta? meta, String moduleName) => englishTextOf(meta?.title) ?? shortModuleName(moduleName);
 
   final providedBy = <String, List<String>>{};
   for (final preset in inventory.presets) {
@@ -1155,8 +1150,8 @@ String? chineseText(LocalizedText? text) {
           entryId: e.entryId,
           moduleName: e.moduleName,
           title: titleOf(e.meta, e.moduleName),
-          description: chineseText(e.meta?.description),
-          system: chineseText(e.meta?.title) == null,
+          description: englishTextOf(e.meta?.description),
+          system: englishTextOf(e.meta?.title) == null,
           icon: e.meta?.icon,
           status: inventoryStatus(enabled: e.enabled, fiberPhase: e.fiberPhase),
           source: from.source,
@@ -1177,8 +1172,8 @@ String? chineseText(LocalizedText? text) {
               entryId: row.entryId ?? row.moduleName,
               moduleName: row.moduleName,
               title: titleOf(row.meta, row.moduleName),
-              description: chineseText(row.meta?.description),
-              system: chineseText(row.meta?.title) == null,
+              description: englishTextOf(row.meta?.description),
+              system: englishTextOf(row.meta?.title) == null,
               icon: row.meta?.icon,
               status: inventoryStatus(enabled: row.enabled, fiberPhase: row.fiberPhase, conditional: row.conditional),
               source: from.source,

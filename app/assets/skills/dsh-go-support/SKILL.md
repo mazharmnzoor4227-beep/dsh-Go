@@ -1,137 +1,313 @@
 ---
 # dsh-go:managed — the dsh-go app keeps this skill up to date; delete this line to keep your own edits.
 name: dsh-go-support
-description: dsh-go 手机 App 的排障与反馈：读 App 写好的本机诊断（路径见 AGENTS.md 的「本机诊断」一节，通常是 `$DSH_HOME/dsh-app/diagnostics.md`）、按症状清单定位、生成脱敏的环境摘要和 issue 草稿。用户说卡顿、发热、耗电、连不上、闪退、更新装不上、插件不生效、手机操控失败，或要反馈 bug 时，先加载它。Diagnose and report dsh-go problems from the on-device diagnostics snapshot.
+description: Troubleshooting and feedback for the dsh-go phone app — read the on-device diagnostics the app writes (see the "On-device diagnostics" section of AGENTS.md, usually `$DSH_HOME/dsh-app/diagnostics.md`), work through the symptom checklist, and produce a redacted environment summary and issue draft. Load this first when the person reports lag, heat, battery drain, connection trouble, crashes, failed updates, plugins not working, or phone-control failures, or asks to report a bug. Diagnose and report dsh-go problems from the on-device diagnostics snapshot.
 whenToUse: The person reports a problem with DSH Go (lag, heat, battery, connection, crash, update, plugin, phone control) or asks to file an issue. Not for changing the app's UI (dsh-go-ui) or writing a plugin (dsh-go-plugin).
 ---
 
-# dsh-go 排障与反馈
+# dsh-go troubleshooting and feedback
 
-这个技能只做一件事：**先把事实拿到，再下结论**。App 自己会写一份本机诊断，路径和管理规则见全局指令的「本机诊断」一节——先读它，再按下面的清单走。不要凭"可能是……"就开药方。
+This skill does one thing: **get the facts first, then conclude**. The app
+writes its own on-device diagnostics; the path and the rules are in the
+"On-device diagnostics" section of the global instructions — read that
+first, then follow the checklist below. Do not prescribe from "it might
+be…".
 
-## 1. 先读诊断
+## 1. Read the diagnostics first
 
 ```sh
-# 使用可用的文件读取工具读取以下路径（不要输出整份诊断到外部）：
-# $DSH_HOME/dsh-app/diagnostics.md        自动环境快照
-# $DSH_HOME/dsh-app/diagnostics-manual.md 用户主动发布的报告（存在时优先核对）
-# direct 启动时路径带 rootfs 前缀，以 AGENTS.md 为准
+# Read these paths with an available file tool (never send the whole
+# diagnostics anywhere):
+# $DSH_HOME/dsh-app/diagnostics.md        the automatic environment snapshot
+# $DSH_HOME/dsh-app/diagnostics-manual.md the report the person published (check first when present)
+# Under direct launch the path carries a rootfs prefix; AGENTS.md wins.
 ```
 
-这是 App 从自身状态、Android 可获得的信息和运行时日志采集并写出的有限快照，可能包含版本、设备、运行时、连接、性能、App 捕获的最近错误及引擎/失败日志尾部；部分来源不可用或信息过期时会缺失。Markdown 有大小预算，日志只保留有限尾部，不是完整历史。
+This is a bounded snapshot the app collects from its own state, what
+Android exposes, and runtime logs: version, device, runtime, connection,
+performance, recent errors the app caught, and the tails of engine/failure
+logs. Parts may be missing when a source is unavailable or stale. The
+Markdown has a size budget and logs keep only a limited tail — it is not
+the full history.
 
-App 捕获的完整错误信息仍是本进程内有限的内存记录；新版本另将错误类别和少量自有源码位置、内容无关的语音阶段有界持久化。Android 11+ 可按系统可用性提供本应用历史进程退出原因，不读取退出描述或原始 trace。这些记录不是完整崩溃堆栈；缺失、不可用或空结果不能当作正常证据。诊断包也不是系统 logcat：普通 App 对其他应用和系统日志的读取受 Android 权限与版本限制，不能假定有全系统日志或绕过权限。确需 logcat 时，先说明范围与隐私风险，由用户自行选择合法可用的采集方式；不同 Android 版本、设备和权限下内容可能不同。
+Full error messages the app caught live in bounded in-process memory;
+newer versions also persist error categories, a few of the app's own
+source locations, and content-free voice stages. On Android 11+ the
+system may report this app's historical process-exit reasons; exit
+descriptions and raw traces are not read. These records are not a full
+crash stack; missing, unavailable or empty results are not evidence of
+health. The diagnostics bundle is not system logcat either: a normal app
+cannot read other apps' or system logs beyond Android's permission and
+version limits — do not assume full system logs or bypass permissions.
+When logcat is truly needed, explain the scope and privacy risk first
+and let the person choose a lawful way to collect it; contents vary by
+Android version, device and permissions.
 
-- 先核对可用报告的生成时间、App 版本和设备是否与本次反馈一致；另一台设备或旧时间的报告不能当成本次现场。优先读取本次手动报告，再用自动快照补充环境。只有可用报告都缺失或过旧时才请用户到 **设置 → 诊断 → 让 AI 看诊断** 发布，再读；不要因另一个文件缺失反复要求刷新。旧版只有主快照也是正常情况。
-- 新版本提供 `mcp__phone__diagnostics` 时，用户要求排障即可先自行调用：默认 `refresh:true`，按 `section` 取 `summary`、`evidence`、`appErrors`、`voice`、`engine` 或 `failure`，不用先读屏或开启手机操控。核对 `collectedAt`、`refreshed`、`code`，失败不能把旧快照说成本次现场；`refresh:false` 只读缓存。每段有界且可能标记 `truncated`。工具不采系统输入法证据、不导出任意路径、不替用户对外发送。工具缺失或不可用时再读已有快照，不反复调用逼用户开启权限。
-- 信息不足时可请用户通过诊断功能导出 ZIP：它由同类采集结果生成，包含摘要、设置，按可用性包含崩溃分类、引擎/失败日志尾部和 App 错误；日志仍有上限，并非日志全文或完整 crash 细节。用户检查后自行保管或上传，不替他发。
+- First check that an available report's generation time, app version and
+  device match this report; another device's or an old report is not this
+  incident. Read this incident's manual report first, then fill in the
+  environment from the automatic snapshot. Only when every available
+  report is missing or stale, ask the person to publish one via
+  **Settings → Diagnostics → Let AI see diagnostics**, then read it; do
+  not keep asking for a refresh because another file is missing. Older
+  versions having only the main snapshot is normal.
+- When a newer version offers `mcp__phone__diagnostics`, a
+  troubleshooting request is enough to call it yourself: `refresh:true`
+  by default, take `summary`, `evidence`, `appErrors`, `voice`, `engine`
+  or `failure` by `section` — no screen reading or phone control needed
+  first. Check `collectedAt`, `refreshed` and `code`; a failed refresh
+  must not present an old snapshot as this incident; `refresh:false`
+  reads the cache only. Each section is bounded and may be marked
+  `truncated`. The tool collects no system input-method evidence,
+  exports no arbitrary paths, and sends nothing on the person's behalf.
+  When the tool is missing or unavailable, read the existing snapshot;
+  do not call repeatedly to pressure the person into permissions.
+- When information is short, the person can export a ZIP from the
+  diagnostics feature: built from the same collection — summary,
+  settings, and where available crash categories, engine/failure log
+  tails and app errors. Logs are still capped, not complete, and crash
+  detail is not full. The person checks it and keeps or uploads it
+  themselves; never send it for them.
 
-用户点 **让 AI 看诊断** 后，只原子写入同目录固定的 `diagnostics-manual.md` 手动报告，供 AI 读取本次采集的系统输入法证据；自动刷新只写 `diagnostics.md`，两者不互相覆盖。分别核对生成时间、设备与版本，不把旧手动报告当新现场；旧版只有主快照时读已有文件，不推断故障不存在。路径与主快照相同的目录，direct/safe 模式同样按 AGENTS 指示定位。
+After the person taps **Let AI see diagnostics**, only the fixed
+`diagnostics-manual.md` in the same folder is written atomically, for the
+AI to read this collection's system input-method evidence; automatic
+refresh writes only `diagnostics.md`; the two never overwrite each
+other. Check generation time, device and version separately; an old
+manual report is not a new incident. With only the main snapshot on an
+older version, read what exists and do not infer the fault is absent.
+The path is the main snapshot's folder; direct/safe modes locate it the
+same way per AGENTS.
 
-**读诊断之前先自己看，不要先问用户一堆问题**；诊断里没有的信息再问。
+**Look yourself before asking the person a pile of questions**; ask only
+for what the diagnostics do not contain.
 
-## 2. 按症状查
+## 2. Check by symptom
 
-### 闪退 / 语音回复时退出
-- 先读 `evidence` 和 `voice`：对照错误位置、语音阶段与进程退出时间，区分原生崩溃、异常退出或内存回收。请求播放不等于已播放；没有系统堆栈就直说未知，不把模型回复错误等同 App 崩溃。
-- **自动故障分析**默认关闭，用户明确同意后才会将内容白名单内的结构化事实发送给本机引擎模型（可能计费），不会发送原始日志、录音、正文、凭据或系统输入法证据。分析会话没有工具，不自动修复、不公开发 issue；失败/结果不明不自动重试，关闭或切主机后不发新请求，已发送无法撤回。
-- 分析记录读写失败时，自动分析暂停；诊断页的本地恢复入口仅恢复记录、跳过已留存故障，不向模型重发旧请求。不要通过删除用户设置、重放 prompt 或擅自清数据来绕过。
+### Crashes / exits during voice replies
+- Read `evidence` and `voice` first: line up the error location, voice
+  stage and process-exit time to tell a native crash from an abnormal
+  exit or memory reclaim. Requesting playback is not playback; with no
+  system stack, say it is unknown — do not equate a model reply error
+  with an app crash.
+- **Automatic fault analysis** is off by default. Only with the person's
+  explicit consent does it send allow-listed structured facts to the
+  on-device engine's model (possibly billed) — never raw logs,
+  recordings, message text, credentials or system input-method
+  evidence. The analysis session has no tools, fixes nothing
+  automatically and files no public issue; failures or unclear results
+  are not retried automatically; closing it or switching hosts stops new
+  requests; what was sent cannot be recalled.
+- When analysis records fail to read or write, automatic analysis
+  pauses; the local recovery entry on the diagnostics page only restores
+  records and skips stored faults — it does not resend old requests to
+  the model. Do not work around this by deleting settings, replaying
+  prompts or clearing data on your own.
 
-### 卡顿 / 掉帧 / 不跟手
-先分清楚是"App 界面"还是"引擎/模型"慢：
-- 诊断看 `性能`（档位、温度）、`环境`（运行时状态是其中一行，本机 vs 远程）、`最近错误`。
-- 本机引擎 + 大任务（npm install、大量文件）会跟 UI 抢 CPU，界面卡是正常的，建议切远程主机或等任务结束。
-- 长回复流式输出时卡：查看回复长度、代码块数量；这是渲染成本，不是网络。
-- 让用户试一次 **设置 → 性能 → 轻量**（关模糊/动效/桌宠），如果立刻好转，就是特效成本，不是引擎。
-- 高刷设备可在 **设置 → 性能 → 刷新率** 选「系统」或「自动」再对比；选「最高」时低端机更容易掉帧。
-- 仍然卡：请用户记下"哪一页、什么操作、持续多久"，并导出诊断包。
+### Lag / dropped frames / unresponsive touch
+First separate "app UI" slowness from "engine/model" slowness:
+- In diagnostics check `Performance` (tier, temperature), `Environment`
+  (runtime state is one line; on-device vs remote), `Recent errors`.
+- On-device engine + heavy work (npm install, many files) competes with
+  the UI for CPU; a laggy UI then is normal — suggest a remote host or
+  waiting for the task to finish.
+- Lag while a long reply streams: check reply length and code-block
+  count; that is rendering cost, not network.
+- Have the person try **Settings → Performance → Light** once (blur,
+  motion and pets off). If it improves at once, it is effects cost, not
+  the engine.
+- On high-refresh devices, compare **Settings → Performance → Refresh
+  rate** on "System" or "Auto"; "Highest" drops frames more easily on
+  low-end phones.
+- Still laggy: have the person note "which page, what action, how long",
+  and export the diagnostics bundle.
 
-### 发热 / 耗电
-- 本机引擎常驻 + 手机操控（无障碍/悬浮条）+ 桌宠 + 高刷是主要来源；诊断看 `环境` 是否 running、`设置` 里自动起本机/可视化回复/手机存储。
-- 不用时让用户**停止本机引擎**（设置 → 本机引擎 → 停止），或改用远程主机；手机操控不用时关掉。
-- 看诊断 `性能` 里温度档位；长时间流式输出本身就会热，属正常。
-- 不要建议用户改系统电池优化/无障碍权限来"提速"——那类改动先解释清楚再让用户自己点。
+### Heat / battery drain
+- Main sources: the resident on-device engine, phone control
+  (accessibility / floating bar), pets, high refresh rate. In
+  diagnostics check whether `Environment` is running and, in `Settings`,
+  auto-start on-device engine / visual replies / phone storage.
+- When not in use, have the person **stop the on-device engine**
+  (Settings → On-device engine → Stop) or use a remote host; turn phone
+  control off when unused.
+- Check the temperature tier in diagnostics `Performance`; long
+  streaming output heats the phone by itself — that is normal.
+- Do not tell the person to change system battery optimization or
+  accessibility permissions to "speed things up" — explain such changes
+  first and let them tap themselves.
 
-### 连不上远程 / 一直"重新连接中"
-- 先确认：主机端和手机端登录同一个账号；主机端插件在跑（`/remote status` 在主机侧看）。
-- 主机端**同时开两个 TUI/两个 dsh 实例共用同一个 `DSH_HOME`** 会互相顶掉连接（插件会暂停自动重连）——这是最常见的"手机在线但连不上"。让用户只留一个实例，或给第二个单独的 `DSH_HOME`。
-- 局域网/P2P 不通会回落 TURN/Relay，延迟高但能连；诊断看 `连接`。
-- 需要主机日志，让用户在主机上导出或粘贴相关几行；不要在手机端猜。
+### Cannot connect remotely / stuck "Reconnecting"
+- Confirm first: host and phone are signed in to the same account; the
+  host-side plugin is running (`/remote status` on the host).
+- **Two TUIs / two dsh instances on the host sharing one `DSH_HOME`**
+  kick each other's connection (the plugin pauses auto-reconnect) — the
+  most common "phone online but cannot connect". Have the person keep
+  one instance, or give the second its own `DSH_HOME`.
+- When LAN/P2P fails it falls back to TURN/Relay — high latency but
+  connected; check `Connection` in diagnostics.
+- For host logs, have the person export or paste the relevant lines on
+  the host; do not guess from the phone.
 
-### 引擎起不来 / 进了安全模式
-- 诊断看 `环境` 的 phase、error、safeReason、strikes，以及 `内置运行时 / 已装` 是否一致。
-- 常见原因：运行时没装好、存储不足、插件把启动搞崩（安全模式就是为这个准备的）、direct 启动失败回退 proot。
-- 先让用户在 **设置 → 本机引擎** 页点**重试**或**以安全模式启动**，并看**日志**里的失败原因（只有运行时没装时才点**安装运行环境**；不要和「重置」混用——重置会删除对话、工作区、插件和设置，见 `docs/guide/zh/03-engine-hosts.md`）；插件问题引导到 **设置 → 插件** 停用最近装的。
-- 需要更多线索：请用户导出诊断包；其中仍只有有限日志，缺失不代表没有发生。
+### Engine will not start / safe mode
+- In diagnostics check `Environment` phase, error, safeReason, strikes,
+  and whether `Bundled runtime / Installed` agree.
+- Common causes: runtime not installed properly, low storage, a plugin
+  crashing startup (safe mode exists for this), direct launch failing
+  back to proot.
+- First have the person tap **Retry** or **Start in safe mode** on
+  **Settings → On-device engine** and read the failure reason in the
+  **logs** (tap **Install runtime** only when the runtime is not
+  installed; do not confuse it with Reset — Reset deletes chats,
+  workspaces, plugins and settings; see
+  `docs/guide/en/03-engine-hosts.md`). For plugin trouble, point them to
+  **Settings → Plugins** to disable the recently installed one.
+- For more clues, have the person export the diagnostics bundle; it
+  still holds only limited logs — absence does not mean nothing
+  happened.
 
-### 更新装不上
-- 先看 App 里能不能直接更新：1.0.16 起支持经 Shizuku 或自连 ADB 直接安装更新，也能导出已下载的安装包自行安装；入口在更新提示与 **设置 → 通用 → 检查更新** 相关页。
-- 系统安装确认页不出现 / 被当作取消：国产 ROM（HyperOS、ColorOS 等）常见；让用户从 GitHub Release 手动下载 `dsh-go-<版本>-arm64.apk` 安装，或在系统设置里允许本应用安装未知来源。
-- 安装包解析失败：多半是下载不完整，重新下载并对照 `SHA256SUMS`。
+### Update will not install
+- First check whether the app can update directly: since 1.0.16 updates
+  can install via Shizuku or self-connected ADB, and the downloaded
+  package can be exported for manual install; the entry points are the
+  update prompt and **Settings → General → Check for updates**.
+- The system install confirmation never appears / counts as cancelled:
+  common on some ROMs (HyperOS, ColorOS, …). Have the person download
+  `dsh-go-<version>-arm64.apk` manually from GitHub Releases, or allow
+  this app to install unknown sources in system settings.
+- Package parse failure: usually an incomplete download — download
+  again and compare against `SHA256SUMS`.
 
-### 引擎被系统杀掉后自动重启 / 上一轮中断
-- 1.0.16 起引擎异常退出会尝试自动重启；若通知里出现「已重启」一类的提示，说明恢复过一次，不是新的故障。
-- 上一轮正在生成时进程被杀，回复可能停在半截；让用户重新发送或重试，不要据此判断模型或网络坏了。
-- 反复重启：导出诊断包，看 `最近错误` 与 `环境` 的 phase/strikes；仍起不来按上一节「引擎起不来」处理。
-- 排查启动方式：诊断 › 开发者选项 里能看到 direct/proot/tawcroot 等启动路径；tawcroot 是加速启动的方式，失败会回退，不要把它当成故障本身。
+### Engine killed by the system, auto-restarted / last turn interrupted
+- Since 1.0.16 an abnormal engine exit tries an automatic restart; a
+  "restarted" style notice means it recovered once, not a new fault.
+- If the process was killed mid-reply, the reply may stop halfway; have
+  the person resend or retry — do not conclude the model or network is
+  broken.
+- Repeated restarts: export the diagnostics bundle and check
+  `Recent errors` and `Environment` phase/strikes; if it still will not
+  start, follow "Engine will not start" above.
+- Check the launch path: diagnostics › Developer options shows
+  direct/proot/tawcroot and similar launch routes; tawcroot is an
+  accelerated launch that falls back on failure — do not treat it as the
+  fault itself.
 
-### 插件不生效 / 设置页空白
-- 让用户确认插件是否装到了**当前主机**、当前 profile，插件市场里状态是否 enabled。
-- 远程主机的插件在主机上，不在手机上；App 里只是入口。
-- 插件把引擎搞崩 → 会进安全模式；停用插件再启动。
+### Plugin not working / blank settings page
+- Have the person confirm the plugin is installed on the **current
+  host**, in the current profile, and enabled in the plugin market.
+- A remote host's plugins live on the host, not the phone; the app only
+  has the entry point.
+- A plugin crashing the engine lands in safe mode; disable the plugin
+  and start again.
 
-### 输入法 / 键盘异常
-- 先读现有快照与用户已给的信息；只补问缺少的复现步骤、发生时间或输入法。不要重复询问已经给出的环境，不要求输入或发送真实聊天内容。核对快照时间与事件是否对应。
-- 区分用户观察到的失焦、键盘隐藏和输入连接关闭，保留观察但不要混为同一件事。普通快照不包含完整焦点/键盘事件；本次系统证据记录的是已知显示/隐藏请求或连接关闭，并不直接证明键盘实际可见性，也不能证明 Flutter 输入框发生了重建。
-- 基础信息不足且当前版本支持时，可以提出更高权限的只读诊断：先说明用途、采集范围及隐私风险，询问用户意愿，再由用户亲自在原生确认界面批准本次采集。它只复用已配置且正在运行的高权限通道，读取近期由本 App 进程输出的系统输入法请求并返回有限的结构化事件（显示/隐藏请求或输入连接关闭、时间、来源及可识别的原因），不返回原始系统日志行；既有通道授权不等于本次诊断许可。不要主动触发系统权限申请；通道不可用、用户拒绝、取消或采集失败时如实说明，不当作故障证据，也不绕过授权。
-- 用户完成一次采集后，点 **让 AI 看诊断**，再读取快照里的系统输入法证据；需要更多有限事件时再导出 ZIP。采集结果只留在 App 内存，清除或重启后不再保留；已导出的文件不被撤回。不要循环采集、跑压力测试或擅自装测试 APK。
-- 事件不含输入正文，原始日志仅在采集时瞬时读取并丢弃；其他日志、截图和诊断包仍可能含隐私。Android 12 或部分 ROM 可能不产生匹配日志；`noEvents`、未知原因或缺少 `fromUser` 不是正常证据，也不能把未知当成 `false`。证据不足时明确说明，不单凭这些事件归责输入法、App 或系统。
+### Input method / keyboard problems
+- Read the existing snapshot and what the person already gave first; ask
+  only for missing reproduction steps, times, or the input method. Do
+  not re-ask for an environment already given, and never ask for real
+  chat content. Check the snapshot time against the event.
+- Keep apart what the person observed: losing focus, the keyboard
+  hiding, and the input connection closing — retain the observations,
+  do not merge them into one claim. A normal snapshot has no complete
+  focus/keyboard event log; this collection's system evidence records
+  known show/hide requests or connection closes — it does not directly
+  prove the keyboard was visible, nor that the Flutter input was
+  rebuilt.
+- When basic information is short and the current version supports it,
+  a higher-privilege read-only diagnostic may be offered: explain the
+  purpose, collection scope and privacy risk first, ask whether the
+  person agrees, and let them approve this collection themselves on the
+  native confirmation screen. It reuses only an already configured,
+  running high-privilege channel, reads recent system input-method
+  requests emitted by this app's process, and returns bounded
+  structured events (show/hide requests or input-connection closes,
+  time, source, identifiable reason) — never raw system log lines. An
+  existing channel grant is not consent for this diagnostic. Do not
+  trigger system permission requests yourself; when the channel is
+  unavailable or the person declines, cancels or collection fails, say
+  so plainly — it is not fault evidence, and do not bypass consent.
+- After one collection, the person taps **Let AI see diagnostics** and
+  you read the system input-method evidence in the snapshot; for more
+  bounded events, export the ZIP. Collection results live only in app
+  memory and are gone after clearing or restart; exported files are not
+  recalled. Do not collect in a loop, run stress tests, or install test
+  APKs on your own.
+- Events carry no input text; raw logs are read transiently during
+  collection and discarded. Other logs, screenshots and bundles may
+  still contain private material. Android 12 or some ROMs may produce
+  no matching logs; `noEvents`, an unknown reason, or a missing
+  `fromUser` is not evidence of health, and unknown is not `false`.
+  When evidence is insufficient, say so; do not blame the input method,
+  the app or the system on these events alone.
 
-### 手机操控失败
-- 检查诊断中的手机操控与无障碍状态；未就绪或未采集不等于已关闭。信息不足时再问用户，部分 ROM 可能自行关闭无障碍服务。
-- 敏感页（密码/支付）读不到是系统策略，不是 bug；让用户 handoff。
-- 悬浮条异常：让用户关掉再开一次手机操控。
-- 多个任务同时跑：后台任务有上限，超出时后提交的会排队或被拒；让用户等前一个结束，或减少并行。
-- 想确认链路通不通：`设置 → 手机操控` 里有自检；自检失败按它指出的那一项处理，不要拿别的项替它下结论。
-- 实时后台预览看着不动/发黑：先确认不打扰模式和后台上限，再看诊断 `手机操控（本机）` 一节，不要直接说是无障碍坏了。
+### Phone control failures
+- Check the phone-control and accessibility state in diagnostics; not
+  ready or not collected does not mean off. Ask the person only when
+  information is short; some ROMs switch accessibility services off by
+  themselves.
+- Sensitive pages (passwords/payments) being unreadable is system
+  policy, not a bug; have the person hand off.
+- Floating bar misbehaving: have the person turn phone control off and
+  on again.
+- Several tasks at once: background tasks have a cap; beyond it, later
+  submissions queue or are refused — have the person wait for the
+  previous one or reduce parallelism.
+- To confirm the chain works: **Settings → Phone control** has a
+  self-check; handle the item it names, and do not conclude from other
+  items in its place.
+- Live background preview looks frozen or black: confirm do-not-disturb
+  mode and the background cap first, then check the diagnostics
+  `Phone control (on-device)` section — do not declare accessibility
+  broken outright.
 
-## 3. 生成反馈（issue 草稿）
+## 3. Produce feedback (issue draft)
 
-用户要反馈时，给他一份**可直接粘贴**的草稿，不要替他发：
+When the person wants to report, give a **paste-ready** draft; do not
+send it for them:
 
 ```md
-## 环境
-- App：<版本> (<构建号>)
-- 设备：<厂商 型号> · Android <版本> (SDK <n>)
-- 运行时：<内置版本> / <DSH 版本> / Node <版本>，启动方式 <proot|direct>
-- 连接：<本机 | 远程 | 未连接>
+## Environment
+- App: <version> (<build>)
+- Device: <vendor model> · Android <version> (SDK <n>)
+- Runtime: <bundled version> / <DSH version> / Node <version>, launch <proot|direct>
+- Connection: <on-device | remote | not connected>
 
-## 现象
-<一两句话>
+## What happens
+<one or two sentences>
 
-## 复现步骤
+## Steps to reproduce
 1. …
 2. …
 
-## 期望 / 实际
+## Expected / actual
 …
 
-## 诊断
-<诊断文件里相关的几段：最近错误、性能、连接；完整包见附件>
+## Diagnostics
+<the relevant sections of the diagnostics file: recent errors, performance, connection; full bundle attached>
 ```
 
-- 环境部分直接从诊断抄，不要手编。
-- 完整诊断包（zip）让用户自己附到 GitHub issue 或发给维护者；包里有引擎日志，**不要经过你转发**。
-- 提醒用户：贴之前扫一眼有没有自己的路径、账号名、设备名不想公开。
+- Copy the environment section straight from diagnostics; never invent
+  it.
+- The full diagnostics bundle (zip) is attached by the person
+  themselves to a GitHub issue or sent to a maintainer; it contains
+  engine logs — **never forward it through you**.
+- Remind the person: scan before pasting for their own paths, account
+  names or device names they do not want public.
 
-## 4. 隐私红线
+## 4. Privacy lines
 
-- 诊断会尝试脱敏，但不能保证无遗漏；**路径、设备型号、账号昵称、聊天内容截图和日志**仍可能暴露个人信息。分享前请用户人工检查并决定保留或遮盖什么。
-- 永远不要把 token、API key、验证码、聊天正文原样复述、回显或写进文件。
-- 不要在没问过用户的情况下：改系统设置、装/卸应用、清数据、重启引擎。
+- Diagnostics tries to redact but cannot guarantee completeness;
+  **paths, device models, account nicknames, chat screenshots and
+  logs** can still expose personal information. Before sharing, the
+  person checks by hand and decides what to keep or cover.
+- Never repeat, echo or write into a file any token, API key,
+  verification code or chat text verbatim.
+- Never, without asking the person first: change system settings,
+  install or uninstall apps, clear data, or restart the engine.
 
-## 5. 什么时候说"够了"
+## 5. When to say "enough"
 
-- 诊断 + 用户三句话能复现 → 给草稿即可，不要再要日志。
-- 诊断缺失、日志对不上、只在特定网络/机型出现 → 才让用户导完整诊断包。
-- 拿不准就先说"现有数据还不能定位"，再列**一个**下一步要什么；不要一次列五条。
+- Diagnostics plus three sentences from the person reproduce it → give
+  the draft; ask for no more logs.
+- Diagnostics missing, logs not matching, or it only happens on a
+  specific network/device → only then ask for the full bundle.
+- When unsure, say "the current data cannot locate it yet", then list
+  **one** next thing needed — never five at once.

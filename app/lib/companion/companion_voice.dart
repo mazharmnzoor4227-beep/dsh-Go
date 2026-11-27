@@ -78,7 +78,7 @@ class CompanionVoice {
   }
 
   /// Whether the phone's engine can speak [language] (starting it the first time).
-  Future<bool> ready({String language = 'zh-CN'}) async {
+  Future<bool> ready({String language = 'en-US'}) async {
     try {
       return await _channel.invokeMethod<bool>('ready', {'language': language}) ?? false;
     } on Object {

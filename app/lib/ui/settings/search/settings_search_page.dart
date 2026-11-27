@@ -254,7 +254,7 @@ final _searchIndexProvider = Provider.autoDispose.family<SettingsSearchIndex, _I
   (ref, key) => SettingsSearchIndex(
     spots: [...SettingsIndex.spots, ...ref.watch(_pluginSpotsProvider)],
     features: ref.watch(featureSectionsProvider),
-    zh: lookupL10n(AppLocale.zhCN),
+    zh: lookupL10n(AppLocale.en), // English-only: the index ignores zh; kept for the API shape.
     en: lookupL10n(AppLocale.en),
     androidFeatures: key.androidFeatures,
     ios: ref.watch(operatingSystemProvider) == 'ios',

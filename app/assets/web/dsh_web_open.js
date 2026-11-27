@@ -13,7 +13,7 @@
 //                             by its title
 //   {rightbar: 'files'|'terminal'}  needs a session on screen
 //   {sidebar: true}           the sessions / workspaces sidebar
-//   {newSession: true}        a new conversation (the sidebar's 新会话)
+//   {newSession: true}        a new conversation (the sidebar's New session)
 //
 // and window.__dshAppCompose({text, files}) puts a share in the composer on
 // screen the way a paste does (files: {name, type, data: base64}); what
@@ -45,8 +45,8 @@
   // Where the Plugins page marks a card: a bundle's package name, an
   // official item's id.
   var CARD_MARKS = ['data-plugin-package', 'data-plugin-item'];
-  // A card's way into its page ("查看 …").
-  var CARD_OPEN = 'button[aria-label^="查看 "], button[aria-label^="View "]';
+  // A card's way into its page ("View …").
+  var CARD_OPEN = 'button[aria-label^="View "]';
   // The crumb back at the top of a page inside the Plugins panel (a
   // plugin's, one of its parts', the experimental list).
   var PLUGINS_CRUMB = '[data-plugin-panel] button[class*="_crumb"]';
@@ -54,27 +54,27 @@
   // can be in (they are matched, never shown).
   var LABELS = {
     panel: {
-      plugins: ['插件', 'Plugins'],
-      schedules: ['自动化任务', 'Automation tasks'],
+      plugins: ['Plugins'],
+      schedules: ['Automation tasks'],
     },
     settings: {
-      general: ['通用设置', 'General'],
-      models: ['模型', 'Models'],
-      plugins: ['内置插件', 'Built-in plugins'],
-      'agent-presets': ['Agent 预设', 'Agent presets'],
-      account: ['账号与余额', 'Account'],
+      general: ['General'],
+      models: ['Models'],
+      plugins: ['Built-in plugins'],
+      'agent-presets': ['Agent presets'],
+      account: ['Account'],
     },
-    settingsButton: ['设置', 'Settings'],
-    accountMenu: ['账号菜单', 'Account menu'],
-    more: ['更多', 'More'],
-    openRightbar: ['打开右侧边栏', 'Open right sidebar'],
-    newTab: ['新标签页', 'New tab'],
-    pluginsBack: ['返回插件', 'Back to plugins'],
-    files: ['工作区文件', 'Workspace files'],
-    terminal: ['新建终端', 'New terminal'],
-    openSidebar: ['打开侧边栏', 'Open sidebar'],
-    cordis: ['Cordis 插件', 'Cordis plugins'],
-    newSession: ['新会话', '新对话', 'New session', 'New chat'],
+    settingsButton: ['Settings'],
+    accountMenu: ['Account menu'],
+    more: ['More'],
+    openRightbar: ['Open right sidebar'],
+    newTab: ['New tab'],
+    pluginsBack: ['Back to plugins'],
+    files: ['Workspace files'],
+    terminal: ['New terminal'],
+    openSidebar: ['Open sidebar'],
+    cordis: ['Cordis plugins'],
+    newSession: ['New session', 'New chat'],
   };
 
   function report(ok, step) {
@@ -137,7 +137,7 @@
 
   // A control whose aria-label, text, or the text of one of its leaf
   // elements (cards: title + description) is one of [labels]; a label may
-  // also be followed by a space ("新建终端 在会话工作区运行命令").
+  // also be followed by a space ("New terminal Run a command in the session workspace").
   function byName(root, selector, labels) {
     if (!root) return null;
     var nodes = root.querySelectorAll(selector);
@@ -288,7 +288,7 @@
     if (!(await openPanel(r, 'plugins'))) return false;
     var main = function () { return document.querySelector('[data-slot="main"]'); };
     var names = [];
-    labels.forEach(function (l) { names.push(l, '查看 ' + l, 'View ' + l); });
+    labels.forEach(function (l) { names.push(l, 'View ' + l); });
     // Wait for the page's cards, then look for ours. The panel remembers a
     // page opened earlier (a plugin's, one of its parts', the experimental
     // list): back to the list first, by its crumb, a press at a time and a
@@ -311,7 +311,7 @@
     }, 6000, r);
     if (!rendered) return false;
     var card = pluginCard(main(), labels, names);
-    // Experimental bundles past the first few sit behind the group's "更多".
+    // Experimental bundles past the first few sit behind the group's "More".
     if (!card && press(r, byName(main(), 'button', LABELS.more))) {
       card = await waitFor(function () { return pluginCard(main(), labels, names); }, 2000, r);
     }
@@ -404,7 +404,7 @@
       if (!card) return 0;
       // rc.4 renders one direct rail child per image or file. Keep the
       // count inside this editor's composer, away from conversation history.
-      var rails = card.querySelectorAll('[role="group"][aria-label="Pending attachments"], [role="group"][aria-label="待发送附件"]');
+      var rails = card.querySelectorAll('[role="group"][aria-label="Pending attachments"]');
       var count = 0;
       for (var i = 0; i < rails.length; i++) count += rails[i].children.length;
       return count;

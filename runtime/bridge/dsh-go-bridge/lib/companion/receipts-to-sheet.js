@@ -136,7 +136,7 @@ export function createReceiptsToSheetRunner({ctx, store, execution}) {
     if (!requestedMode) throw new ReceiptTaskError('output_policy_unavailable');
     guard(record.taskId, record.taskRev, signal, owner, store.stored);
     return owner.approve('writeSheet', {requestedMode,
-      justification: `只在 ${directory.target.displayPath} 新建《${record.agreement.args.outputName}》，将本人选定的四份票据整理为日期、项目、金额和来源；不覆盖已有文件，不改原票。`}, signal);
+      justification: `Create only ${record.agreement.args.outputName} in ${directory.target.displayPath}, organising the four receipts the person selected into date, item, amount and source; overwrite nothing and change no original receipt.`}, signal);
   }
   async function verifyOriginal(observation, signal) {
     if (!observation.sha256) return false;

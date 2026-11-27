@@ -24,7 +24,7 @@ export function createSessionToolRoutes({ ctx, readJson, send }) {
     if (channel.closed) return;
     channel.closed = true;
     if (channels.get(channel.agent.id) === channel) channels.delete(channel.agent.id);
-    for (const pending of channel.calls.values()) pending.reject(unavailable('手机结果未知；请勿自动重复操作'));
+    for (const pending of channel.calls.values()) pending.reject(unavailable('phone result unknown; do not repeat the action automatically'));
     channel.calls.clear();
     channel.res.end();
     if (channel.fiber) return channel.fiber.dispose();
@@ -38,13 +38,13 @@ export function createSessionToolRoutes({ ctx, readJson, send }) {
 
   function execute(channel, tool, args, exec) {
     if (exec.agent !== channel.agent || !live(channel) || claimed.get(exec.agent)?.requestId !== channel.requestId) {
-      throw unavailable('这次工具调用没有对应的伙伴手机回合');
+      throw unavailable('this tool call has no matching companion phone turn');
     }
     if (channel.externalWeb && (webChanges.has(tool) || tool === 'remember' && args.card !== undefined)) {
-      throw unavailable('这轮读过外部网页，修改现有记忆需要下一条本人消息');
+      throw unavailable('this turn read external web pages; changing existing memory needs the person\'s next message');
     }
     exec.signal.throwIfAborted();
-    if (channel.seen.has(exec.callId)) throw unavailable('这次调用已经交给手机，请读取原回执');
+    if (channel.seen.has(exec.callId)) throw unavailable('this call was already handed to the phone; read the original receipt');
     channel.seen.add(exec.callId);
     return new Promise((resolve, reject) => {
       const abort = () => {
@@ -79,21 +79,21 @@ export function createSessionToolRoutes({ ctx, readJson, send }) {
     let agent;
     try {
       const found = await ctx.get('sessionController')?.resolveAgent(sessionId);
-      if (resolving.get(sessionId) !== attempt) throw new CompanionError(409, 'device-connection-replaced', '更新的手机连接正在使用这个会话');
+      if (resolving.get(sessionId) !== attempt) throw new CompanionError(409, 'device-connection-replaced', 'a newer phone connection is using this session');
       agent = found?.agent;
     } finally {
       if (resolving.get(sessionId) === attempt) resolving.delete(sessionId);
     }
     if (!agent || ctx.get('agents')?.get(sessionId) !== agent ||
         ctx.get('agentPresets')?.presetForSession(agent.session) !== FULL_PRESET) {
-      throw new CompanionError(409, 'device-session-unavailable', '当前伙伴会话已不可用或预设已改变');
+      throw new CompanionError(409, 'device-session-unavailable', 'the current companion session is unavailable or its preset changed');
     }
     if (res.destroyed) return;
     const previous = channels.get(sessionId);
     // A lost HTTP response does not bestow a second device owner. In
     // particular it must never reset seen callIds or a web-derived restriction.
     if (previous?.requestId === requestId || claimed.get(agent)?.requestId === requestId) {
-      throw new CompanionError(409, 'device-request-in-use', '这条消息已在原会话处理中');
+      throw new CompanionError(409, 'device-request-in-use', 'this message is already being handled in the original session');
     }
     const closing = previous && retire(previous);
     const channel = { agent, requestId, res, token: randomUUID(), calls: new Map(), seen: new Set(),
@@ -134,10 +134,10 @@ export function createSessionToolRoutes({ ctx, readJson, send }) {
   function result(body) {
     const channel = channels.get(body.sessionId);
     if (!channel || !live(channel) || channel.requestId !== body.requestId || channel.token !== body.token) {
-      throw unavailable('原来的手机连接已结束');
+      throw unavailable('the original phone connection has ended');
     }
     const pending = channel.calls.get(body.callId);
-    if (!pending) throw unavailable('原工具调用已结束');
+    if (!pending) throw unavailable('the original tool call has ended');
     if (typeof body.content !== 'string' || typeof body.isError !== 'boolean') throw invalid();
     if (body.isError) pending.reject(new Error(body.content));
     else pending.resolve(body.content);
@@ -183,7 +183,7 @@ export function createSessionToolRoutes({ ctx, readJson, send }) {
         req.resume();
         if (!res.destroyed && !res.headersSent) {
           send(res, error.status ?? 503, { error: { code: error.code ?? 'companion/device-unavailable',
-            message: error.message ?? '手机工具未连接' } });
+            message: error.message ?? 'phone tools not connected' } });
         }
       }
       return true;

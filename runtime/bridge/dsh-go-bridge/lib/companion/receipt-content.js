@@ -122,27 +122,27 @@ export function excludeReceiptAtPublish(observation, reason) {
 export const completeReceiptReport = report => report.coverage.fullyVerifiedRows === 4 &&
   report.sources.every(value => value.readComplete && value.parseComplete && value.verifiedAtPublish);
 
-const displayReasons = Object.freeze({input_not_read: '未读取原件', input_unavailable: '原件无法读取',
-  input_changed: '原件已换版', input_changed_at_publish: '发布前原件已换版',
-  input_unavailable_at_publish: '发布前无法核原版', input_not_utf8: '文字编码无法核读',
-  input_too_large: '原件超过读取上限', pdf_empty_text: '未读到文字层', pdf_unavailable: '当前主机不支持PDF文字提取',
-  task_owner_stopping: '主机停止前尚未读取', task_agreement_changed: '约定已变，尚未读取',
-  deadline_expired: '到截止时尚未读取', execution_budget_exhausted: '执行额度已用尽',
-  date_not_verified: '没有可核的明确日期', item_not_verified: '没有可核的明确项目',
-  amount_not_verified: '没有可核的金额与币种', date_ambiguous_or_unsupported: '日期有歧义或格式未支持',
-  item_ambiguous_or_unsupported: '项目有歧义或格式未支持', amount_ambiguous_or_unsupported: '金额或币种不明确'});
-export const receiptReasonText = reason => displayReasons[reason] ?? '本次未能核定';
+const displayReasons = Object.freeze({input_not_read: 'original not read', input_unavailable: 'original unreadable',
+  input_changed: 'original changed version', input_changed_at_publish: 'original changed version before publishing',
+  input_unavailable_at_publish: 'original could not be verified before publishing', input_not_utf8: 'text encoding could not be verified',
+  input_too_large: 'original exceeds the read limit', pdf_empty_text: 'no text layer read', pdf_unavailable: 'this host does not support PDF text extraction',
+  task_owner_stopping: 'not yet read before the host stopped', task_agreement_changed: 'agreement changed; not yet read',
+  deadline_expired: 'not yet read at the deadline', execution_budget_exhausted: 'execution budget exhausted',
+  date_not_verified: 'no verifiable explicit date', item_not_verified: 'no verifiable explicit item',
+  amount_not_verified: 'no verifiable amount and currency', date_ambiguous_or_unsupported: 'date ambiguous or format unsupported',
+  item_ambiguous_or_unsupported: 'item ambiguous or format unsupported', amount_ambiguous_or_unsupported: 'amount or currency unclear'});
+export const receiptReasonText = reason => displayReasons[reason] ?? 'could not be verified this time';
 export function receiptGrid(report) {
   return report.rows.map((row, index) => {
     const source = report.sources[index], locations = [...new Set(receiptFields.flatMap(key => {
       const evidence = row[key].evidence;
-      return evidence ? [evidence.page === null ? `第${evidence.lineStart}行` :
-        `第${evidence.page}页文字层提取第${evidence.lineStart}行`] : [];
+      return evidence ? [evidence.page === null ? `line ${evidence.lineStart}` :
+        `page ${evidence.page} text layer, line ${evidence.lineStart}`] : [];
     }))];
-    const scope = source.reason === 'pdf_empty_text' ? '未读到文字层' : !source.readComplete ? '未读取' : !source.parseComplete ? '未能解析' :
-      source.textLayerOnly ? '仅核可读文字层' : '完整纯文本';
-    const verification = source.verifiedAtPublish ? '发布前核过原版' : '原版未核定';
-    return [...receiptFields.map(key => row[key].state === 'verified' ? row[key].value : `未核：${receiptReasonText(row[key].reason)}`),
+    const scope = source.reason === 'pdf_empty_text' ? 'no text layer read' : !source.readComplete ? 'not read' : !source.parseComplete ? 'could not parse' :
+      source.textLayerOnly ? 'readable text layer only' : 'full plain text';
+    const verification = source.verifiedAtPublish ? 'original verified before publishing' : 'original not verified';
+    return [...receiptFields.map(key => row[key].state === 'verified' ? row[key].value : `unverified: ${receiptReasonText(row[key].reason)}`),
       `${source.displayName}（${[...locations, scope, verification].join('；')}）`];
   });
 }

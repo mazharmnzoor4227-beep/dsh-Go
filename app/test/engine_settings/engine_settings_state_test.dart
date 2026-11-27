@@ -285,12 +285,14 @@ void main() {
       expect(loop.system, isFalse);
       expect(loop.description, isNotNull);
       final remote = items.global.firstWhere((i) => i.entryId == 'include:remote-access');
-      expect(remote.system, isTrue, reason: 'no Chinese name in its package');
-      expect(remote.title, 'api-remote-access');
-      expect(remote.description, isNull, reason: 'English one-liners are not shown');
-      expect(chineseText(LocalizedText.plain('远程访问')), '远程访问');
-      expect(chineseText(LocalizedText.plain('Remote access')), isNull);
-      expect(chineseText(const LocalizedText({'en': 'a', 'zh-cn': '甲'})), '甲');
+      expect(remote.title, isNot(contains('远程')));
+      expect(englishTextOf(LocalizedText.plain('远程访问')), isNull, reason: 'Chinese-only text is never shown');
+      expect(englishTextOf(LocalizedText.plain('Remote access')), 'Remote access');
+      expect(englishTextOf(const LocalizedText({'en': 'a', 'zh-cn': '甲'})), 'a');
+      for (final item in items.global) {
+        expect(RegExp(r'[\u3400-\u9fff]').hasMatch(item.title), isFalse, reason: item.title);
+        expect(RegExp(r'[\u3400-\u9fff]').hasMatch(item.description ?? ''), isFalse, reason: item.description);
+      }
       expect(loop.matches(['agent']), isTrue);
       expect(loop.matches(['nothing-like-this']), isFalse);
     });

@@ -25,7 +25,7 @@ abstract final class AppLocale {
 
   /// Locales MaterialApp offers. zh_CN (not bare zh) keeps CJK glyphs
   /// Chinese on non-Chinese systems (typography.dart「汉字字形」).
-  static const supported = [zhCN, en];
+  static const supported = [en];
 
   static Locale _locale = en;
   static L10n _l10n = lookupL10n(en);

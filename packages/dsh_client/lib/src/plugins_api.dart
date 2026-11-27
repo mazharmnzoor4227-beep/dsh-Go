@@ -218,16 +218,13 @@ class LocalizedText {
   /// `.i18n()` added languages (schemastery keeps it under `''`).
   String resolve([String locale = 'en']) {
     final tagged = {for (final MapEntry(:key, :value) in values.entries) _tag(key): value};
-    final wanted = _tag(locale);
-    final language = wanted.split('-').first;
     String? of(String language) =>
         tagged[language] ?? tagged.entries.where((e) => e.key.startsWith('$language-')).map((e) => e.value).firstOrNull;
     final plain = tagged[''];
-    if (language == 'zh') {
-      final plainMatches = plain != null && _han.hasMatch(plain);
-      return tagged[wanted] ?? of('zh') ?? (plainMatches ? plain : null) ?? of('en') ?? plain ?? values.values.first;
-    }
-    final candidate = tagged[wanted] ?? of(language) ?? of('en') ?? (plain != null && !_han.hasMatch(plain) ? plain : null);
+    // English-only build: a Chinese variant is never selected, whatever
+    // locale a caller passes. Chinese-only text goes through the English
+    // override/word conversion below and otherwise resolves to ''.
+    final candidate = of('en') ?? (plain != null && !_han.hasMatch(plain) ? plain : null);
     if (candidate != null) return _han.hasMatch(candidate) ? _englishOnly(candidate) : candidate;
     final chinese = of('zh') ?? plain;
     return chinese == null ? '' : _englishOnly(chinese);

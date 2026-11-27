@@ -27,7 +27,7 @@
  *   compositor, and the keyboard lifts #root and the layers once per slide
  *   (a style of the app's own, #dsh-app-keyboard; the WebView keeps its
  *   size).
- * - Settings → 网页版手机布局 turns all of it off, to check a plugin against
+ * - Settings → Web phone layout turns all of it off, to check a plugin against
  *   the official layout.
  *
  * Selectors use DSH's stable hooks where they exist (data-slot, roles, aria
@@ -270,7 +270,7 @@ body > [class*="_overlay"] {
     align-items: center !important;
     gap: 8px;
     padding: 8px 12px 6px !important;
-    margin-right: 132px !important; /* 打开配置文件 + close sit to the right */
+    margin-right: 132px !important; /* Open config file + close sit to the right */
     border-right: 0 !important;
     overflow-x: auto;
     scrollbar-width: none;

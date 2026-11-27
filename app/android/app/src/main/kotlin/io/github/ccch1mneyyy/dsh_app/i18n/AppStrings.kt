@@ -26,16 +26,11 @@ object AppStrings {
 
     @Volatile private var cache: Pair<String, Context>? = null
 
-    /** `zh`, `en`, or null to follow the system. */
-    fun language(ctx: Context): String? =
-        (ctx.applicationContext ?: ctx)
-            .getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .getString(KEY, null)
-            ?.takeIf { it == "zh" || it == "en" }
+    /** English-only build: native text is always English. */
+    fun language(ctx: Context): String? = "en"
 
     /** True when native text comes out in English. */
-    fun isEnglish(ctx: Context): Boolean =
-        context(ctx).resources.configuration.locales[0].language != "zh"
+    fun isEnglish(ctx: Context): Boolean = true
 
     /** A context whose resources are in the app language. */
     fun context(ctx: Context): Context {

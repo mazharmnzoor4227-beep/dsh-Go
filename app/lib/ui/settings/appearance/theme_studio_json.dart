@@ -60,15 +60,15 @@ class _ThemeStudioJsonSheetState extends State<ThemeStudioJsonSheet> with FieldP
       final at = error.offset?.clamp(0, text.length);
       _errorAt = at;
       if (at == null) {
-        _error = english ? 'This is not valid JSON.' : '这不是合法的 JSON。';
+        _error = 'This is not valid JSON.';
       } else {
         final line = '\n'.allMatches(text.substring(0, at)).length + 1;
-        _error = english ? 'Not valid JSON near line $line. Tap here to go there.' : 'JSON 在第 $line 行附近写错了，点这里跳过去。';
+        _error = 'Not valid JSON near line $line. Tap here to go there.';
       }
       return;
     }
     if (decoded is! Map<String, Object?>) {
-      _error = english ? 'The whole text has to sit inside one pair of { }.' : '最外层要是一对花括号 { }。';
+      _error = 'The whole text has to sit inside one pair of { }.';
       return;
     }
     try {
@@ -88,7 +88,7 @@ class _ThemeStudioJsonSheetState extends State<ThemeStudioJsonSheet> with FieldP
 
   Future<void> _copy() async {
     await Clipboard.setData(ClipboardData(text: _text.text));
-    if (mounted) setState(() => _note = AppLocale.isEnglish ? 'Copied.' : '已复制。');
+    if (mounted) setState(() => _note = 'Copied.');
   }
 
   Future<void> _paste() async {
@@ -120,25 +120,23 @@ class _ThemeStudioJsonSheetState extends State<ThemeStudioJsonSheet> with FieldP
         _error ??
         _note ??
         (keepsId
-            ? (english
-                  ? 'This theme keeps its ID "${c.pack.id}"; the ID here is ignored.'
-                  : '正在编辑已有主题，ID 仍然是「${c.pack.id}」，这里写的 ID 不会生效。')
-            : (english ? 'Looks good.' : '格式没问题。'));
+            ? 'This theme keeps its ID "${c.pack.id}"; the ID here is ignored.'
+            : ('Looks good.'));
     return Column(
       children: [
         SheetHeader(
-          english ? 'Edit as JSON' : '直接编辑 JSON',
+          'Edit as JSON',
           actions: [
             SheetIconButton(
               key: const ValueKey('theme-json-copy'),
               icon: AppIcons.copy,
-              tooltip: english ? 'Copy' : '复制',
+              tooltip: 'Copy',
               onPressed: _copy,
             ),
             SheetIconButton(
               key: const ValueKey('theme-json-paste'),
               icon: AppIcons.paste,
-              tooltip: english ? 'Paste' : '粘贴',
+              tooltip: 'Paste',
               onPressed: _paste,
             ),
           ],
@@ -187,7 +185,7 @@ class _ThemeStudioJsonSheetState extends State<ThemeStudioJsonSheet> with FieldP
               FilledButton(
                 key: const ValueKey('theme-json-apply'),
                 onPressed: _parsed == null ? null : _apply,
-                child: Text(english ? 'Apply' : '应用'),
+                child: Text('Apply'),
               ),
             ],
           ),

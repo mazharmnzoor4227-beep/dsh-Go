@@ -128,7 +128,7 @@ void main() {
     final preview = PreviewTavern(tick: const Duration(milliseconds: 1));
     opening.complete(preview);
 
-    expect((await characters).map((c) => c.name), containsAll(['林晚', '星图']));
+    expect((await characters).map((c) => c.name), containsAll(['Lin Wan', '星图']));
     final events = await deferred.send(await chat, '你好').toList();
     // The thinking set before it opened applies: the reply thinks first.
     expect(events.whereType<TavernReasoningDelta>(), isNotEmpty);
@@ -248,13 +248,13 @@ void main() {
     final run = await deferred.scripts.triggerSlash(context.id, '/pass {{char}} | /pass 到了', executionId: 'hello');
     expect((await run.result).pipe, '到了');
     expect(deferred.scripts.stopScript('hello'), isFalse);
-    expect(await deferred.scripts.substituteMacros(context.id, '{{char}}在柜台后'), '林晚在柜台后');
+    expect(await deferred.scripts.substituteMacros(context.id, '{{char}}在柜台后'), 'Lin Wan在柜台后');
 
     final embedded = TavernScriptBookRef.embedded(characterId: character.id);
     final books = await deferred.scripts.getContextBooks(context.id);
     expect(books.map((b) => b.ref).whereType<TavernScriptEmbeddedBookRef>(), isNotEmpty);
     final read = await deferred.scripts.readBook(context.id, embedded);
-    expect(read.book['name'], '雨镇');
+    expect(read.book['name'], 'Rain Town');
     final replaced = await deferred.scripts.replaceBook(context.id, embedded, {
       ...read.book,
       'name': '雨镇（改）',

@@ -1,252 +1,367 @@
 ---
 # dsh-go:managed — the dsh-go app keeps this skill up to date; delete this line to keep your own edits.
 name: dsh-go-plugin
-description: 给 dsh-go 手机 App 写一个本地小插件，在**手机原生界面**里出现：输入框上方的胶囊、回复长按菜单里的操作、状态条、原生面板、工具结果卡片，还能朗读、开口即停、显示字幕；写完用自带的检查器检查，装进当前主机。用户要给 dsh-go App 加需要逻辑或数据的东西时先加载它，比如「输入框上面加个按钮，把剪贴板译成英文」「长按消息加个『存到笔记』」「输入框上方显示今天用了多少」「做个面板看我的待办」「这个工具的结果画成卡片」「加个按钮把回复读出来」。只用于 dsh-go 手机原生界面；用户要做 Cordis 插件、改 Harness 网页版 / 桌面端，或明确说的是网页插件时，用官方 cordis-plugin-development 技能，不要用本技能的目录和安装方式。Write a small local DSH plugin that shows up natively in the dsh-go phone app; for Cordis / Harness Web UI plugins use the official skill instead.
-whenToUse: The user wants to add something of their own to the dsh-go phone app (手机 App / 原生界面) that needs logic or data. For fixed buttons, layout, theme or hiding things use the dsh-go-ui skill (ui.json) instead. For Cordis plugins or the Harness Web UI / desktop, use the official cordis-plugin-development skill — different directory and install entry.
+description: Write a small local plugin for the dsh-go phone app that appears in the **phone's native UI** — capsules above the composer, actions in the long-press message menu, status strips, native panels, tool-result cards — and can read aloud, stop on speech, and show captions; check it with the bundled checker and install it on the current host. Load this first when the person wants to add something to the dsh-go app that needs logic or data, e.g. "a button above the input that translates the clipboard into English", "add Save to notes to the long-press menu", "show today's usage above the input", "a panel for my to-dos", "draw this tool's result as a card", "a button that reads replies aloud". Only for the dsh-go phone native UI; for Cordis plugins, the Harness Web UI / desktop, or anything the person calls a web plugin, use the official cordis-plugin-development skill, not this skill's folders or install path. Write a small local DSH plugin that shows up natively in the dsh-go phone app; for Cordis / Harness Web UI plugins use the official skill instead.
+whenToUse: The user wants to add something of their own to the dsh-go phone app (phone app / native UI) that needs logic or data. For fixed buttons, layout, theme or hiding things use the dsh-go-ui skill (ui.json) instead. For Cordis plugins or the Harness Web UI / desktop, use the official cordis-plugin-development skill — different directory and install entry.
 ---
 
-# 给 dsh-go 写一个本地小插件
+# Write a local plugin for dsh-go
 
-插件是一个放在主机上的 npm 包目录：`package.json` 里的 `dshGo` 清单声明 App 里出现什么，`lib/index.js` 在引擎里处理点按、推数据。App 只画声明和 JSON 视图，不执行插件代码。
+A plugin is an npm package folder on the host: the `dshGo` manifest in
+`package.json` declares what appears in the app, and `lib/index.js`
+handles taps and pushes data inside the engine. The app only draws the
+declarations and JSON views; it never runs plugin code.
 
-## 和官方技能的分工（先判断界面载体）
+## Division of labour with the official skills (settle the surface first)
 
-这个技能只负责 **dsh-go 手机 App 的原生界面**。创造模式里还会加载官方的 `cordis-plugin-development`，它负责 **Harness Web UI / 桌面端**的插件，两套的目录、清单和安装入口都不同。**先确定界面载体，再选技能**；不要按加载顺序、也不要混着用：
+This skill covers only the **dsh-go phone app's native UI**. Creative
+mode also loads the official `cordis-plugin-development`, which covers
+**Harness Web UI / desktop** plugins — different folders, manifests and
+install entries. **Settle the UI surface before choosing a skill**; never
+go by load order and never mix them:
 
-| 用户要的 | 用哪个 | 目录 / 安装 |
+| What the person wants | Use | Folder / install |
 |---|---|---|
-| 手机 App 里加胶囊、菜单项、状态条、原生面板、工具结果卡片、朗读 / 字幕 | 本技能 | `$DSH_HOME/dsh-go/plugins/<name>/`，`dsh plugin --profile web add <目录>` |
-| 改 dsh-go App 自己的样子（顶栏按钮、主题、隐藏元素） | `dsh-go-ui`（ui.json） | `$DSH_HOME/dsh-go/ui.json` |
-| Cordis / Harness Web UI 插件、装饰、槽位、MCP、页面 | 官方 `cordis-plugin-development` | 工作区建包 + `plugin_manager` → `install_bundle` |
-| Agent 预设、Cordis 组合 | 官方组合类技能 | 官方流程 |
+| Capsules, menu items, status strips, native panels, tool-result cards, read-aloud / captions in the phone app | This skill | `$DSH_HOME/dsh-go/plugins/<name>/`, `dsh plugin --profile web add <folder>` |
+| Change the dsh-go app's own look (top-bar buttons, theme, hidden elements) | `dsh-go-ui` (ui.json) | `$DSH_HOME/dsh-go/ui.json` |
+| Cordis / Harness Web UI plugins, decorations, slots, MCP, pages | Official `cordis-plugin-development` | Build the package in the workspace + `plugin_manager` → `install_bundle` |
+| Agent presets, Cordis compositions | Official composition skills | Official flow |
 
-- 用户没点名界面载体时：在本 App 里默认目标是 dsh-go 手机原生界面（`AGENTS.md` 也这么写）；但如果用户明确要网页版 / 桌面端，就按官方技能走。
-- 官方技能里的「不要在工作区外建包、不要在 `$DSH_HOME` 下建包、不要手写 profile 的 package.json / cordis.patch.yml」针对的是 **Cordis bundle**。dsh-go 原生插件不是 Cordis bundle：它就是放在 `$DSH_HOME/dsh-go/plugins/` 下的 npm 包，用 `dsh plugin --profile web add` 装。两条规则各管各的，不冲突，也不能互换目录和安装方式。
-- 同一个「加个按钮」两边都能做时：在 dsh-go 里先做原生版本；用户还要网页版，再让官方技能另做一份。
+- When the person does not name a surface: inside this app the default
+  target is the dsh-go phone native UI (`AGENTS.md` says the same); but
+  if they explicitly want the web UI / desktop, follow the official
+  skill.
+- The official skill's "do not build packages outside the workspace, do
+  not build under `$DSH_HOME`, do not hand-write a profile's
+  package.json / cordis.patch.yml" is about **Cordis bundles**. A dsh-go
+  native plugin is not a Cordis bundle: it is an npm package under
+  `$DSH_HOME/dsh-go/plugins/`, installed with
+  `dsh plugin --profile web add`. The two rules govern different things;
+  they do not conflict, and their folders and install paths are not
+  interchangeable.
+- When both sides can do the same "add a button": build the native
+  version in dsh-go first; if the person also wants the web UI, let the
+  official skill make a separate one.
 
-## 先判断用哪个
+## Decide which one first
 
-| 用户要的 | 做法 |
+| What the person wants | Approach |
 |---|---|
-| 固定文字的按钮、顶栏按钮、隐藏元素、主题 | 不写插件，用 dsh-go-ui 技能改 ui.json |
-| 按钮要读剪贴板 / 输入框 / 某条回复，或要算点什么 | 本技能：`composer.actions` / `message.actions` + `on(id)` |
-| 一直看得到的一行数字 | 本技能：`composer.strip` + `strip(id)` |
-| 一整页信息 | 本技能：`panels` + `panel(id)` |
-| 不常用但要顺手的工具 | 本技能：`composer.tools`（加号面板，要较新的 App） |
-| 对整段对话做事：导出、归档 | 本技能：`session.actions`（右侧栏「信息」，要较新的 App） |
-| 每轮一眼看到的数字 | 本技能：`turn.note` + `turnNote(id)`（回合脚注，要较新的 App） |
-| 某个工具的结果画成卡片 | 本技能：工具 `output.presentationMeta` 返回 `{ "dsh-go/view": 视图 }`，不需要清单 |
-| 把回复读出来、开口就停、跟读字幕 | 本技能：`capabilities` + `media` / `micro` / `overlays`（见下文「声音与字幕」） |
+| Fixed-text buttons, top-bar buttons, hidden elements, theme | No plugin — use the dsh-go-ui skill to edit ui.json |
+| A button that reads the clipboard / composer / a reply, or computes something | This skill: `composer.actions` / `message.actions` + `on(id)` |
+| A number always in sight | This skill: `composer.strip` + `strip(id)` |
+| A full page of information | This skill: `panels` + `panel(id)` |
+| An occasional but handy tool | This skill: `composer.tools` (plus panel; needs a newer app) |
+| Act on the whole chat: export, archive | This skill: `session.actions` (right sidebar Info; needs a newer app) |
+| A number visible every turn | This skill: `turn.note` + `turnNote(id)` (turn footer; needs a newer app) |
+| Draw a tool's result as a card | This skill: the tool's `output.presentationMeta` returns `{ "dsh-go/view": view }`; no manifest needed |
+| Read replies aloud, stop on speech, follow-along captions | This skill: `capabilities` + `media` / `micro` / `overlays` (see "Sound and captions") |
 
-胶囊、菜单、状态条、面板只在装了 dsh-go 桥接的主机上出现：手机本机引擎有（`/etc/dsh-app/runtime.json` 存在就是）；其他主机只有工具卡。
+Capsules, menus, strips and panels appear only on hosts with the dsh-go
+bridge: the phone's on-device engine has it (`/etc/dsh-app/runtime.json`
+exists); other hosts get tool cards only.
 
-## 步骤
+## Steps
 
-1. **建目录**（放在 `$DSH_HOME/dsh-go/plugins/` 下，引擎重置时会保留；`DSH_HOME` 默认 `~/.dsh`）：
+1. **Create the folder** (under `$DSH_HOME/dsh-go/plugins/`, kept across
+   engine resets; `DSH_HOME` defaults to `~/.dsh`):
    ```sh
    P="${DSH_HOME:-$HOME/.dsh}/dsh-go/plugins/local-quote"
    mkdir -p "$(dirname "$P")" && cp -r "${DSH_HOME:-$HOME/.dsh}/skills/dsh-go-plugin/template" "$P"
    ```
-2. **改名**：`package.json` 的 `name`、`cordis.patch.yml` 的 `name`、`lib/index.js` 的 `name` 三处一致，用 `local-` 开头，小写字母、数字和 `-`。
-3. **写清单**（`package.json` → `dshGo`，见下表），只声明用得到的；`wants` 只要真读的内容。
-4. **写处理**（`lib/index.js`）：一律写在 `ctx.inject(['dshGo'], (ctx) => { … })` 里。
-5. **自查**，改到没有「错误」为止：
+2. **Rename**: `name` in `package.json`, `name` in `cordis.patch.yml`
+   and `name` in `lib/index.js` must agree — start with `local-`,
+   lowercase letters, digits and `-`.
+3. **Write the manifest** (`package.json` → `dshGo`, table below);
+   declare only what is used; `wants` only what is truly read.
+4. **Write the handlers** (`lib/index.js`): everything inside
+   `ctx.inject(['dshGo'], (ctx) => { … })`.
+5. **Self-check**, fixing until no "error" remains:
    ```sh
    node "${DSH_HOME:-$HOME/.dsh}/skills/dsh-go-plugin/kit/bin/check.mjs" "$P" --load
    ```
-   `--load` 会在隔离环境里加载你的代码：查处理函数在不在、视图函数画出来的视图 App 能不能画。
-   `--json` 给机器读；`--lang zh` 指定语言；`--budget toolCard|panel|strip` 按工具卡、面板或状态条检查视图预算；`--app <版本>` 按目标 App 版本判断 `minApp`（不写时按 999.0.0 判断，`minApp` 不会被拦截，检查目标版本时必须写出）；面板位置等较新字段不按版本检查。
-6. **安装**（装上即生效，不用重启）：
+   `--load` loads your code in an isolated environment: whether the
+   handlers exist and whether the views your view functions draw can be
+   drawn by the app. `--json` is for machines; `--lang en` picks the
+   language; `--budget toolCard|panel|strip` checks view budgets as a
+   tool card, panel or strip; `--app <version>` judges `minApp` against
+   a target app version (without it, judged as 999.0.0, so `minApp` is
+   never blocked — always write it when checking a target version);
+   newer fields such as panel placement are not version-checked.
+6. **Install** (takes effect at once, no restart):
    ```sh
    dsh plugin --profile web add "$P"
    ```
-   手机本机引擎用的 profile 是 `web`。装的是指向这个目录的链接：目录不能删。
-7. **改代码之后**：清单（`package.json`）改了会自动重读；`lib/` 里的代码改了，要用户在 App 的「引擎」页重启引擎才生效。
-8. **告诉用户**改了什么、在哪看：胶囊在输入框上方；菜单项在长按助手消息的菜单里，按插件分组；状态条在输入框上方；面板在对话详情页「插件」页签或「全部功能」。第一次点按要读剪贴板 / 输入框 / 消息的按钮时，App 会问用户一次。
+   The phone's on-device engine uses the `web` profile. The install is a
+   link to this folder: do not delete the folder.
+7. **After code changes**: manifest (`package.json`) changes are re-read
+   automatically; `lib/` code changes need the person to restart the
+   engine on the app's Engine page.
+8. **Tell the person** what changed and where to see it: capsules sit
+   above the composer; menu items are in the long-press menu on
+   assistant messages, grouped by plugin; strips sit above the composer;
+   panels are under the Plugins tab on the chat details page or in All
+   features. The first time a button reads the clipboard / composer / a
+   message, the app asks the person once.
 
-卸载：`dsh plugin --profile web remove local-quote`，再删目录。
+Uninstall: `dsh plugin --profile web remove local-quote`, then delete
+the folder.
 
-## 清单（`package.json` → `dshGo`）
+## Manifest (`package.json` → `dshGo`)
 
 ```json
 {
   "v": 1,
-  "title": { "zh": "引用", "en": "Quote" },
+  "title": { "en": "Quote" },
   "icon": "bolt",
   "wants": ["clipboard"],
   "contributes": {
     "composer.actions": [
-      { "id": "summarize", "label": "总结", "effect": { "type": "insert", "text": "总结上面的对话，列三条要点。" } },
-      { "id": "paste-quote", "label": { "zh": "引用剪贴板", "en": "Quote clip" }, "icon": "document" }
+      { "id": "summarize", "label": "Summarize", "effect": { "type": "insert", "text": "Summarize the conversation above in three points." } },
+      { "id": "paste-quote", "label": { "en": "Quote clip" }, "icon": "document" }
     ],
-    "message.actions": [{ "id": "save", "label": "存进笔记", "icon": "note" }],
+    "message.actions": [{ "id": "save", "label": "Save to notes", "icon": "note" }],
     "composer.strip":   [{ "id": "today", "icon": "chart", "panel": "stats" }],
-    "panels":           [{ "id": "stats", "title": "统计", "icon": "chart", "placement": ["session.tab", "features"] }]
+    "panels":           [{ "id": "stats", "title": "Stats", "icon": "chart", "placement": ["session.tab", "features"] }]
   }
 }
 ```
 
-| 插槽 | 每插件 | 文字上限 | 字段 | 点按 |
+| Slot | Per plugin | Text limit | Fields | Tap |
 |---|---|---|---|---|
-| `composer.actions` | 2 | `label` 10 字 | `id` `label` `icon?` `effect?` | 有 `effect`：App 直接执行，不写代码；否则调 `on(id)` |
-| `message.actions` | 2 | `label` 12 字 | 同上 | 同上 |
-| `composer.strip` | 1 | `text` 24 字 | `id` `icon?` `text?` `panel?` | `panel` → 打开该面板；否则 `on(id)` |
-| `panels` | 4 | `title` 16 字 | `id` `title` `icon?` `placement?` `presentation?` `view?` | 视图里的按钮 / 行 / 选项 → `actions` |
-| `composer.tools` | 2 | `label` 8 字 | `id` `label` `icon?` `effect?` `panel?` `requires?` | `panel` / `effect` App 直接执行（两者只写一个）；否则 `on(id)` |
-| `session.actions` | 2 | `label` 12 字 | `id` `label` `icon?` `effect?` `requires?` | 同胶囊 |
-| `turn.note` | 1 | 每段 16 字 | `id` | 不能点；`turnNote(id, (scope, emit) => …)` 里 `emit({ 回合序号: { text, tone? } })` |
+| `composer.actions` | 2 | `label` 10 chars | `id` `label` `icon?` `effect?` | With `effect`: the app runs it directly, no code; otherwise calls `on(id)` |
+| `message.actions` | 2 | `label` 12 chars | Same as above | Same as above |
+| `composer.strip` | 1 | `text` 24 chars | `id` `icon?` `text?` `panel?` | `panel` → opens that panel; otherwise `on(id)` |
+| `panels` | 4 | `title` 16 chars | `id` `title` `icon?` `placement?` `presentation?` `view?` | Buttons / rows / options in the view → `actions` |
+| `composer.tools` | 2 | `label` 8 chars | `id` `label` `icon?` `effect?` `panel?` `requires?` | `panel` / `effect` run by the app (write only one); otherwise `on(id)` |
+| `session.actions` | 2 | `label` 12 chars | `id` `label` `icon?` `effect?` `requires?` | Same as capsules |
+| `turn.note` | 1 | 16 chars per segment | `id` | Not tappable; in `turnNote(id, (scope, emit) => …)` call `emit({ turnIndex: { text, tone? } })` |
 
-App 另有全局上限：输入框上方胶囊合计 8 个、加号面板工具合计 8 个、回合尾注同时 2 个、note feed 8 条；超过的不显示。面板按钮 pending 状态的 label 不超过 16 字。
+The app also has global caps: 8 capsules above the composer in total, 8
+plus-panel tools, 2 turn notes at once, 8 note-feed entries; extras are
+not shown. A panel button's pending label is at most 16 chars.
 
-- `title`、`label`、`text` 写字符串或 `{ "zh": "…", "en": "…" }`；中英文都不能超上限。插件名 `title` ≤ 24 字。
-- `id`：字母数字开头，字母数字和 `_ . -`，≤ 40 字；**整个插件内不能重复**（跨插槽也算）。
-- `wants`：`clipboard`、`draft`（输入框文字）只给胶囊和 `composer.tools`；`message`（被长按的回复正文）只给菜单项。
-- `placement`：`session.tab`（对话详情页，scope 带 sessionId，缺省）、`features`（全部功能）、`chat.panel`（聊天页输入框上方「插件」胶囊打开的弹层，scope 带 sessionId）、`plugin`（插件自己入口里的面板，较新 App）。可写一个字符串或数组；老 App 不认识的值会忽略，只放在 `plugin` 的面板退回 `session.tab`。
-- `presentation`：`page`（推整页，缺省）或 `sheet`（弹层）；较新 App 才认，老 App 忽略，仍按页打开。
-- 视图函数按 `caps.surfaces` 判断 App 能不能画（`hasSurface(caps, 'chat.panel')` 之类），判断不到时退回 `session.tab`。
-- 静态 `effect` 只能用 `insert` `command` `open` `link` `toast` `copy`。
-- `icon`：bolt star sparkle heart flag bookmark pin bell clock alarm calendar todo note document folder search code terminal globe chart lightbulb book puzzle robot chat mail translate image camera mic link summary wrench bug travel school home play refresh archive team wallet palette coin money speaker read copy quote share edit write save paste add remove delete clear fork regenerate reply select-text qr download downloads external info warning check done success error question pending running tip list table panel sidebar menu more expand collapse file folder-open workspace storage pdf zip slides article text diff gallery audio music video video-file play-video pause stop replay generate-image generate-video diagram plugin bot agent skill model tool workflow goal plan job automation command trajectory web web-search browser history time today timezone schedule repeat reminder user account group chats mention invite announcement reaction poll notification send community forum feedback wechat qq telegram discord phone computer cloud server power restart retry theme color text-size pet featured badge favorite settings
+- `title`, `label`, `text` are strings or `{ "en": "…" }`; every
+  language must fit the limit. Plugin `title` ≤ 24 chars.
+- `id`: starts with a letter or digit; letters, digits and `_ . -`;
+  ≤ 40 chars; **unique across the whole plugin** (across slots too).
+- `wants`: `clipboard` and `draft` (composer text) go only to capsules
+  and `composer.tools`; `message` (the long-pressed reply's text) only
+  to menu items.
+- `placement`: `session.tab` (chat details page; scope carries
+  sessionId; the default), `features` (All features), `chat.panel` (the
+  sheet the Plugins capsule above the chat composer opens; scope carries
+  sessionId), `plugin` (panels in the plugin's own entry; newer app).
+  A string or an array; values an older app does not know are ignored,
+  and a panel placed only in `plugin` falls back to `session.tab`.
+- `presentation`: `page` (pushes a full page; default) or `sheet`
+  (sheet); only newer apps honour it — older apps ignore it and open a
+  page.
+- View functions judge what the app can draw from `caps.surfaces`
+  (e.g. `hasSurface(caps, 'chat.panel')`); when they cannot tell, fall
+  back to `session.tab`.
+- Static `effect` may only use `insert` `command` `open` `link`
+  `toast` `copy`.
+- `icon`: bolt star sparkle heart flag bookmark pin bell clock alarm calendar todo note document folder search code terminal globe chart lightbulb book puzzle robot chat mail translate image camera mic link summary wrench bug travel school home play refresh archive team wallet palette coin money speaker read copy quote share edit write save paste add remove delete clear fork regenerate reply select-text qr download downloads external info warning check done success error question pending running tip list table panel sidebar menu more expand collapse file folder-open workspace storage pdf zip slides article text diff gallery audio music video video-file play-video pause stop replay generate-image generate-video diagram plugin bot agent skill model tool workflow goal plan job automation command trajectory web web-search browser history time today timezone schedule repeat reminder user account group chats mention invite announcement reaction poll notification send community forum feedback wechat qq telegram discord phone computer cloud server power restart retry theme color text-size pet featured badge favorite settings
 
-不认识的图标会画成默认图标，不报错。不要用锁、钥匙、盾牌这类图标表达安全/私密：App 不保证这些语义，容易误导。
-- `minApp`：可选，最低 App 版本（如 `"1.0.16"`）。App 版本低于它时原生部分不显示，并提示用户更新 App。
-- `capabilities`：可选能力清单。`files` 表示要用系统选择器选文件/图片（见下文「选择文件与图片」）；旧 App、旧桥不协商时普通面板仍能打开。
+Unknown icons draw as the default icon, without an error. Do not use
+lock, key or shield style icons to imply safety or privacy: the app
+does not guarantee those meanings, and they mislead.
+- `minApp`: optional minimum app version (e.g. `"1.0.16"`). Below it,
+  the native part is not shown and the person is told to update.
+- `capabilities`: optional capability list. `files` means picking
+  files/images with the system picker (see "Picking files and images");
+  on older apps and bridges without negotiation, ordinary panels still
+  open.
 
-## 处理（`ctx.dshGo`）
+## Handlers (`ctx.dshGo`)
 
 ```js
 export const name = 'local-quote'
 export function apply(ctx) {
   ctx.inject(['dshGo'], (ctx) => {
-    // 胶囊 / 菜单项 / 状态条的点按：(scope, event) → 效果
-    ctx.dshGo.on('paste-quote', (scope, event) => scope.clipboard ? { insert: `> ${scope.clipboard}` } : { toast: '剪贴板里没有文字' })
+    // Capsule / menu item / strip taps: (scope, event) → effect
+    ctx.dshGo.on('paste-quote', (scope, event) => scope.clipboard ? { insert: `> ${scope.clipboard}` } : { toast: 'The clipboard has no text' })
 
-    // 状态条：推 { text ≤ 24, icon?, tone? }；返回取消函数
+    // Strip: push { text ≤ 24, icon?, tone? }; return a cancel function
     ctx.dshGo.strip('today', (scope, emit, caps) => {
-      const tick = () => emit({ text: caps.locale.startsWith('en') ? `Today ${count()}` : `今日 ${count()}` })
+      const tick = () => emit({ text: `Today ${count()}` })
       tick()
       const timer = setInterval(tick, 60_000)
       return () => clearInterval(timer)
     })
 
-    // 面板：视图（结构）+ 数据（推完整对象，桥接算差量）+ 视图里点按的处理
+    // Panel: view (structure) + data (push whole objects; the bridge diffs) + view tap handlers
     ctx.dshGo.panel('stats', {
       view: (scope, caps) => ({ type: 'stack', children: [
-        { type: 'metric', label: '今日', value: { $: 'data.today' } },
-        { type: 'actions', items: [{ label: '清零', action: 'reset' }] },
+        { type: 'metric', label: 'Today', value: { $: 'data.today' } },
+        { type: 'actions', items: [{ label: 'Reset', action: 'reset' }] },
       ] }),
       data: (scope, emit, caps) => { emit({ today: count() }); return () => {} },
-      actions: { reset: (scope, event) => ({ toast: '已清零', patch: { today: 0 } }) },
+      actions: { reset: (scope, event) => ({ toast: 'Reset', patch: { today: 0 } }) },
     })
   })
 }
 ```
 
-| 参数 | 内容 |
+| Parameter | Contents |
 |---|---|
-| `scope` | `{ sessionId?, turnId?, messageId?, callId? }`；点按时另有声明过的 `clipboard` / `draft` / `message` |
-| `event` | `{ surface, id, action?, value?, locale }`；面板点按：`action` 是视图里的动作 id，`value` 是 args（`options` → `{ value }`，`confirm` → `{ confirmed }`） |
-| `caps` | 视图函数：`{ protocol, app, locale, surfaces, components }`；数据函数：`{ protocol, locale }` |
+| `scope` | `{ sessionId?, turnId?, messageId?, callId? }`; on taps also the declared `clipboard` / `draft` / `message` |
+| `event` | `{ surface, id, action?, value?, locale }`; panel taps: `action` is the view's action id, `value` is args (`options` → `{ value }`, `confirm` → `{ confirmed }`) |
+| `caps` | View functions: `{ protocol, app, locale, surfaces, components }`; data functions: `{ protocol, locale }` |
 
-**返回的效果**（一次 ≤ 4 个，点按后 3 秒内返回才执行）：
+**Returned effects** (at most 4 at once; only those returned within 3
+seconds of the tap run):
 
-| 写法 | 作用 |
+| Form | Effect |
 |---|---|
-| `{ insert: '…' }` | 放进输入框（≤ 2000 字），**绝不自动发送** |
-| `{ toast: '…' }` | 一行提示（≤ 40 字） |
-| `{ copy: '…' }` | 复制（≤ 8000 字） |
-| `{ link: 'https://…' }` | 用户确认后浏览器打开，只收 https |
-| `{ open: 'panel:stats' }` / `{ open: '页面 id' }` | 打开本插件面板或 App 页面 |
-| `{ command: 'compact' }` | 在当前对话执行斜杠命令 |
-| `{ refresh: true }` / `{ patch: {…} }` | 面板重取视图 / 合并数据 |
-| 多个键写在一个对象里 | 按顺序都执行，例如 `{ copy: md, toast: '已复制' }` |
+| `{ insert: '…' }` | Puts text into the composer (≤ 2000 chars); **never sent automatically** |
+| `{ toast: '…' }` | A one-line notice (≤ 40 chars) |
+| `{ copy: '…' }` | Copies (≤ 8000 chars) |
+| `{ link: 'https://…' }` | Opens in the browser after the person confirms; https only |
+| `{ open: 'panel:stats' }` / `{ open: 'page id' }` | Opens this plugin's panel or an app page |
+| `{ command: 'compact' }` | Runs a slash command in the current chat |
+| `{ refresh: true }` / `{ patch: {…} }` | Panel refetches its view / merges data |
+| Several keys in one object | All run in order, e.g. `{ copy: md, toast: 'Copied' }` |
 
-**慢活（调模型、联网）用延后效果**：先回 `pending`，App 显示等待；结果 ≤ 60 秒到，只能是 `insert` `copy` `toast` `patch`；每插件同时最多 2 个；`signal` 在取消 / 超时 / 断开时触发，收到就停。
+**Slow work (model calls, network) uses deferred effects**: return
+`pending` first and the app shows a wait; the result arrives within 60
+seconds and may only be `insert` `copy` `toast` `patch`; at most 2 per
+plugin at once; `signal` fires on cancel / timeout / disconnect — stop
+when it does.
 
 ```js
 ctx.dshGo.on('translate', (scope) => ({
-  pending: { label: '正在翻译', timeoutMs: 60_000 },
+  pending: { label: 'Translating', timeoutMs: 60_000 },
   result: async (signal) => ({ insert: await translate(scope.clipboard, signal) }),
 }))
 ```
 
-## 视图（面板、工具卡）
+## Views (panels, tool cards)
 
-一棵 JSON 组件树。任何值都可以写绑定 `{ "$": "data.a.b" }`，从推来的数据里取，取不到显示「—」；工具卡没有数据，直接写值。
+A JSON component tree. Any value may be a binding `{ "$": "data.a.b" }`
+taken from the pushed data; a missing value shows "—". Tool cards have
+no data — write values directly.
 
-**先选视图版本**：根节点不写 `v` 或写 `v: 1` 时使用 v1 组件和原样式；需要新增控件、结构组件或有界样式时，在根节点写 `v: 2`。清单的 `dshGo.v` 仍为 `1`，与视图版本分开。
+**Pick the view version first**: no `v` on the root, or `v: 1`, uses v1
+components and the original styling; for the newer controls, structural
+components or bounded styles, write `v: 2` on the root. The manifest's
+`dshGo.v` stays `1` — separate from the view version.
 
-下表只列 v1 的基础组件。v2 的完整组件与字段见自带的 `kit/schema/view.schema.json`；App 仓库的 `docs/plugins/components.md`、`styles.md`、`inputs.md` 说明新增组件、样式和表单。不要因为组件不在下表就拒绝 v2。兼容旧 App 时按 `caps.components` / SDK 的 `adaptView` 降级，文字保留 `text` 等基础字段。
+The table below lists only the v1 basics. The full v2 components and
+fields are in the bundled `kit/schema/view.schema.json`; the app repo's
+`docs/plugins/components.md`, `styles.md` and `inputs.md` cover the new
+components, styles and forms. Do not reject v2 just because a component
+is not in the table. For older apps, degrade via `caps.components` /
+the SDK's `adaptView`, keeping text in basic fields such as `text`.
 
 ```json
 {"v":2,"type":"stack","accent":"teal","children":[
-  {"type":"text","text":"示例","style":{"size":"title","weight":"bold"}},
-  {"type":"emptyState","title":"暂时没有内容"}
+  {"type":"text","text":"Example","style":{"size":"title","weight":"bold"}},
+  {"type":"emptyState","title":"Nothing here yet"}
 ]}
 ```
 
-| 组件 | 字段 |
+| Component | Fields |
 |---|---|
-| `stack` / `row` | `children`（row 窄屏自动折行）；根节点可带 `title` |
-| `text` | `text`，`tone?: muted` |
+| `stack` / `row` | `children` (row wraps on narrow screens); the root may carry `title` |
+| `text` | `text`, `tone?: muted` |
 | `metric` | `label` `value` `tone?: good\|warn\|bad\|info` `caption?` |
 | `chart` | `kind: bar\|hbar\|line\|donut` `categories` `series: [{ name?, values }]` `unit?` `caption?` |
-| `compare` | `items: [{ title, badge?, rows: [[名称, 值]] }]`（2–4 项） |
+| `compare` | `items: [{ title, badge?, rows: [[name, value]] }]` (2–4 items) |
 | `steps` | `items: [{ label, status: done\|current\|todo\|failed, detail? }]` |
 | `callout` | `text` `tone?: info\|good\|warn\|bad` |
-| `list` | `items: [{ title, subtitle?, trailing?, icon?, tone?, action? }]`（≤ 50） |
-| `keyValue` | `items: [[名称, 值], …]` 或 `[{ label, value, tone? }]` 或 `{ 名称: 值 }`（≤ 24） |
-| `progress` | `value` `max?`（缺省 100）`label?` `caption?` `tone?` |
-| `table` | `columns: [文字 \| { label, align? }]`（≤ 8）`rows: [[…]]`（≤ 50） |
-| `actions` | `items: [{ label, action, icon?, style?: primary\|plain }]`（≤ 4，至多一个 primary） |
+| `list` | `items: [{ title, subtitle?, trailing?, icon?, tone?, action? }]` (≤ 50) |
+| `keyValue` | `items: [[name, value], …]` or `[{ label, value, tone? }]` or `{ name: value }` (≤ 24) |
+| `progress` | `value` `max?` (default 100) `label?` `caption?` `tone?` |
+| `table` | `columns: [text \| { label, align? }]` (≤ 8) `rows: [[…]]` (≤ 50) |
+| `actions` | `items: [{ label, action, icon?, style?: primary\|plain }]` (≤ 4, at most one primary) |
 | `options` | `id` `options: [{ label, value? }]` `multi?` `selected?` |
 | `confirm` | `id` `confirmLabel?` `cancelLabel?` |
-| `image` | `src`：`/dsh-go/v1/…` 同源路径或 ≤ 64 KiB 的 `data:image/…`；`alt?` `aspect?` |
+| `image` | `src`: a same-origin `/dsh-go/v1/…` path or a ≤ 64 KiB `data:image/…`; `alt?` `aspect?` |
 
-`action` 写动作 id 字符串，或 `{ "id": "open", "args": { … } }`（args ≤ 1 KiB）。上限：面板 32 KiB / 120 个组件 / 8 层；工具卡 8 KiB / 40 个 / 6 层，第 0 期不能点。
+`action` is an action id string, or `{ "id": "open", "args": { … } }`
+(args ≤ 1 KiB). Limits: panels 32 KiB / 120 components / 8 levels; tool
+cards 8 KiB / 40 components / 6 levels, not tappable in phase 0.
 
-工具卡：
+Tool cards:
 
 ```js
 presentationMeta: (args, value) => {
-  try {   // 抛错或返回 undefined / NaN 会让整次工具调用失败
-    const text = JSON.stringify({ type: 'stack', title: `${value.city} · 今天`, children: [{ type: 'metric', label: '气温', value: `${value.temp}°` }] })
+  try {   // Throwing, or returning undefined / NaN, fails the whole tool call
+    const text = JSON.stringify({ type: 'stack', title: `${value.city} · Today`, children: [{ type: 'metric', label: 'Temp', value: `${value.temp}°` }] })
     return text.length < 8000 ? { 'dsh-go/view': JSON.parse(text) } : {}
   } catch { return {} }
 },
 ```
 
-## 选择文件与图片（NA v1.3，可选）
+## Picking files and images (NA v1.3, optional)
 
-插件可以在用户点按后打开系统选择器；选中的内容送到当前主机，插件通过一次性句柄读字节，不会拿到手机文件路径。
+After a tap, a plugin can open the system picker; the selection goes to
+the current host and the plugin reads bytes through a one-time handle —
+it never gets a phone file path.
 
-- 清单加 `"capabilities": ["files"]`；触发选择的按钮加 `"requires": ["files"]`；面板里的选择按钮只在 `caps.features?.includes('files')` 时显示，否则显示普通说明文字。
-- 效果：`effects.pickFile('selected', { maxFiles: 2 })` 或 `effects.pickImage(...)`；不用 SDK 时返回 `{ type: 'pickFile', action: 'selected', maxFiles: 2 }`。`maxFiles` 默认 1，只收 1–4。
-- 回调在同一个面板的 `actions[action]`，或回落到 `ctx.dshGo.on(贡献 id, handler)`；`event.value` 是 `{ status: 'selected', files: [{ handle, name, bytes, mediaType, access }] }`、`cancelled` 或 `error`。
-- 在回调内用 `ctx.dshGo.readPickedFile(handle)` 取字节（独立副本）。句柄只在这一个待处理回调内有效：回调结束、超时、卸载或断线后就读不到；不要保存句柄，也不要拿 `name` 拼路径。
-- 旧 App、旧桥、DSH Remote 中转不协商此能力，面板照常打开。`dshGo.v` 仍是 `1`，不要填 `1.3`。
-- 发起选择的调用必须来自用户手势（`userGesture`），不能在后台自行触发。
+- Add `"capabilities": ["files"]` to the manifest; the button that
+  starts the pick gets `"requires": ["files"]`; in a panel, show the
+  pick button only when `caps.features?.includes('files')`, otherwise
+  show plain explanatory text.
+- Effect: `effects.pickFile('selected', { maxFiles: 2 })` or
+  `effects.pickImage(...)`; without the SDK, return
+  `{ type: 'pickFile', action: 'selected', maxFiles: 2 }`. `maxFiles`
+  defaults to 1 and accepts only 1–4.
+- The callback is the same panel's `actions[action]`, or falls back to
+  `ctx.dshGo.on(contribution id, handler)`; `event.value` is
+  `{ status: 'selected', files: [{ handle, name, bytes, mediaType, access }] }`,
+  `cancelled`, or `error`.
+- Inside the callback, read bytes with
+  `ctx.dshGo.readPickedFile(handle)` (an independent copy). The handle
+  is valid only within that pending callback: after it ends, times out,
+  unloads or disconnects, it reads nothing. Do not store handles, and
+  do not build paths from `name`.
+- Older apps, older bridges and DSH Remote relays do not negotiate this
+  capability; panels still open. `dshGo.v` stays `1` — do not write
+  `1.3`.
+- The call that starts a pick must come from a user gesture
+  (`userGesture`); it cannot fire by itself in the background.
 
-## 声音与字幕（v1.2，可选）
+## Sound and captions (v1.2, optional)
 
-清单加 `"capabilities": ["audio", "voice", "micro", "overlay"]`（用哪几样写哪几样），`contributes` 加 `media: [{ id }]`、`micro: [{ id }]`、`overlays: [{ id, channel }]`（各 ≤ 2，id 和其他贡献不重复）；要用声音的按钮加 `"requires": ["audio"]`。
+Add `"capabilities": ["audio", "voice", "micro", "overlay"]` (only the
+ones used) to the manifest, and `media: [{ id }]`, `micro: [{ id }]`,
+`overlays: [{ id, channel }]` to `contributes` (each ≤ 2; ids unique
+across contributions); buttons that need sound get
+`"requires": ["audio"]`.
 
 ```js
-ctx.dshGo.on('read', (scope) => [   // 同一 instance：App 当作一个会话
+ctx.dshGo.on('read', (scope) => [   // One instance: the app treats it as one session
   { type: 'audio', op: 'play', instance: 'reading', src: 'media:speech', key: 'k1' },
   { type: 'voice', op: 'start', instance: 'reading' },
   { type: 'overlay', op: 'show', instance: 'reading', id: 'subtitle' },
 ])
-ctx.dshGo.media('speech', async (scope, { key, signal }) => ({ body: wavBuffer, contentType: 'audio/wav' }))   // 整段，≤ 16 MiB，30 秒内
-ctx.dshGo.micro('caption', { data: (scope, emit) => { emit({ text: '读到这里', progress: 0.3 }); return () => {} } })   // 只能 { text ≤ 240 字, progress 0–1 }
-ctx.dshGo.onCapability((scope, { event }) => {})   // audio.ended / voice.speechStart / …；返回值不执行
+ctx.dshGo.media('speech', async (scope, { key, signal }) => ({ body: wavBuffer, contentType: 'audio/wav' }))   // whole clip, ≤ 16 MiB, within 30 s
+ctx.dshGo.micro('caption', { data: (scope, emit) => { emit({ text: 'Reading here', progress: 0.3 }); return () => {} } })   // only { text ≤ 240 chars, progress 0–1 }
+ctx.dshGo.onCapability((scope, { event }) => {})   // audio.ended / voice.speechStart / …; return values do not run
 ```
 
-慢的事（TTS）放在 `media` 里，不放在 `on` 里。App 负责：开口时先停播再通知、问用户能不能听、只在前台、声音结束后自动停听关字幕。没有 TTS 时可以像 `examples/plugins/dsh-go-example-readaloud` 那样合成占位音。
+Slow work (TTS) belongs in `media`, not in `on`. The app handles:
+stopping playback before notifying on speech, asking the person whether
+it may listen, foreground only, and stopping listening and captions
+when the sound ends. Without TTS, synthesise placeholder audio the way
+`examples/plugins/dsh-go-example-readaloud` does.
 
-## 规矩
+## Rules
 
-- v1 保留原样式；v2 可用文档列出的颜色、语义字号、字重、spans 和容器样式。不要写任意 CSS、字体文件、尺寸、透明度、渐变或动画参数；实际几何、可读色和内容边界仍由 App 决定。
-- 文案短、全角标点；报错像人话（「剪贴板里没有文字」），不写英文异常。
-- 不在视图、清单、代码里放密钥和令牌；读到的剪贴板 / 消息只用于这一次点按。
-- 不在没有点按时做有副作用的事；`insert` 永远不发送。
-- 按所选视图版本的 schema 和组件目录写字段，用自带检查器验证；不要编造未支持的字段。完整说明在 App 仓库的 `docs/plugins/`。
+- v1 keeps the original styling; v2 may use the documented colours,
+  semantic sizes, weights, spans and container styles. No arbitrary
+  CSS, font files, sizes, opacity, gradients or animation parameters;
+  actual geometry, readable colours and content bounds stay the app's
+  decision.
+- Copy is short; errors read like plain English ("The clipboard has no
+  text"), never raw exception text.
+- No secrets or tokens in views, manifests or code; clipboard / message
+  content read is used for that one tap only.
+- Nothing with side effects without a tap; `insert` never sends.
+- Write fields per the chosen view version's schema and component
+  catalogue, and validate with the bundled checker; do not invent
+  unsupported fields. Full documentation is in the app repo's
+  `docs/plugins/`.

@@ -16,6 +16,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../companion/companion_voice.dart';
 import '../../companion/companion_voice_source.dart';
+import '../../companion/kokoro_voice.dart';
+import '../../state/kokoro_model_state.dart';
 import '../../l10n/l10n.dart';
 import '../../speech/deepseek_speech.dart';
 import '../../speech/speech_settings.dart';
@@ -390,6 +392,7 @@ class _CompanionVoicePageState extends ConsumerState<CompanionVoicePage> {
             for (final (source, title, hint) in [
               if (!room) (CompanionVoiceSource.deepseek, l10n.speechVoiceDeepseek, l10n.speechVoiceDeepseekHint),
               (CompanionVoiceSource.system, l10n.companionVoiceSystem, l10n.companionVoiceSystemHint),
+              (CompanionVoiceSource.kokoro, l10n.companionVoiceKokoro, l10n.companionVoiceKokoroHint),
               if (!ohos) ...[
                 (CompanionVoiceSource.preset, l10n.companionVoicePreset, l10n.companionVoicePresetHint),
                 (CompanionVoiceSource.openai, l10n.companionVoiceOpenai, l10n.companionVoiceOpenaiHint),
@@ -430,6 +433,31 @@ class _CompanionVoicePageState extends ConsumerState<CompanionVoicePage> {
                 ),
             ],
           ),
+        if (!following && chosen == CompanionVoiceSource.kokoro) ...[
+          SettingsSection(
+            title: l10n.companionVoiceKokoro,
+            footer: Text(l10n.kokoroFallbackNote),
+            children: [
+              _KokoroModelTile(),
+            ],
+          ),
+          SettingsSection(
+            title: l10n.companionVoiceVoice,
+            children: [
+              for (final (sid, name) in kokoroVoices)
+                SettingsTile(
+                  key: ValueKey('voice-kokoro-$sid'),
+                  title: name,
+                  chevron: false,
+                  trailing: s.kokoroVoice == sid ? const Icon(AppIcons.selected, size: 20) : null,
+                  onTap: () {
+                    setState(() => _preview = null);
+                    unawaited(_set(s.copyWith(kokoroVoice: sid)));
+                  },
+                ),
+            ],
+          ),
+        ],
         if (!following && chosen == CompanionVoiceSource.preset) ...[
           SettingsSection(
             title: l10n.companionVoiceService,
@@ -612,6 +640,46 @@ class _CompanionVoicePageState extends ConsumerState<CompanionVoicePage> {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// The Kokoro model's state and its one-time download.
+class _KokoroModelTile extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final model = ref.watch(kokoroModelProvider);
+    final (title, subtitle) = switch (model.status) {
+      KokoroModelStatus.absent => (l10n.kokoroModelAbsent, null),
+      KokoroModelStatus.downloading => (
+        l10n.kokoroDownloading,
+        '${(model.fraction * 100).floor()}%',
+      ),
+      KokoroModelStatus.preparing => (l10n.kokoroPreparing, null),
+      KokoroModelStatus.ready => (l10n.kokoroReady, null),
+      KokoroModelStatus.failed => (l10n.kokoroFailed, null),
+    };
+    return SettingsTile(
+      key: const ValueKey('kokoro-model'),
+      title: title,
+      subtitle: subtitle,
+      chevron: false,
+      trailing: switch (model.status) {
+        KokoroModelStatus.absent || KokoroModelStatus.failed => TextButton(
+          onPressed: () => unawaited(ref.read(kokoroModelProvider.notifier).download()),
+          child: Text(l10n.kokoroDownload),
+        ),
+        KokoroModelStatus.ready => TextButton(
+          onPressed: () => unawaited(ref.read(kokoroModelProvider.notifier).delete()),
+          child: Text(l10n.kokoroDelete),
+        ),
+        KokoroModelStatus.downloading || KokoroModelStatus.preparing => const SizedBox(
+          width: 20,
+          height: 20,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      },
     );
   }
 }

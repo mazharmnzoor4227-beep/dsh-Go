@@ -273,7 +273,8 @@ class ToolView {
         if (questions is List && questions.isNotEmpty) {
           final first = questions.first;
           if (first is Map && first['question'] is String) {
-            return oneLine(first['question'] as String);
+            final shown = LocalizedText.englishText(first['question'] as String).trim();
+            return shown.isEmpty ? 'Question' : oneLine(shown);
           }
         }
         return '';

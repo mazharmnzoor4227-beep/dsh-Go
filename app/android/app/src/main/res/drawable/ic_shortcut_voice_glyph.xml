@@ -2,7 +2,7 @@
 <!-- SPDX-FileCopyrightText: Google -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 <!-- See THIRD_PARTY_NOTICES.md. -->
-<!-- Foreground of the 「语音输入」 shortcut icon: Material `mic_none_rounded` (the glyph the app
+<!-- Foreground of the "Voice input" shortcut icon: Material `mic_none_rounded` (the glyph the app
      shows for it), its 24-unit box scaled to 40dp and centred on the 108dp adaptive canvas
      (the launcher shows the middle 72dp; geometry checked in test/system_entry). -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"

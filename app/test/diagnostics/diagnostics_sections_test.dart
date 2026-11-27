@@ -93,7 +93,7 @@ void main() {
   test('persistent evidence appears before huge engine output and enters the export', () {
     final input = snapshot(engine: List.filled(80, 'x' * 1800));
     final markdown = diagnosticsMarkdown(input);
-    expect(markdown.indexOf('playback_opening'), lessThan(markdown.indexOf('引擎日志')));
+    expect(markdown.indexOf('playback_opening'), lessThan(markdown.indexOf('Engine log')));
     final entry = DiagnosticsBundle.entries(input).singleWhere((entry) => entry.name == 'app-evidence.json');
     final text = utf8.decode(entry.bytes);
     expect(text, contains('StateError'));

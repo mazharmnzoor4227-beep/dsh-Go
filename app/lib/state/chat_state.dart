@@ -84,6 +84,10 @@ const engineNoteSources = {
 /// is immediate when idle but waits for the running turn when queued. The chat
 /// shows these as optimistic bubbles until the matching [UserChatItem]
 /// (same `requestId`) arrives.
+/// Whether an ended turn resumes by itself: only interruptions (engine
+/// restart, killed tool call), at most twice per prompt.
+bool shouldAutoResume(String kind, int tries) => kind == 'interrupted' && tries < 2;
+
 class PendingPrompt {
   const PendingPrompt({
     required this.requestId,
@@ -500,6 +504,10 @@ class ChatController extends Notifier<ChatState> {
   /// tried once and the chain always ends.
   final _autoTried = <String>{};
 
+  /// Interrupted-turn resumes per prompt, so a repeatedly dying engine
+  /// cannot loop forever (see [_maybeAutoResume]).
+  final _resumeTried = <String, int>{};
+
   /// Sends still waiting for the Host to answer the prompt RPC. A prompt
   /// here may well have landed; anything else with no inbox slot after a
   /// fresh baseline did not.
@@ -900,6 +908,7 @@ class ChatController extends Notifier<ChatState> {
             for (final end in endings) {
               _settleClaims(end);
               _maybeAutoFallback(end);
+              _maybeAutoResume(end);
             }
             if (event is UserMessageEvent) {
               _dropEchoed([event]);
@@ -1037,6 +1046,20 @@ class ChatController extends Notifier<ChatState> {
     final next = chain.first;
     _autoTried.add('${prompt.requestId}|${next.provider}|${next.model}');
     unawaited(_autoRetry(prompt, next));
+  }
+
+  /// An interrupted turn (engine restart, killed tool call) resumes by
+  /// itself: the same prompt is resent on the same model, at most twice,
+  /// so a standard install finishes without babysitting Continue taps.
+  /// Idempotent work (the install scripts) simply continues; after two
+  /// interruptions the failure stays on screen for the person to retry.
+  void _maybeAutoResume(TurnEndedEvent end) {
+    final prompt = _pending.where((p) => p.failed && p.failureSeq == end.seq && p.attachments.isEmpty).firstOrNull;
+    if (prompt == null || prompt.text.trim().isEmpty) return;
+    final tries = _resumeTried[prompt.requestId] ?? 0;
+    if (!shouldAutoResume(end.reason.kind, tries)) return;
+    _resumeTried[prompt.requestId] = tries + 1;
+    unawaited(send(prompt.text, originalRequestId: prompt.requestId));
   }
 
   Future<void> _autoRetry(PendingPrompt prompt, ModelSelection next) async {

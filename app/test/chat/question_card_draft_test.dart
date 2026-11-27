@@ -14,7 +14,7 @@ const request = UserQuestionRequest(
   questions: [
     UserQuestion(
       id: 'db',
-      question: '数据库',
+      question: 'Database',
       options: [QuestionOption('PostgreSQL', null), QuestionOption('SQLite', null)],
     ),
   ],
@@ -44,7 +44,7 @@ void main() {
                             answers = value;
                           },
                         )
-                      : SizedBox(height: 90, child: Text('消息 $i')),
+                      : SizedBox(height: 90, child: Text('Message $i')),
                 )
               : const SizedBox(),
         ),
@@ -52,23 +52,45 @@ void main() {
     );
     await tester.pumpWidget(page());
     await tester.tap(find.text('PostgreSQL'));
-    await tester.tap(find.text('其他回答'));
+    await tester.tap(find.text('Other answer'));
     await pumpFrames(tester, 4);
-    await tester.enterText(find.byType(TextField), '补充说明');
+    await tester.enterText(find.byType(TextField), 'Extra note');
     FocusManager.instance.primaryFocus?.unfocus();
     scroll.jumpTo(scroll.position.maxScrollExtent);
     await tester.pump();
     scroll.jumpTo(0);
     await tester.pump();
-    expect(tester.widget<TextField>(find.byType(TextField)).controller!.text, '补充说明');
+    expect(tester.widget<TextField>(find.byType(TextField)).controller!.text, 'Extra note');
     await tester.pumpWidget(page(show: false));
     await tester.pumpWidget(page());
     await tester.pump();
-    expect(tester.widget<TextField>(find.byType(TextField)).controller!.text, '补充说明');
-    await tester.tap(find.text('提交'));
+    expect(tester.widget<TextField>(find.byType(TextField)).controller!.text, 'Extra note');
+    await tester.tap(find.text('Submit'));
     await tester.pump();
     expect(answers!.single.selected, ['PostgreSQL']);
-    expect(answers!.single.custom, '补充说明');
+    expect(answers!.single.custom, 'Extra note');
+  });
+  testWidgets('a question that arrives in Chinese is never shown in Chinese', (tester) async {
+    const chineseRequest = UserQuestionRequest(
+      eventId: 'q2',
+      sessionId: 's1',
+      questions: [
+        UserQuestion(
+          id: 'install',
+          question: '是否安装 Antigravity CLI？',
+          options: [QuestionOption('是', null), QuestionOption('否', null)],
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      testApp(
+        Scaffold(body: QuestionCard(request: chineseRequest, onAnswer: (_, _) async {})),
+      ),
+    );
+    expect(find.text('是否安装 Antigravity CLI？'), findsNothing);
+    expect(find.text('是'), findsNothing);
+    expect(find.textContaining('The assistant asked a question in Chinese'), findsOneWidget);
+    expect(find.byType(TextField), findsOneWidget);
   });
   testWidgets('single choice exposes checked, exclusive, enabled and tap semantics', (tester) async {
     final semantics = tester.ensureSemantics();

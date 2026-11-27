@@ -289,39 +289,13 @@ class FallbackVoiceCloud implements VoiceCloud {
   }
 }
 
-/// The recognizer a 语音通话 uses: it needs one that takes a recording (the
-/// phone's own service can't). Gemini first when its key is connected, then
-/// the chosen mode's, then DeepSeek's, then the engine's voice model — as a
-/// fallback chain, so one refusal does not silence the call.
+/// The recognizer a voice call uses: Gemini only. Live calls never fall
+/// back to a local model, another cloud provider, or the engine; without a
+/// Gemini key the call entry points refuse to open, so this returns null.
 final callRecognizerProvider = Provider<Future<VoiceCloud?> Function()>((ref) {
   return () async {
-    final mode = await ref.read(voiceSettingsProvider.notifier).ready();
-    final cloud = ref.read(voiceCloudProvider);
-    Future<VoiceCloud?> engine() async {
-      final client = ref.read(activeConnectionProvider).value?.client;
-      if (client == null) return null;
-      try {
-        final catalog = await client.speechCatalog().timeout(const Duration(seconds: 4));
-        if (catalog?.selected?.usable ?? false) return EngineVoiceCloud(client, catalog!);
-      } catch (_) {
-        // No voice model on this engine.
-      }
-      return null;
-    }
-
     final geminiKey = await ref.read(geminiApiKeyProvider.future);
-    final gemini = geminiKey == null ? null : GeminiVoiceCloud(geminiKey, ref.read(deepSeekSpeechHttpProvider));
-    final chain = <VoiceCloud?>[
-      switch (mode) {
-        VoiceMode.engine => await engine(),
-        VoiceMode.cloud => await cloud(VoiceMode.cloud),
-        VoiceMode.auto || VoiceMode.deepseek || VoiceMode.system => null,
-      },
-      gemini,
-      await cloud(VoiceMode.deepseek),
-      await engine(),
-    ].nonNulls.toList();
-    if (chain.isEmpty) return null;
-    return chain.length == 1 ? chain.first : FallbackVoiceCloud(chain);
+    if (geminiKey == null) return null;
+    return GeminiVoiceCloud(geminiKey, ref.read(deepSeekSpeechHttpProvider));
   };
 });

@@ -142,7 +142,7 @@ class ThemeStudioController extends ChangeNotifier {
     // A new theme is the user's own: the template's titles, tags and attribution stay behind.
     return ThemePack(
       id: id,
-      name: AppLocale.isEnglish ? '${base.displayName('en')} · Custom' : '${base.name} · 自定义',
+      name: '${base.displayName('en')} · Custom',
       description: base.description,
       palette: base.palette,
       surfaces: base.surfaces,
@@ -343,7 +343,7 @@ class ThemeStudioController extends ChangeNotifier {
     } on ThemeImportException catch (e) {
       fail(themeImportProblemText(e, english: AppLocale.isEnglish));
     } on Object {
-      fail(_t('读取图片失败。', 'Could not read the image.'));
+      fail('Could not read the image.');
     }
   }
 
@@ -351,7 +351,7 @@ class ThemeStudioController extends ChangeNotifier {
   void useImage(ThemeImageSlot slot, Uint8List bytes) {
     // The stored name takes the type the bytes really are, whatever the picked file was called.
     final extension = themeImageExtensions.where((e) => themeImageHeaderMatches('x$e', bytes)).firstOrNull;
-    if (extension == null) return fail(_t('这不是 PNG、WebP 或 GIF 图片。', 'Not a PNG, WebP or GIF image.'));
+    if (extension == null) return fail('Not a PNG, WebP or GIF image.');
     final name = '${slot.stem}$extension';
     try {
       ThemePackValidator.validateParts(
@@ -363,7 +363,7 @@ class ThemeStudioController extends ChangeNotifier {
         {name: bytes},
       );
     } on ThemeValidationException catch (e) {
-      return fail(_t('这张图片没通过检查（${e.code}）。', 'This image did not pass the check (${e.code}).'));
+      return fail('This image did not pass the check (${e.code}).');
     }
     assets[name] = bytes;
     _stage(name, bytes);
@@ -399,13 +399,13 @@ class ThemeStudioController extends ChangeNotifier {
     } on ThemeImportException catch (e) {
       fail(themeImportProblemText(e, english: AppLocale.isEnglish));
     } on Object {
-      fail(_t('读取字体失败。', 'Could not read the font.'));
+      fail('Could not read the font.');
     }
   }
 
   /// Makes [bytes], picked as the file [pickedName], the font of [role].
   Future<void> useFont(ThemeFontRole role, String pickedName, Uint8List bytes) async {
-    if (!isValidThemeFontBytes(bytes)) return fail(_t('这不是有效的 TTF/OTF 字体。', 'Not a valid TTF/OTF font.'));
+    if (!isValidThemeFontBytes(bytes)) return fail('Not a valid TTF/OTF font.');
     final extension = String.fromCharCodes(bytes.sublist(0, 4)) == 'OTTO' ? '.otf' : '.ttf';
     final stem = pickedName
         .replaceFirst(RegExp(r'\.[^.]*$'), '')
@@ -465,33 +465,24 @@ class ThemeStudioController extends ChangeNotifier {
   /// What stops a save, in the user's words; null when the draft can go to the library.
   String? get saveBlocker {
     final pack = forSave;
-    if (pack.name.isEmpty) return _t('请填写主题名称。', 'Please enter a theme name.');
+    if (pack.name.isEmpty) return 'Please enter a theme name.';
     if (!isValidThemeId(pack.id) || ThemePack.builtInById(pack.id) != null) {
-      return _t(
-        '主题 ID 只能用小写字母、数字和连字符，且不能和内置主题重名。',
-        'The ID takes lower-case letters, digits and hyphens, and cannot be a built-in theme\'s.',
-      );
+      return 'The ID takes lower-case letters, digits and hyphens, and cannot be a built-in theme\'s.';
     }
     if (!savesOverInitial && existingIds.contains(pack.id)) {
-      return _t(
-        '主题 ID「${pack.id}」已经有了，换一个以免盖掉原来的主题。',
-        'A theme with ID "${pack.id}" already exists. Pick another ID so it is not replaced.',
-      );
+      return 'A theme with ID "${pack.id}" already exists. Pick another ID so it is not replaced.';
     }
     final empty = pack.emptyState;
     final drawsGlyph = empty.heroStyle == ThemeHeroStyle.glyph || empty.heroStyle == ThemeHeroStyle.seal;
     if (drawsGlyph && empty.heroGlyph == null) {
-      return _t('文字和印章样式要先填 1–4 个字。', 'The glyph and seal styles need 1–4 characters.');
+      return 'The glyph and seal styles need 1–4 characters.';
     }
     if (empty.heroStyle == ThemeHeroStyle.customImage && empty.heroImage == null) {
-      return _t('请先选一张主视觉图。', 'Pick a hero image first.');
+      return 'Pick a hero image first.';
     }
     final missing = missingAssets;
     if (missing.isNotEmpty) {
-      return _t(
-        '还缺素材文件：${missing.join('、')}。请在用到它的地方重新选一个。',
-        'Missing files: ${missing.join(', ')}. Pick them again where they are used.',
-      );
+      return 'Missing files: ${missing.join(', ')}. Pick them again where they are used.';
     }
     return null;
   }

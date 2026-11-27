@@ -123,18 +123,18 @@ CATCH = 0.9               # every animation's hit box holds at least this share 
 PACKS = {
     'deepy-whale': dict(
         kind='clawd', dir='deepy-whale',
-        name='Deepy 小鲸鱼',
+        name='Deepy the Whale',
         author='DSH-TUI',
-        license='DSH-TUI 吉祥物，作者授权 dsh-go 使用',
-        source='DSH-TUI（Clawd on Desk 主题包 v1.0.0）',
+        license='DSH-TUI mascot, used with the author\u2019s permission',
+        source='DSH-TUI (Clawd on Desk theme pack v1.0.0)',
         faces='left',
         preview_zoom=2, preview_per_row=24,
     ),
     'whale-girl': dict(
         kind='whale-girl', dir='whale-girl',
-        name='鲸娘',
+        name='Whale Girl',
         author='DSH-TUI',
-        license='DSH-TUI 吉祥物，作者授权 dsh-go 使用',
+        license='DSH-TUI mascot, used with the author\u2019s permission',
         source='https://dshtui.com/pets/whale-girl-emoji/',
         faces='front',     # she faces the viewer: never mirrored
         preview_zoom=3, preview_per_row=12,
@@ -157,7 +157,7 @@ WHALE_GIRL = dict(
         'juggling': [{'min': 2, 'anim': 'conducting'}, {'min': 1, 'anim': 'music'}],
     },
     idle_pool=['idle-look', 'idle-spout'],
-    # "不绑定事件，可做完成时的随机彩蛋"
+    # "not bound to an event; can be a random completion easter egg"
     bonus={'attention': ['smile-hearts', 'thumbs-up']},
     reactions={'tapLeft': 'poke-left', 'tapRight': 'poke-right', 'tickle': 'tickle',
                'drag': 'drag'},
@@ -817,11 +817,11 @@ def render_preview(pack, pack_dir, out_png, zoom, per_row=24):
     img = Image.new('RGBA', (width, height), (250, 250, 252, 255))
     d = ImageDraw.Draw(img)
     a0 = pack['anchor']
-    how = '最近邻放大' if resample == Image.NEAREST else 'BOX 缩小'
+    how = 'nearest-neighbour upscale' if resample == Image.NEAREST else 'BOX downscale'
     d.text((16, 12), f'{pack["name"]}  ·  {pack["id"]}  ·  scale {s}  ·  canvas {cw}×{ch}  ·  '
-                     f'预览 {zoom} px/逻辑像素（{how}）', fill=(20, 22, 40), font=f_title)
+                     f'Preview {zoom} px/logical pixel ({how})', fill=(20, 22, 40), font=f_title)
     d.text((16, 42), f'anchor x {a0["x"]}  baseline {a0["baseline"]}  ·  contentBox {pack["contentBox"]}'
-                     f'  ·  红线 = baseline，红点 = anchor.x，橙框 = 这段动画的命中框',
+                     f'  ·  red line = baseline, red dot = anchor.x, orange box = hit box',
            fill=(90, 94, 120), font=f_cap)
     # checkerboard tile
     chk = np.zeros((fh, fw, 4), np.uint8)
@@ -840,8 +840,8 @@ def render_preview(pack, pack_dir, out_png, zoom, per_row=24):
         hb, hk = hit_box_of(pack, n)
         d.text((16, y + 4), f'{n}', fill=(20, 22, 40), font=f_head)
         tx = 16 + d.textlength(n, font=f_head) + 14
-        d.text((tx, y + 7), f'{"  ·  ".join(roles(pack, n)) or "—"}   |   {len(a["frames"])} 帧'
-                            f'（存 {stored}）  ·  {a["ms"]} ms  ·  {loop}  ·  命中框 {hk}',
+        d.text((tx, y + 7), f'{"  ·  ".join(roles(pack, n)) or "—"}   |   {len(a["frames"])} frames'
+                            f'(stored {stored})  ·  {a["ms"]} ms  ·  {loop}  ·  hit box {hk}',
                fill=(63, 91, 216), font=f_cap)
         y += head
         for k, fr in enumerate(pack_frames(pack, pack_dir, n)):

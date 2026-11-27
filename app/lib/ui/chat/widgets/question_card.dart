@@ -16,6 +16,25 @@ import 'stream_motion.dart';
 
 typedef QuestionResponder = Future<void> Function(UserQuestionRequest request, List<QuestionAnswer> answers);
 
+final _hanText = RegExp(r'[\u3400-\u9fff]');
+
+bool _hasHan(String? text) => text != null && _hanText.hasMatch(text);
+
+bool _questionHasHan(UserQuestion q) =>
+    _hasHan(q.question) ||
+    _hasHan(q.header) ||
+    _hasHan(q.detail) ||
+    q.options.any((o) => _hasHan(o.label) || _hasHan(o.description));
+
+/// English-only build: model-written question text is shown only after the
+/// Han wording is converted or dropped. A question that arrives in Chinese
+/// is never rendered as Chinese; the person answers in their own words.
+String _englishQuestionText(UserQuestion q) {
+  final shown = LocalizedText.englishText(q.question).trim();
+  if (shown.isNotEmpty) return shown;
+  return 'The assistant asked a question in Chinese. Please answer in your own words, or decline and ask it to ask again in English.';
+}
+
 /// 提问卡(`ask_user_question`):[ChatCard] 的「提问」语气,与审批卡同一套
 /// 解剖;选项是可选中的行(按下缩放),底部一个通栏的「提交」;能拒绝时
 /// 与「不回答」左右成对,同审批卡。
@@ -35,7 +54,7 @@ class QuestionCard extends StatefulWidget {
 class _QuestionCardState extends State<QuestionCard> {
   late final List<Set<int>> _picked = [for (final _ in widget.request.questions) <int>{}];
   late final List<TextEditingController> _custom = [for (final _ in widget.request.questions) TextEditingController()];
-  late final List<bool> _customOpen = [for (final q in widget.request.questions) q.options.isEmpty];
+  late final List<bool> _customOpen = [for (final q in widget.request.questions) q.options.isEmpty || _questionHasHan(q)];
   bool _sending = false;
 
   /// The in-flight action is the decline (its button shows the spinner).
@@ -258,7 +277,9 @@ class _QuestionBlock extends StatelessWidget {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     final dsh = DshColors.of(context);
-    final header = question.header?.trim();
+    final chinese = _questionHasHan(question);
+    final headerRaw = question.header?.trim();
+    final header = headerRaw == null ? null : LocalizedText.englishText(headerRaw).trim();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -276,19 +297,20 @@ class _QuestionBlock extends StatelessWidget {
             ),
           ),
         if (scheduleAuthorization)
-          ScheduleQuestionBody(text: question.question)
+          ScheduleQuestionBody(text: _englishQuestionText(question))
         else
-          Text(question.question, style: theme.textTheme.bodyLarge?.copyWith(color: colors.onSurface, height: 1.5)),
-        if (question.detail case final detail? when detail.trim().isNotEmpty)
+          Text(_englishQuestionText(question), style: theme.textTheme.bodyLarge?.copyWith(color: colors.onSurface, height: 1.5)),
+        if (question.detail case final detail? when LocalizedText.englishText(detail).trim().isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 4),
             child: DefaultTextStyle.merge(
               style: TextStyle(color: colors.onSurfaceVariant),
-              child: MarkdownBody(text: detail.trim(), selectable: false),
+              child: MarkdownBody(text: LocalizedText.englishText(detail).trim(), selectable: false),
             ),
           ),
         const SizedBox(height: 4),
-        for (var i = 0; i < question.options.length; i++)
+        if (!chinese)
+          for (var i = 0; i < question.options.length; i++)
           _OptionRow(
             option: question.options[i],
             selected: picked.contains(i),
@@ -296,7 +318,7 @@ class _QuestionBlock extends StatelessWidget {
             enabled: enabled,
             onTap: () => onToggle(i),
           ),
-        if (question.options.isNotEmpty)
+        if (!chinese && question.options.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 4),
             child: Align(
@@ -320,7 +342,7 @@ class _QuestionBlock extends StatelessWidget {
             ),
           ),
         ExpandReveal(
-          open: customOpen,
+          open: chinese || customOpen,
           child: Padding(
             padding: const EdgeInsets.only(top: 8),
             child: TextField(
@@ -414,16 +436,18 @@ class _OptionRow extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              option.label,
+                              LocalizedText.englishText(option.label).trim().isEmpty
+                                  ? 'Option'
+                                  : LocalizedText.englishText(option.label).trim(),
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 color: fg,
                                 height: 1.43,
                                 fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
                               ),
                             ),
-                            if (option.description case final d? when d.trim().isNotEmpty)
+                            if (option.description case final d? when LocalizedText.englishText(d).trim().isNotEmpty)
                               Text(
-                                d.trim(),
+                                LocalizedText.englishText(d).trim(),
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: selected ? colors.onPrimaryContainer : colors.onSurfaceVariant,
                                 ),

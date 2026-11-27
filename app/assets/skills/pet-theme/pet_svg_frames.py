@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""把 clawd-dev-life 主题渲染成 dsh-Go 宠物包的过渡层。
+"""Transition layer rendering the clawd-dev-life theme into a dsh-Go pet pack.
 
-- APNG -> 逐帧解码 -> 6x6 块降采样到 48x48 画布（1 逻辑单位 = 2 画布像素）
-- idle.svg / roam.svg / drag.svg -> 复算它们的 CSS 动画，渲染到 288x288 再同样降采样
+- APNG -> decode frame by frame -> 6x6 block downsample to a 48x48 canvas (1 logical unit = 2 canvas pixels)
+- idle.svg / roam.svg / drag.svg -> recompute their CSS animation, render at 288x288, downsample the same way
 """
 import math, os, sys
 import xml.etree.ElementTree as ET
@@ -56,9 +56,9 @@ def hex_rgba(s):
     return (int(s[0:2],16), int(s[2:4],16), int(s[4:6],16), 255)
 
 # ---------------------------------------------------------------- animation table
-# 参数抄自 clawd-stickers dev-life/theme/svg.py 的 CSS（见各动画注释）。
+# Parameters copied from the CSS in clawd-stickers dev-life/theme/svg.py (see each animation's notes).
 def kf(pairs, easing):
-    """keyframes: [(time_fraction, value)], 循环内插值."""
+    """keyframes: [(time_fraction, value)], interpolated within the loop."""
     pts = sorted(pairs)
     def at(t):
         t = t % 1.0
@@ -73,7 +73,7 @@ def kf(pairs, easing):
     return at
 
 def kf_step(pairs):
-    """step-end: 保持前一关键帧的值."""
+    """step-end: hold the previous keyframe value."""
     pts = sorted(pairs)
     def at(t):
         t = t % 1.0
@@ -87,7 +87,7 @@ def kf_step(pairs):
 def clamp_cycle(t, duration):
     return (t % duration) / duration
 
-# 每个动画名 -> 函数(t_seconds) -> (matrix, opacity)
+# animation name -> function(t_seconds) -> (matrix, opacity)
 def build_anims():
     idle_lid = kf_step([(0.0, 1.0), (0.966, 0.0)])
     breath = kf([(0.0,1.0),(0.5,0.965),(1.0,1.0)], EASE_IN_OUT)
@@ -143,7 +143,7 @@ def rasterise(svg_path, anim_name, t):
     def paint_rect(m, opacity, colour, rx, ry, rw, rh):
         nonlocal img
         inv = invert(m)
-        # 反变换到本地坐标
+        # inverse-transform into local coordinates
         lx = inv[0]*ux + inv[2]*uy + inv[4]
         ly = inv[1]*ux + inv[3]*uy + inv[5]
         inside = (lx >= rx) & (lx < rx + rw) & (ly >= ry) & (ly < ry + rh)
@@ -157,7 +157,7 @@ def rasterise(svg_path, anim_name, t):
             sa = (src[3] / 255.0) * opacity
             da = dst[:, 3] / 255.0
             oa = sa + da * (1 - sa)
-            # 逐通道
+            # per channel
             out = np.zeros_like(dst)
             for i in range(3):
                 num = src[i] * sa + dst[:, i] * da * (1 - sa)
@@ -203,7 +203,7 @@ def rasterise(svg_path, anim_name, t):
             hi = rasterise(os.path.join(base, f), anim, t)
             lo = downsample(hi)
             tiles.append((lo, hi, ms))
-        # 拼预览：上排 288 原渲染，下排 48 降采样放大
+        # preview sheet: top row the 288 renders, bottom row the 48 downsamples scaled up
         n = len(tiles)
         canvas = Image.new('RGBA', (n*300, 620), (245,246,250,255))
         for i, (lo, hi, ms) in enumerate(tiles):

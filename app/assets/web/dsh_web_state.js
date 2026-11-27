@@ -1,4 +1,4 @@
-// Which conversation DSH Web shows, for the app (网页模式): the official
+// Which conversation DSH Web shows, for the app (web mode): the official
 // client keeps its selection in localStorage (`dsh.sessions.current`, the
 // store the open bridge writes too); this reports it to the `DshAppState`
 // channel on every change, so switching back to the native interface, a

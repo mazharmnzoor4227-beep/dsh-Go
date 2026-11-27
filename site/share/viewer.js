@@ -2,7 +2,7 @@
 // three ways a conversation arrives ([boot]):
 //
 //   - a `.dshgo` file picked or dropped on the landing page (site/share/);
-//   - the app's 「导出为网页」: this script inlined into one self-contained
+//   - the app's "Export as web page": this script inlined into one self-contained
 //     page with the file in it (app/tool/make_replay_viewer.py →
 //     app/lib/share_code/replay_viewer.g.dart);
 //   - a hosted link `https://<host>/c/<id>#k=<key>`: the page fetches
@@ -18,69 +18,8 @@
 (function (root) {
   // English-only build: the viewer always renders in English.
   var lang = 'en';
-  if (typeof document !== 'undefined' && document.documentElement) document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+  if (typeof document !== 'undefined' && document.documentElement) document.documentElement.lang = 'en';
   var I18N = {
-    "zh": {
-      "chat": "对话",
-      "copy": "复制",
-      "copied": "已复制",
-      "allText": "全文",
-      "progress": "回放进度",
-      "speed": "倍速",
-      "openApp": "用 dsh-go 打开",
-      "download": "下载 dsh-go",
-      "saveChat": "存为对话文件",
-      "pause": "暂停",
-      "replay": "重新播放",
-      "play": "播放",
-      "goalResume": "目标续跑",
-      "schedule": "定时任务",
-      "auto": "自动",
-      "image": "图片",
-      "thinkingActive": "思考中",
-      "thinking": "思考",
-      "interrupted": "已中断",
-      "declined": "已拒绝",
-      "failed": "失败",
-      "cancelled": "已取消",
-      "outputCut": "输出（已截断）",
-      "output": "输出",
-      "stopped": "已停止",
-      "error": "出错了",
-      "completed": "已完成",
-      "allDone": "全部完成",
-      "now": "正在：",
-      "next": "下一步：",
-      "goal": "目标",
-      "paused": "已暂停",
-      "blocked": "受阻",
-      "achieved": "已达成",
-      "pickFile": "选择文件",
-      "viewChat": "查看对话",
-      "pickHint": "选择或拖入 .dshgo 文件",
-      "fileTooLarge": "文件太大",
-      "drop": "松手打开",
-      "opening": "正在打开…",
-      "errorNewer": "需要更新 dsh-go 才能打开",
-      "errorBrowser": "这个浏览器打不开，换个新版浏览器试试",
-      "errorKind": "这不是对话文件",
-      "errorGone": "链接已过期或被删除",
-      "errorNetwork": "没能打开，检查网络后重试",
-      "errorKey": "链接不完整",
-      "errorFormat": "这个文件不完整或已损坏",
-      "seconds": "{n} 秒",
-      "minutes": "{n} 分钟",
-      "hours": "{n} 小时",
-      "date": "{year} 年 {month} 月 {day} 日",
-      "turnRangeOne": "第 {from} 轮，共 {total} 轮",
-      "turnRange": "第 {from}–{to} 轮，共 {total} 轮",
-      "steps": "{n} 步",
-      "toolCalls": "{n} 次工具调用",
-      "messages": "{n} 条消息",
-      "thoughts": "{n} 段思考",
-      "tokenCount": "{count} tokens",
-      "viewerTitle": "查看对话 · dsh-go"
-    },
     "en": {
       "chat": "Chat",
       "copy": "Copy",
@@ -916,7 +855,7 @@
     var sub = el('div', 'dv-sub');
     var subParts = [];
     var started = new Date(conv.start);
-    subParts.push(lang === 'zh' ? tr('date', {year: started.getFullYear(), month: started.getMonth() + 1, day: started.getDate()}) : started.toLocaleDateString('en', {year: 'numeric', month: 'short', day: 'numeric'}));
+    subParts.push(started.toLocaleDateString('en', {year: 'numeric', month: 'short', day: 'numeric'}));
     if (conv.model) subParts.push(modelName(conv.model));
     var last = 0;
     entries.forEach(function (e) { last = Math.max(last, e.t + (e.d || 0)); });
@@ -1515,7 +1454,7 @@
     return c;
   }
 
-  /** 「查看对话」: pick a `.dshgo` file or drop one anywhere on the page. */
+  /** "View chat": pick a `.dshgo` file or drop one anywhere on the page. */
   function opener(host, opts) {
     opts = opts || {};
     var input = el('input');

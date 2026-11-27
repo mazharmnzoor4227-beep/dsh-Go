@@ -19,15 +19,15 @@ import '../../theme/theme.dart';
 
 enum StudioPreviewPage { chat, newChat }
 
-const _replyZh = '''## 调好了
+const _replyZh = '''## All set
 
-这是一段回复，带 `行内代码` 和一个[链接](https://example.com)。
+A reply with `inline code` and a [link](https://example.com).
 
-- 圆角和间距
-- 颜色和材质
+- Corners and spacing
+- Colours and material
 
 ```dart
-// 套用主题
+// Apply the theme
 Theme load(String id) {
   return Theme('\$id.json', size: 16);
 }
@@ -69,7 +69,7 @@ class ThemeStudioPreview extends StatefulWidget {
 
 class _ThemeStudioPreviewState extends State<ThemeStudioPreview> {
   final _idle = TextEditingController();
-  late final _draft = TextEditingController(text: AppLocale.isEnglish ? 'Tidy up this folder' : '帮我整理一下这个文件夹');
+  late final _draft = TextEditingController(text: 'Tidy up this folder');
 
   /// Built once per theme and page: the studio around it rebuilds on every slider tick.
   Widget? _built;
@@ -112,7 +112,7 @@ class _ThemeStudioPreviewState extends State<ThemeStudioPreview> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _Header(title: chat ? studioPreviewTitle : (AppLocale.isEnglish ? 'New chat' : '新对话')),
+                _Header(title: chat ? studioPreviewTitle : ('New chat')),
                 Expanded(
                   // Large type or wide gaps: the middle shrinks rather than run under the composer.
                   child: FittedBox(
@@ -161,7 +161,7 @@ class _ThemeStudioPreviewState extends State<ThemeStudioPreview> {
           aspectRatio: ThemeStudioPreview.canvas.aspectRatio,
           child: Semantics(
             image: true,
-            label: AppLocale.isEnglish ? 'Theme preview' : '主题预览',
+            label: 'Theme preview',
             child: DecoratedBox(
               position: DecorationPosition.foreground,
               decoration: BoxDecoration(
@@ -191,7 +191,7 @@ class _ThemeStudioPreviewState extends State<ThemeStudioPreview> {
   }
 }
 
-String get studioPreviewTitle => AppLocale.isEnglish ? 'Live preview' : '实时预览';
+String get studioPreviewTitle => 'Live preview';
 
 /// The end of one turn and the start of the next, with the pack's mark between them.
 class _Conversation extends StatelessWidget {
@@ -222,7 +222,7 @@ class _Conversation extends StatelessWidget {
           ),
           child: Padding(
             padding: EdgeInsets.fromLTRB(gutter, shapes.turnGap, gutter, 8),
-            child: UserBubble(text: english ? 'Now try it in dark mode' : '再换成深色看看'),
+            child: UserBubble(text: 'Now try it in dark mode'),
           ),
         ),
       ],

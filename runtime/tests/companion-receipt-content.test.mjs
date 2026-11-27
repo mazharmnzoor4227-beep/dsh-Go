@@ -86,7 +86,7 @@ test('J SOURCE_ZIP actual 20 explicit-string cells round-trip all sources, formu
   rows[0][1] = '=HYPERLINK("https://example.invalid","ticket")';
   rows[1][1] = ' <票据>&"\'\t\r\n😀 _x0041_ _x005F_ ';
   const bytes = createReceiptWorkbook(rows), read = verifyReceiptWorkbook(bytes, rows);
-  assert(bytes.length < 262144); assert.equal(read.cells, 20); assert.equal(read.sheet, '差旅小表');
+  assert(bytes.length < 262144); assert.equal(read.cells, 20); assert.equal(read.sheet, 'Travel receipts');
   assert.deepEqual(read.rows, [receiptHeaders, ...rows]);
 });
 test('J SOURCE_ZIP rejects formulas, macros, external links, hidden sheets, extra cells and changed actual source values', () => {

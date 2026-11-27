@@ -117,7 +117,8 @@ class ThemeLocalizedText {
   final String? zh;
   final String? en;
 
-  String? resolve(String? languageCode) => languageCode == 'en' ? (en ?? zh) : (zh ?? en);
+  /// English-only build: a Chinese-only pack text falls back to the app default.
+  String? resolve(String? languageCode) => en;
 
   static ThemeLocalizedText? parse(Object? raw, String path, int maxRunes) {
     if (raw == null) return null;
@@ -1587,9 +1588,6 @@ class ThemePack {
     if (languageCode == 'en' && titleEn != null && titleEn!.trim().isNotEmpty) {
       return titleEn!.trim();
     }
-    if (languageCode == 'zh' && titleZh != null && titleZh!.trim().isNotEmpty) {
-      return titleZh!.trim();
-    }
     return name;
   }
 
@@ -1829,11 +1827,11 @@ class ThemePack {
   /// range without scattering `accent == paper` checks across widgets.
   static const paper = ThemePack(
     id: 'paper',
-    name: '纸墨书卷',
-    titleZh: '纸墨书卷',
+    name: 'Paper & Ink',
+    titleZh: 'Paper & Ink',
     titleEn: 'Paper & Ink',
-    description: '宣纸的细颗粒、朱砂印章、宋体长文和书页间的三点分隔。',
-    tags: ['纸墨', '阅读', '衬线'],
+    description: 'Fine paper grain, a vermilion seal, serif long-form text and dotted page dividers.',
+    tags: ['paper', 'reading', 'serif'],
     palette: ThemePaletteSpec(
       seed: 0xFFA14732,
       seedDark: 0xFFE4A58C,
@@ -1917,26 +1915,26 @@ class ThemePack {
       turnDivider: ThemeTurnDivider.dots,
       headingStyle: ThemeHeadingStyle.underline,
       headerTitleFont: ThemeHeaderTitleFont.heading,
-      composerHint: ThemeLocalizedText(zh: '落笔…', en: 'Write…'),
+      composerHint: ThemeLocalizedText(zh: 'Write…', en: 'Write…'),
     ),
     emptyState: ThemeEmptyStateSpec(
       layout: ThemeEmptyLayout.centered,
       heroStyle: ThemeHeroStyle.seal,
-      heroGlyph: '墨',
+      heroGlyph: 'P',
       useReadingFontForGreeting: true,
       showConnectedSubtitle: false,
-      greeting: ThemeLocalizedText(zh: '见字如面', en: 'Pen to paper'),
+      greeting: ThemeLocalizedText(zh: 'Pen to paper', en: 'Pen to paper'),
       suggestionsDisplay: ThemeSuggestionsDisplay.expanded,
     ),
   );
 
   static const bambooCeladon = ThemePack(
     id: 'bamboo-celadon',
-    name: '竹韵青瓷',
-    titleZh: '竹韵青瓷',
+    name: 'Bamboo Celadon',
+    titleZh: 'Bamboo Celadon',
     titleEn: 'Bamboo Celadon',
-    description: '一汪釉色从页面上方晕开，竹叶形的气泡，回复沿着一根青色的竹节往下写。',
-    tags: ['国风', '青瓷', '雅致'],
+    description: 'A wash of celadon glaze from the top of the page, bamboo-leaf bubbles, replies written down a green bamboo stem.',
+    tags: ['celadon', 'calm', 'elegant'],
     palette: ThemePaletteSpec(
       seed: 0xFF2B6A58,
       seedDark: 0xFF7FC7B0,
@@ -2017,23 +2015,23 @@ class ThemePack {
     emptyState: ThemeEmptyStateSpec(
       layout: ThemeEmptyLayout.centered,
       heroStyle: ThemeHeroStyle.glyph,
-      heroGlyph: '竹',
+      heroGlyph: 'B',
       heroScale: 1.1,
       useReadingFontForGreeting: true,
       showConnectedSubtitle: true,
-      greeting: ThemeLocalizedText(zh: '清风徐来', en: 'A quiet breeze'),
-      subtitle: ThemeLocalizedText(zh: '慢慢说，不着急', en: 'Take your time'),
+      greeting: ThemeLocalizedText(zh: 'A quiet breeze', en: 'A quiet breeze'),
+      subtitle: ThemeLocalizedText(zh: 'Take your time', en: 'Take your time'),
       suggestionsDisplay: ThemeSuggestionsDisplay.grid,
     ),
   );
 
   static const terminalNoir = ThemePack(
     id: 'terminal-noir',
-    name: '极夜终端',
-    titleZh: '极夜终端',
+    name: 'Polar Night Terminal',
+    titleZh: 'Polar Night Terminal',
     titleEn: 'Terminal Noir',
-    description: '切角线框、淡淡的坐标网格、全等宽排版，每句话前面带一个提示符。',
-    tags: ['终端', '等宽', '极简'],
+    description: 'Cut-corner frames, a faint coordinate grid, all-monospace type, a prompt before every line.',
+    tags: ['terminal', 'monospace', 'minimal'],
     palette: ThemePaletteSpec(
       seed: 0xFF0D736A,
       seedDark: 0xFF2DD4BF,
@@ -2120,24 +2118,24 @@ class ThemePack {
       headerTitleFont: ThemeHeaderTitleFont.code,
       userLabel: ThemeLocalizedText(en: 'you \$'),
       assistantLabel: ThemeLocalizedText(en: 'dsh >'),
-      composerHint: ThemeLocalizedText(zh: '输入点什么…', en: 'type something…'),
+      composerHint: ThemeLocalizedText(zh: 'type something…', en: 'type something…'),
     ),
     emptyState: ThemeEmptyStateSpec(
       layout: ThemeEmptyLayout.centered,
       heroStyle: ThemeHeroStyle.glyph,
       heroGlyph: '>_',
-      greeting: ThemeLocalizedText(zh: '就绪', en: 'Ready'),
+      greeting: ThemeLocalizedText(zh: 'Ready', en: 'Ready'),
       suggestionsDisplay: ThemeSuggestionsDisplay.grid,
     ),
   );
 
   static const sakuraCard = ThemePack(
     id: 'sakura-card',
-    name: '落樱手账',
-    titleZh: '落樱手账',
+    name: 'Sakura Journal',
+    titleZh: 'Sakura Journal',
     titleEn: 'Sakura Journal',
-    description: '手账的点阵纸、带小尾巴的气泡，每条回复是一张贴上去的便签。',
-    tags: ['手账', '卡片', '柔和'],
+    description: 'Dot-grid journal paper and tailed bubbles; every reply is a note stuck on the page.',
+    tags: ['journal', 'cards', 'soft'],
     palette: ThemePaletteSpec(
       seed: 0xFFB85A7C,
       seedDark: 0xFFF2A7C3,
@@ -2210,24 +2208,24 @@ class ThemePack {
       suggestionCardStyle: ThemeSuggestionCardStyle.glass,
       codeBlockStyle: ThemeCodeBlockStyle.card,
       headingStyle: ThemeHeadingStyle.marker,
-      composerHint: ThemeLocalizedText(zh: '写点什么…', en: 'Write something…'),
+      composerHint: ThemeLocalizedText(zh: 'Write something…', en: 'Write something…'),
     ),
     emptyState: ThemeEmptyStateSpec(
       layout: ThemeEmptyLayout.centered,
       heroStyle: ThemeHeroStyle.whale,
       heroScale: 1.15,
-      subtitle: ThemeLocalizedText(zh: '今天想记点什么？', en: 'What would you like to note down?'),
+      subtitle: ThemeLocalizedText(zh: 'What would you like to note down?', en: 'What would you like to note down?'),
       suggestionsDisplay: ThemeSuggestionsDisplay.grid,
     ),
   );
 
   static const amberCafe = ThemePack(
     id: 'amber-cafe',
-    name: '琥珀咖啡馆',
-    titleZh: '琥珀咖啡馆',
+    name: 'Amber Café',
+    titleZh: 'Amber Café',
     titleEn: 'Amber Café',
-    description: '头顶一盏暖灯，燕麦色的实面，回复像写在杯垫上的一段话。',
-    tags: ['暖调', '舒适', '卡片'],
+    description: 'A warm lamp overhead, oat-coloured surfaces, replies like a note on a coaster.',
+    tags: ['warm', 'cosy', 'cards'],
     palette: ThemePaletteSpec(
       seed: 0xFF9A5B1F,
       seedDark: 0xFFE8B272,
@@ -2308,7 +2306,7 @@ class ThemePack {
       heroScale: 1.1,
       useReadingFontForGreeting: true,
       showConnectedSubtitle: true,
-      greeting: ThemeLocalizedText(zh: '坐一会儿，慢慢聊', en: 'Stay a while'),
+      greeting: ThemeLocalizedText(zh: 'Stay a while', en: 'Stay a while'),
       suggestionsDisplay: ThemeSuggestionsDisplay.expanded,
     ),
   );

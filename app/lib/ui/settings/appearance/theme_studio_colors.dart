@@ -18,195 +18,163 @@ typedef _Token = ({String key, String zh, String en, String useZh, String useEn}
 
 const List<(String zh, String en, List<_Token> tokens)> _colorGroups = [
   (
-    '背景与光晕',
+    'Backdrop & glow',
     'Backdrop & glow',
     [
-      (key: 'backdropTop', zh: '背景上端', en: 'Backdrop top', useZh: '页面背景渐变的上端', useEn: 'Top of the page gradient'),
+      (key: 'backdropTop', zh: 'Backdrop top', en: 'Backdrop top', useZh: 'Top of the page gradient', useEn: 'Top of the page gradient'),
       (
         key: 'backdropBottom',
-        zh: '背景下端',
-        en: 'Backdrop bottom',
-        useZh: '页面背景渐变的下端',
-        useEn: 'Bottom of the page gradient',
+        zh: 'Backdrop bottom', en: 'Backdrop bottom',
+        useZh: 'Bottom of the page gradient', useEn: 'Bottom of the page gradient',
       ),
-      (key: 'glowPrimary', zh: '主光晕', en: 'Main glow', useZh: '背景里的第一团光', useEn: 'The first glow in the backdrop'),
-      (key: 'glowSecondary', zh: '副光晕', en: 'Second glow', useZh: '背景里的第二团光', useEn: 'The second glow in the backdrop'),
-      (key: 'patternInk', zh: '纹理', en: 'Pattern', useZh: '背景纹理的点和线', useEn: 'Dots and lines of the backdrop pattern'),
+      (key: 'glowPrimary', zh: 'Main glow', en: 'Main glow', useZh: 'The first glow in the backdrop', useEn: 'The first glow in the backdrop'),
+      (key: 'glowSecondary', zh: 'Second glow', en: 'Second glow', useZh: 'The second glow in the backdrop', useEn: 'The second glow in the backdrop'),
+      (key: 'patternInk', zh: 'Pattern', en: 'Pattern', useZh: 'Dots and lines of the backdrop pattern', useEn: 'Dots and lines of the backdrop pattern'),
     ],
   ),
   (
-    '表面与描边',
+    'Surfaces & lines',
     'Surfaces & lines',
     [
-      (key: 'surface', zh: '页面底色', en: 'Surface', useZh: '页面和面板的基础底色', useEn: 'Base colour of pages and panels'),
-      (key: 'cardFill', zh: '卡片', en: 'Cards', useZh: '卡片的填充色，可以带透明度', useEn: 'Card fill; may be translucent'),
+      (key: 'surface', zh: 'Surface', en: 'Surface', useZh: 'Base colour of pages and panels', useEn: 'Base colour of pages and panels'),
+      (key: 'cardFill', zh: 'Cards', en: 'Cards', useZh: 'Card fill; may be translucent', useEn: 'Card fill; may be translucent'),
       (
         key: 'chromeFill',
-        zh: '顶栏与输入框',
-        en: 'Top bar & composer',
-        useZh: '顶栏胶囊、输入框这一层的填充色',
-        useEn: 'Fill of the top bar and composer layer',
+        zh: 'Top bar & composer', en: 'Top bar & composer',
+        useZh: 'Fill of the top bar and composer layer', useEn: 'Fill of the top bar and composer layer',
       ),
-      (key: 'sheetFill', zh: '底部面板', en: 'Sheets', useZh: '从底部升起的面板', useEn: 'Panels that rise from the bottom'),
+      (key: 'sheetFill', zh: 'Sheets', en: 'Sheets', useZh: 'Panels that rise from the bottom', useEn: 'Panels that rise from the bottom'),
       (
         key: 'hairline',
-        zh: '细描边',
-        en: 'Hairline',
-        useZh: '卡片、顶栏、面板边缘的细线',
-        useEn: 'Thin edge of cards, bars and sheets',
+        zh: 'Hairline', en: 'Hairline',
+        useZh: 'Thin edge of cards, bars and sheets', useEn: 'Thin edge of cards, bars and sheets',
       ),
-      (key: 'outline', zh: '分隔线（深）', en: 'Outline', useZh: '比较明显的边框和分隔线', useEn: 'Stronger borders and dividers'),
+      (key: 'outline', zh: 'Outline', en: 'Outline', useZh: 'Stronger borders and dividers', useEn: 'Stronger borders and dividers'),
       (
         key: 'outlineVariant',
-        zh: '分隔线（浅）',
-        en: 'Soft outline',
-        useZh: '比较淡的边框和分隔线',
-        useEn: 'Softer borders and dividers',
+        zh: 'Soft outline', en: 'Soft outline',
+        useZh: 'Softer borders and dividers', useEn: 'Softer borders and dividers',
       ),
     ],
   ),
   (
-    '文字',
+    'Text',
     'Text',
     [
-      (key: 'onSurface', zh: '正文', en: 'Body text', useZh: '正文和标题', useEn: 'Body text and titles'),
-      (key: 'onSurfaceVariant', zh: '次要文字', en: 'Secondary text', useZh: '说明文字和图标', useEn: 'Descriptions and icons'),
+      (key: 'onSurface', zh: 'Body text', en: 'Body text', useZh: 'Body text and titles', useEn: 'Body text and titles'),
+      (key: 'onSurfaceVariant', zh: 'Secondary text', en: 'Secondary text', useZh: 'Descriptions and icons', useEn: 'Descriptions and icons'),
       (
         key: 'textTertiary',
-        zh: '辅助文字',
-        en: 'Faint text',
-        useZh: '时间、提示这类最淡的字',
-        useEn: 'Times, hints and other faint text',
+        zh: 'Faint text', en: 'Faint text',
+        useZh: 'Times, hints and other faint text', useEn: 'Times, hints and other faint text',
       ),
-      (key: 'heading', zh: '回复标题', en: 'Reply headings', useZh: '回复里的各级标题', useEn: 'Headings inside replies'),
-      (key: 'link', zh: '链接', en: 'Links', useZh: '回复里的链接', useEn: 'Links inside replies'),
+      (key: 'heading', zh: 'Reply headings', en: 'Reply headings', useZh: 'Headings inside replies', useEn: 'Headings inside replies'),
+      (key: 'link', zh: 'Links', en: 'Links', useZh: 'Links inside replies', useEn: 'Links inside replies'),
     ],
   ),
   (
-    '主色',
+    'Accent',
     'Accent',
     [
-      (key: 'primary', zh: '主色', en: 'Accent', useZh: '按钮、开关和选中状态', useEn: 'Buttons, switches and selection'),
-      (key: 'onPrimary', zh: '主色上的字', en: 'On accent', useZh: '主色按钮上的文字和图标', useEn: 'Text and icons on accent buttons'),
+      (key: 'primary', zh: 'Accent', en: 'Accent', useZh: 'Buttons, switches and selection', useEn: 'Buttons, switches and selection'),
+      (key: 'onPrimary', zh: 'On accent', en: 'On accent', useZh: 'Text and icons on accent buttons', useEn: 'Text and icons on accent buttons'),
       (
         key: 'primaryContainer',
-        zh: '主色浅底',
-        en: 'Accent tint',
-        useZh: '选中项、标签的浅色底',
-        useEn: 'Tinted fill of selected items and tags',
+        zh: 'Accent tint', en: 'Accent tint',
+        useZh: 'Tinted fill of selected items and tags', useEn: 'Tinted fill of selected items and tags',
       ),
       (
         key: 'onPrimaryContainer',
-        zh: '主色浅底上的字',
-        en: 'On accent tint',
-        useZh: '浅色底上的文字',
-        useEn: 'Text on the tinted fill',
+        zh: 'On accent tint', en: 'On accent tint',
+        useZh: 'Text on the tinted fill', useEn: 'Text on the tinted fill',
       ),
       (
         key: 'rule',
-        zh: '引线',
-        en: 'Rule',
-        useZh: '回复左侧竖线、标题小竖条这类强调线',
-        useEn: 'Reply side rule, heading marker and similar lines',
+        zh: 'Rule', en: 'Rule',
+        useZh: 'Reply side rule, heading marker and similar lines', useEn: 'Reply side rule, heading marker and similar lines',
       ),
     ],
   ),
   (
-    '消息气泡',
+    'Messages',
     'Messages',
     [
-      (key: 'userBubble', zh: '我的气泡', en: 'My bubble', useZh: '你发出的消息的底色', useEn: 'Fill of the messages you send'),
+      (key: 'userBubble', zh: 'My bubble', en: 'My bubble', useZh: 'Fill of the messages you send', useEn: 'Fill of the messages you send'),
       (
         key: 'onUserBubble',
-        zh: '我的气泡文字',
-        en: 'My bubble text',
-        useZh: '你发出的消息的文字',
-        useEn: 'Text of the messages you send',
+        zh: 'My bubble text', en: 'My bubble text',
+        useZh: 'Text of the messages you send', useEn: 'Text of the messages you send',
       ),
       (
         key: 'userBubbleBorder',
-        zh: '我的气泡描边',
-        en: 'My bubble border',
-        useZh: '线框样式气泡的边',
-        useEn: 'Edge of the outlined bubble',
+        zh: 'My bubble border', en: 'My bubble border',
+        useZh: 'Edge of the outlined bubble', useEn: 'Edge of the outlined bubble',
       ),
       (
         key: 'assistantBubble',
-        zh: '回复卡片',
-        en: 'Reply card',
-        useZh: '回复用卡片样式时的底色',
-        useEn: 'Fill of replies shown as cards',
+        zh: 'Reply card', en: 'Reply card',
+        useZh: 'Fill of replies shown as cards', useEn: 'Fill of replies shown as cards',
       ),
-      (key: 'onAssistantBubble', zh: '回复文字', en: 'Reply text', useZh: '回复正文', useEn: 'Text of replies'),
+      (key: 'onAssistantBubble', zh: 'Reply text', en: 'Reply text', useZh: 'Text of replies', useEn: 'Text of replies'),
       (
         key: 'assistantBorder',
-        zh: '回复卡片描边',
-        en: 'Reply card border',
-        useZh: '卡片和引用样式的边',
-        useEn: 'Edge of card and quote replies',
+        zh: 'Reply card border', en: 'Reply card border',
+        useZh: 'Edge of card and quote replies', useEn: 'Edge of card and quote replies',
       ),
     ],
   ),
   (
-    '输入框与发送键',
+    'Composer & send',
     'Composer & send',
     [
-      (key: 'composerFill', zh: '输入框底色', en: 'Composer fill', useZh: '输入框的填充色', useEn: 'Fill of the composer'),
-      (key: 'composerBorder', zh: '输入框描边', en: 'Composer border', useZh: '输入框的边', useEn: 'Edge of the composer'),
-      (key: 'sendButton', zh: '发送键', en: 'Send button', useZh: '能发送时的底色', useEn: 'Fill when a message can be sent'),
-      (key: 'onSendButton', zh: '发送键图标', en: 'Send icon', useZh: '能发送时的箭头', useEn: 'Arrow when a message can be sent'),
+      (key: 'composerFill', zh: 'Composer fill', en: 'Composer fill', useZh: 'Fill of the composer', useEn: 'Fill of the composer'),
+      (key: 'composerBorder', zh: 'Composer border', en: 'Composer border', useZh: 'Edge of the composer', useEn: 'Edge of the composer'),
+      (key: 'sendButton', zh: 'Send button', en: 'Send button', useZh: 'Fill when a message can be sent', useEn: 'Fill when a message can be sent'),
+      (key: 'onSendButton', zh: 'Send icon', en: 'Send icon', useZh: 'Arrow when a message can be sent', useEn: 'Arrow when a message can be sent'),
     ],
   ),
   (
-    '代码',
+    'Code',
     'Code',
     [
-      (key: 'codeWellBg', zh: '代码块底色', en: 'Code block', useZh: '代码块的底', useEn: 'Fill of code blocks'),
+      (key: 'codeWellBg', zh: 'Code block', en: 'Code block', useZh: 'Fill of code blocks', useEn: 'Fill of code blocks'),
       (
         key: 'codeWellHeader',
-        zh: '代码块标题条',
-        en: 'Code header',
-        useZh: '写着语言名的那一条',
-        useEn: 'The bar with the language name',
+        zh: 'Code header', en: 'Code header',
+        useZh: 'The bar with the language name', useEn: 'The bar with the language name',
       ),
-      (key: 'codeWellFg', zh: '代码文字', en: 'Code text', useZh: '代码块里的字', useEn: 'Text inside code blocks'),
-      (key: 'codeWellBorder', zh: '代码块描边', en: 'Code border', useZh: '代码块的边', useEn: 'Edge of code blocks'),
+      (key: 'codeWellFg', zh: 'Code text', en: 'Code text', useZh: 'Text inside code blocks', useEn: 'Text inside code blocks'),
+      (key: 'codeWellBorder', zh: 'Code border', en: 'Code border', useZh: 'Edge of code blocks', useEn: 'Edge of code blocks'),
       (
         key: 'inlineCodeBg',
-        zh: '行内代码底色',
-        en: 'Inline code',
-        useZh: '句子中间的代码的底',
-        useEn: 'Fill of code inside a sentence',
+        zh: 'Inline code', en: 'Inline code',
+        useZh: 'Fill of code inside a sentence', useEn: 'Fill of code inside a sentence',
       ),
       (
         key: 'inlineCodeFg',
-        zh: '行内代码文字',
-        en: 'Inline code text',
-        useZh: '句子中间的代码的字',
-        useEn: 'Text of code inside a sentence',
+        zh: 'Inline code text', en: 'Inline code text',
+        useZh: 'Text of code inside a sentence', useEn: 'Text of code inside a sentence',
       ),
       (
         key: 'syntaxKeyword',
-        zh: '关键字',
-        en: 'Keywords',
-        useZh: 'if、return、class 这类词',
-        useEn: 'Words like if, return, class',
+        zh: 'Keywords', en: 'Keywords',
+        useZh: 'Words like if, return, class', useEn: 'Words like if, return, class',
       ),
-      (key: 'syntaxString', zh: '字符串', en: 'Strings', useZh: '引号里的文字', useEn: 'Text inside quotes'),
-      (key: 'syntaxNumber', zh: '数字', en: 'Numbers', useZh: '数字和常量', useEn: 'Numbers and constants'),
-      (key: 'syntaxComment', zh: '注释', en: 'Comments', useZh: '写给人看的说明', useEn: 'Notes written for people'),
-      (key: 'syntaxFunction', zh: '函数名', en: 'Functions', useZh: '函数和方法的名字', useEn: 'Names of functions and methods'),
-      (key: 'syntaxType', zh: '类型名', en: 'Types', useZh: '类和类型的名字', useEn: 'Names of classes and types'),
+      (key: 'syntaxString', zh: 'Strings', en: 'Strings', useZh: 'Text inside quotes', useEn: 'Text inside quotes'),
+      (key: 'syntaxNumber', zh: 'Numbers', en: 'Numbers', useZh: 'Numbers and constants', useEn: 'Numbers and constants'),
+      (key: 'syntaxComment', zh: 'Comments', en: 'Comments', useZh: 'Notes written for people', useEn: 'Notes written for people'),
+      (key: 'syntaxFunction', zh: 'Functions', en: 'Functions', useZh: 'Names of functions and methods', useEn: 'Names of functions and methods'),
+      (key: 'syntaxType', zh: 'Types', en: 'Types', useZh: 'Names of classes and types', useEn: 'Names of classes and types'),
     ],
   ),
   (
-    '状态色',
+    'Status',
     'Status',
     [
-      (key: 'success', zh: '成功', en: 'Success', useZh: '完成、通过', useEn: 'Done and passed'),
-      (key: 'warning', zh: '提醒', en: 'Warning', useZh: '需要留意', useEn: 'Needs attention'),
-      (key: 'danger', zh: '危险', en: 'Danger', useZh: '出错、删除', useEn: 'Errors and deletion'),
-      (key: 'info', zh: '信息', en: 'Info', useZh: '一般提示', useEn: 'Neutral notices'),
+      (key: 'success', zh: 'Success', en: 'Success', useZh: 'Done and passed', useEn: 'Done and passed'),
+      (key: 'warning', zh: 'Warning', en: 'Warning', useZh: 'Needs attention', useEn: 'Needs attention'),
+      (key: 'danger', zh: 'Danger', en: 'Danger', useZh: 'Errors and deletion', useEn: 'Errors and deletion'),
+      (key: 'info', zh: 'Info', en: 'Info', useZh: 'Neutral notices', useEn: 'Neutral notices'),
     ],
   ),
 ];
@@ -335,11 +303,11 @@ class _ThemeStudioColorsSheetState extends State<ThemeStudioColorsSheet> {
     ];
     return Column(
       children: [
-        SheetHeader(english ? 'All Colors' : '全部颜色'),
+        SheetHeader('All Colors'),
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
           child: SegmentedPill<bool>(
-            segments: [PillSegment(false, english ? 'Light' : '浅色'), PillSegment(true, english ? 'Dark' : '深色')],
+            segments: [PillSegment(false, 'Light'), PillSegment(true, 'Dark')],
             selected: _dark,
             onChanged: (dark) => setState(() => _dark = dark),
           ),
@@ -347,9 +315,7 @@ class _ThemeStudioColorsSheetState extends State<ThemeStudioColorsSheet> {
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
           child: Text(
-            english
-                ? 'Colours left empty follow the accent and material. The grey value is what is used now.'
-                : '没填的颜色会跟着主色和材质走，灰色的色号就是现在用的。',
+            'Colours left empty follow the accent and material. The grey value is what is used now.',
             style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
           ),
         ),
@@ -364,7 +330,7 @@ class _ThemeStudioColorsSheetState extends State<ThemeStudioColorsSheet> {
               return ListView(
                 padding: EdgeInsets.fromLTRB(16, 0, 8, 24 + MediaQuery.viewInsetsOf(context).bottom),
                 children: [
-                  for (final (zh, en, tokens) in [..._colorGroups, if (rest.isNotEmpty) ('其它', 'Other', rest)]) ...[
+                  for (final (zh, en, tokens) in [..._colorGroups, if (rest.isNotEmpty) ('Other', 'Other', rest)]) ...[
                     Padding(
                       padding: const EdgeInsets.only(top: 16, bottom: 4),
                       child: Text(
@@ -425,7 +391,7 @@ class _ColorRow extends StatelessWidget {
         children: [
           Semantics(
             button: true,
-            label: AppLocale.isEnglish ? 'Pick $name' : '选择$name',
+            label: 'Pick $name',
             child: InkResponse(
               key: ValueKey('theme-color-swatch-$id'),
               radius: 22,
@@ -480,7 +446,7 @@ class _ColorRow extends StatelessWidget {
                 ? null
                 : IconButton(
                     key: ValueKey('theme-color-clear-$id'),
-                    tooltip: AppLocale.isEnglish ? 'Follow the default' : '恢复默认',
+                    tooltip: 'Follow the default',
                     icon: Icon(AppIcons.clear, size: 18, color: scheme.onSurfaceVariant),
                     onPressed: () => onChanged(null),
                   ),
@@ -525,7 +491,7 @@ class _ColorPickerState extends State<_ColorPicker> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        SheetHeader(english ? 'Pick a Color' : '选颜色'),
+        SheetHeader('Pick a Color'),
         Flexible(
           child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
@@ -556,7 +522,7 @@ class _ColorPickerState extends State<_ColorPicker> {
                 ),
                 const SizedBox(height: 6),
                 StudioSlider(
-                  label: english ? 'Lightness' : '明暗',
+                  label: 'Lightness',
                   value: _color.l.clamp(0.0, 1.0).toDouble(),
                   min: 0,
                   max: 1,
@@ -566,7 +532,7 @@ class _ColorPickerState extends State<_ColorPicker> {
                   onChanged: (v) => setState(() => _color = _color.copyWith(l: v)),
                 ),
                 StudioSlider(
-                  label: english ? 'Vividness' : '鲜艳程度',
+                  label: 'Vividness',
                   value: _color.c.clamp(0.0, 0.32).toDouble(),
                   min: 0,
                   max: 0.32,
@@ -577,7 +543,7 @@ class _ColorPickerState extends State<_ColorPicker> {
                 ),
                 if (widget.opacity)
                   StudioSlider(
-                    label: english ? 'Opacity' : '不透明度',
+                    label: 'Opacity',
                     value: _alpha,
                     min: 0,
                     max: 1,
@@ -589,7 +555,7 @@ class _ColorPickerState extends State<_ColorPicker> {
                 const SizedBox(height: 12),
                 FilledButton(
                   onPressed: () => Navigator.of(context).pop(color.toARGB32()),
-                  child: Text(english ? 'Use This Color' : '用这个颜色'),
+                  child: Text('Use This Color'),
                 ),
               ],
             ),

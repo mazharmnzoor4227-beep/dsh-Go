@@ -256,7 +256,8 @@ String approvalText(ApprovalRequest request) {
 }
 
 String questionText(UserQuestionRequest request) {
-  final first = request.questions.isEmpty ? null : snippet(request.questions.first.question, max: 90);
+  final rawFirst = request.questions.isEmpty ? null : snippet(request.questions.first.question, max: 90);
+  final first = rawFirst == null || RegExp(r'[\u3400-\u9fff]').hasMatch(rawFirst) ? null : rawFirst;
   if (first == null) return appL10n.stateAlertQuestion;
   return request.questions.length > 1
       ? appL10n.stateAlertQuestions(first, request.questions.length)
@@ -316,7 +317,8 @@ String? petApprovalText(ApprovalRequest request, ToolCallPart? call) {
 List<String>? petChoices(UserQuestionRequest request) {
   if (request.questions.length != 1) return null;
   final q = request.questions.single;
-  if (q.question.trim().isEmpty ||
+  if (RegExp(r'[\u3400-\u9fff]').hasMatch(q.question) || q.options.any((o) => RegExp(r'[\u3400-\u9fff]').hasMatch(o.label)) ||
+      q.question.trim().isEmpty ||
       q.question.runes.length > petApprovalMax ||
       _masked(q.question) != q.question ||
       q.question.contains(RegExp('[\\u061c\\u200b-\\u200f\\u202a-\\u202e\\u2066-\\u2069]'))) {
