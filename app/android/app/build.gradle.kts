@@ -32,13 +32,13 @@ abstract class SideShortcuts : DefaultTask() {
 
     @TaskAction
     fun write() {
-        val main = "android:targetPackage=\"io.github.ccch1mneyyy.dsh_app\""
+        val main = "android:targetPackage=\"com.mazharansari.dshgo\""
         val text = source.get().asFile.readText()
         check(main in text) { "shortcuts.xml no longer names the package as $main" }
         val out = outputDir.get().asFile.resolve("xml")
         out.mkdirs()
         out.resolve("shortcuts.xml").writeText(
-            text.replace(main, "android:targetPackage=\"io.github.ccch1mneyyy.dsh_app${suffix.get()}\""))
+            text.replace(main, "android:targetPackage=\"com.mazharansari.dshgo${suffix.get()}\""))
     }
 }
 
@@ -72,7 +72,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "io.github.ccch1mneyyy.dsh_app"
+        applicationId = "com.mazharansari.dshgo"
         if (sideBuild) applicationIdSuffix = sideSuffix
         manifestPlaceholders["appLabel"] = if (sideBuild) "DSH Go 测试" else "DSH Go"
         // java.nio.file (symlinks while unpacking the rootfs) needs API 26.

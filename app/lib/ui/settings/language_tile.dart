@@ -25,8 +25,6 @@ class LanguageSettingsTile extends ConsumerWidget {
       tint: tint,
       spot: Spots.language,
       segments: [
-        PillSegment(AppLanguage.system, l10n.localeSystem),
-        PillSegment(AppLanguage.zh, l10n.localeZh),
         PillSegment(AppLanguage.en, l10n.localeEn),
       ],
       selected: language,

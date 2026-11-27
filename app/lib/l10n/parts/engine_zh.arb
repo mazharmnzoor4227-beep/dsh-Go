@@ -719,5 +719,7 @@
         "type": "int"
       }
     }
-  }
+  },
+  "engineProviderQuickSetup": "Quick setup",
+  "engineProviderCustomServer": "Custom server"
 }

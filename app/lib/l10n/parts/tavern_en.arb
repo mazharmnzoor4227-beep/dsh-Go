@@ -830,7 +830,7 @@
   "tavernCharacterTabCard": "Card",
   "tavernCharacterTabSetup": "Setup",
   "tavernCharacterNoDefinition": "This card has no definition or notes.",
-  "tavernNovelIndent": "Indent paragraphs in 小说",
+  "tavernNovelIndent": "Indent paragraphs in novels",
   "tavernNovelIndentSubtitle": "Each paragraph opens two characters in, as in a book",
   "tavernShelfSelect": "Select",
   "tavernShelfPicked": "{count} selected",

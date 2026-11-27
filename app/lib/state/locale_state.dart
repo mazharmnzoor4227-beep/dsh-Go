@@ -21,7 +21,7 @@ enum AppLanguage {
   };
 
   static AppLanguage parse(String? v) =>
-      AppLanguage.values.firstWhere((l) => l.name == v, orElse: () => AppLanguage.system);
+      AppLanguage.values.firstWhere((l) => l.name == v, orElse: () => AppLanguage.en);
 }
 
 class AppLanguageController extends Notifier<AppLanguage> {
@@ -32,7 +32,7 @@ class AppLanguageController extends Notifier<AppLanguage> {
   /// What the app starts with: [load] fills it in before runApp so the first
   /// frame is already in the chosen language. Tests pin zh
   /// (test/flutter_test_config.dart).
-  static AppLanguage initial = AppLanguage.system;
+  static AppLanguage initial = AppLanguage.en;
 
   /// Reads the stored choice into [initial].
   static Future<void> load() async {

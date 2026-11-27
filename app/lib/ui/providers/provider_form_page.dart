@@ -52,6 +52,16 @@ const _protocols = [
   PillSegment(ProviderApi.openaiResponses, 'Responses'),
 ];
 
+
+/// Free-provider quick setup: name + OpenAI-compatible base URL presets.
+/// The user pastes their own free API key in the form; nothing is bundled.
+const _presets = <(String, String)>[
+  ('Gemini', 'https://generativelanguage.googleapis.com/v1beta/openai/'),
+  ('OpenRouter', 'https://openrouter.ai/api/v1'),
+  ('Grok', 'https://api.x.ai/v1'),
+  ('DeepSeek', 'https://api.deepseek.com'),
+];
+
 /// Pops with the provider id once saved.
 class ProviderFormPage extends ConsumerStatefulWidget {
   const ProviderFormPage({super.key, this.existing});
@@ -386,6 +396,41 @@ class _ProviderFormPageState extends ConsumerState<ProviderFormPage> with FieldP
         Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            if (!_isEdit)
+              SettingsSection(
+                title: l10n.engineProviderQuickSetup,
+                children: [
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      for (final (name, url) in _presets)
+                        ChoiceChip(
+                          label: Text(name),
+                          selected: _name.text == name && _baseUrl.text == url,
+                          onSelected: busy
+                              ? null
+                              : (_) => setState(() {
+                                  _name.text = name;
+                                  _baseUrl.text = url;
+                                  _api = ProviderApi.openaiCompletions;
+                                }),
+                        ),
+                      ChoiceChip(
+                        label: Text(l10n.engineProviderCustomServer),
+                        selected: false,
+                        onSelected: busy
+                            ? null
+                            : (_) => setState(() {
+                                  _name.text = '';
+                                  _baseUrl.text = '';
+                                  _api = ProviderApi.openaiCompletions;
+                                }),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             SettingsSection(
               title: l10n.engineProviderBasicInfo,
               children: [
