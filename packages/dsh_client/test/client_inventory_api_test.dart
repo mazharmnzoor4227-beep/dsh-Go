@@ -206,7 +206,7 @@ void main() {
         ('@deepseek-ai/dsh-client-ui-settings-general', 'general', 0),
         ('dsh-pet', 'pet', 40),
       ]);
-      expect(sections[1].label?.resolve('zh'), '桌宠');
+      expect(sections[1].label?.resolve('zh'), 'Desktop pet');
       expect(sections[1].label?.resolve('en'), 'Desktop pet');
       expect(inventory.slots!['conversation.input.dock']!.first.label?.resolve('zh'), '用量');
       expect(inventory.slots!.containsKey(''), isFalse);

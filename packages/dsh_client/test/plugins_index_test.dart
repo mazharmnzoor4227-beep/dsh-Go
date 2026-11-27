@@ -69,7 +69,7 @@ void main() {
         ]),
         _url,
       );
-      expect(index.title.resolve('zh'), 'dshfind · DSH 插件目录');
+      expect(index.title.resolve('zh'), 'dshfind · DSH Plugin Directory');
       expect(index.description!.resolve('zh'), '社区插件');
       expect(index.categories.keys, ['tools', 'skin']);
       expect(index.categories['tools']!.title.resolve('zh'), '工具集成');
@@ -123,7 +123,7 @@ void main() {
       );
       final scoped = index.plugins[0];
       expect(scoped.versions.map((v) => v.version), ['1.0.0', '1.0.0-rc.10', '1.0.0-rc.1', '0.9.10']);
-      expect(scoped.displayTitle('zh'), '包');
+      expect(scoped.displayTitle('zh'), 'Pkg');
       expect(scoped.latest.enginesDsh, '>=0.2.1');
       final npm = scoped.latest.installTarget(scoped.name);
       expect(npm.spec, '@scope/pkg@1.0.0');
@@ -186,7 +186,7 @@ void main() {
       expect(good.icon, isNull, reason: 'cross-origin icons must be https');
       expect(good.homepage, isNull);
       expect(good.author, isNull);
-      expect(good.title!.resolve('zh'), '只有中文', reason: 'plugin text is read leniently');
+      expect(good.title!.resolve('zh'), '', reason: 'Chinese-only plugin text never surfaces');
       expect(good.category, isNull);
       expect(good.labels, ['featured']);
       expect(good.sortKeys, isEmpty);

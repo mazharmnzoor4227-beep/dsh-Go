@@ -81,7 +81,8 @@ class GuideSyncTest(unittest.TestCase):
         assets = self.repo / 'app/assets/skills/dsh-go-guide'
         manifest = json.loads((assets / 'manifest.json').read_text())
         self.assertEqual(manifest['name'], 'dsh-go-guide')
-        self.assertEqual(manifest['files']['zh-01-engine.md'], 'zh/01-engine.md')
+        self.assertEqual(manifest['files']['en-01-engine.md'], 'en/01-engine.md')
+        self.assertNotIn('zh-01-engine.md', manifest['files'])
         self.assertEqual(set(manifest['files']), {p.name for p in assets.iterdir()} - {'manifest.json'})
         for flat, target in manifest['files'].items():
             self.assertEqual((assets / flat).read_bytes(), (self.guide / target).read_bytes())
@@ -120,10 +121,12 @@ class GuideSyncTest(unittest.TestCase):
         self.assertEqual(guide_sync.run(self.repo, write=False), [])
         assets = self.repo / 'app/assets/skills/dsh-go-guide'
         manifest = json.loads((assets / 'manifest.json').read_text())
-        self.assertEqual(manifest['harmony']['harmony-zh-01-engine.md'], 'zh/01-engine.md')
+        self.assertEqual(manifest['harmony']['harmony-en-01-engine.md'], 'en/01-engine.md')
+        self.assertNotIn('harmony-zh-01-engine.md', manifest['harmony'])
         self.assertEqual(manifest['harmony']['harmony-SKILL.md'], 'SKILL.md')
         # Android's own map doesn't move: the file set and what each file holds.
-        self.assertEqual(manifest['files']['zh-01-engine.md'], 'zh/01-engine.md')
+        self.assertEqual(manifest['files']['en-01-engine.md'], 'en/01-engine.md')
+        self.assertNotIn('zh-01-engine.md', manifest['files'])
         self.assertNotIn('harmony-zh-01-engine.md', manifest['files'])
         self.assertEqual(
             set(manifest['files']) | set(manifest['harmony']), {p.name for p in assets.iterdir()} - {'manifest.json'})
@@ -141,8 +144,9 @@ class GuideSyncTest(unittest.TestCase):
     def test_harmony_page_follows_the_page_rules(self):
         self.harmony_pages()
         self.write('docs/guide/harmony/zh/01-engine.md', '# 引擎\n\n点**开始**。\n\n会话\n')
-        self.assertFails('harmony/zh/01-engine.md:3: **开始** is not a zh UI label')
         self.assertFails('harmony/zh/01-engine.md:5: avoid 「会话」')
+        self.write('docs/guide/harmony/en/01-engine.md', '# Engine\n\nTap **Begin**.\n')
+        self.assertFails('harmony/en/01-engine.md:3: **Begin** is not a en UI label')
 
     def test_harmony_links_read_from_where_the_page_installs(self):
         self.harmony_pages()
@@ -187,10 +191,10 @@ class GuideSyncTest(unittest.TestCase):
         self.assertFails('malformed annotation')
 
     def test_bold_must_be_a_label_of_that_locale(self):
-        self.write('docs/guide/zh/02-settings.md', '# 设置\n\n点**开始**。\n')
-        self.assertFails('**开始** is not a zh UI label')
-        self.write('docs/guide/zh/02-settings.md', '# 设置\n\n点**Start**。\n')
-        self.assertFails('**Start** is not a zh UI label')
+        self.write('docs/guide/en/02-settings.md', '# Settings\n\nTap **Begin**.\n')
+        self.assertFails('**Begin** is not a en UI label')
+        self.write('docs/guide/en/02-settings.md', '# Settings\n\nTap **开始**.\n')
+        self.assertFails('**开始** is not a en UI label')
 
     def test_links_must_resolve_and_page_links_must_be_allowed(self):
         self.write('docs/guide/zh/02-settings.md', '# 设置\n\n见 [宠物](06-pets.md)。\n')

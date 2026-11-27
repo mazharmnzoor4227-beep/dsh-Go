@@ -105,7 +105,7 @@ def app_version(pubspec: Path) -> str:
 
 
 def check_page(path: Path, guide: Path, locale: str, arb: dict[str, str], labels: set[str],
-               ids: set[str]) -> list[str]:
+               ids: set[str], check_bold: bool = True) -> list[str]:
     name = path.relative_to(guide).as_posix()
     lines = path.read_text(encoding='utf-8').splitlines()
     errors: list[str] = []
@@ -139,7 +139,7 @@ def check_page(path: Path, guide: Path, locale: str, arb: dict[str, str], labels
     for i, line in enumerate(lines):
         if '›' in line and i not in annotated:
             errors.append(f'{name}:{i + 1}: path without a nav annotation')
-        for bold in BOLD.findall(line):
+        for bold in BOLD.findall(line) if check_bold else []:
             if bold not in labels:
                 errors.append(f'{name}:{i + 1}: **{bold}** is not a {locale} UI label')
         for word in BANNED[locale]:
@@ -209,11 +209,13 @@ def check(repo: Path, guide: Path) -> list[str]:
     for required in ('SKILL.md', 'README.md'):
         if not (guide / required).is_file():
             return [f'{guide}: missing {required}']
-    # English-only build: only the English pages are checked and shipped.
-    # The zh pages remain in docs as reference and are not validated here.
+    # Both languages are validated; only the English pages ship (assets()).
     pages = {locale: {p.name for p in source_files(guide / locale, '*.md')} for locale in LOCALES}
-    if not pages['en']:
-        errors.append(f'{guide}/en: no pages')
+    if not pages['zh']:
+        errors.append(f'{guide}/zh: no pages')
+    if pages['zh'] != pages['en']:
+        errors.append(f'zh/en pages differ: only zh {sorted(pages["zh"] - pages["en"])}, '
+                      f'only en {sorted(pages["en"] - pages["zh"])}')
     harmony = harmony_files(guide)
     ours = {*guide_files(guide), *(f'{HARMONY}/{target}' for target in harmony)}
     for other in guide.rglob('*'):
@@ -225,6 +227,9 @@ def check(repo: Path, guide: Path) -> list[str]:
     for target in sorted(harmony.keys() - guide_files(guide).keys()):
         errors.append(f'{HARMONY}/{target}: takes the place of nothing in the guide')
     only = {locale: {t.split('/')[1] for t in harmony if t.startswith(f'{locale}/')} for locale in LOCALES}
+    if only['zh'] != only['en']:
+        errors.append(f'{HARMONY}: zh/en pages differ: only zh {sorted(only["zh"] - only["en"])}, '
+                      f'only en {sorted(only["en"] - only["zh"])}')
     version = app_version(repo / 'app/pubspec.yaml')
     for name, readme in (('README.md', guide / 'README.md'), (f'{HARMONY}/README.md', harmony.get('README.md'))):
         if readme is None:
@@ -237,14 +242,17 @@ def check(repo: Path, guide: Path) -> list[str]:
         errors += [f'{HARMONY}/{error}' for error in check_skill(harmony['SKILL.md'].read_text(encoding='utf-8'))]
     ids = read_page_ids(repo / 'app/lib/links/page_links.dart', repo / 'app/lib/ui/settings/index/spots.dart')
     res = repo / 'app/android/app/src/main/res'
-    for locale in ('en',):
+    for locale in LOCALES:
         arb = read_arb(repo / 'app/lib/l10n/parts', locale)
         labels = set(arb.values()) | read_android(res, locale)
+        # The zh pages are reference only (the app ships English): their bold
+        # labels name a Chinese UI that no longer exists, so only the shipped
+        # English pages get the bold-label check.
         for page in sorted(source_files(guide / locale, '*.md')):
-            errors += check_page(page, guide, locale, arb, labels, ids)
+            errors += check_page(page, guide, locale, arb, labels, ids, check_bold=locale == 'en')
         for target, page in harmony.items():
             if target.startswith(f'{locale}/'):
-                errors += check_page(page, guide, locale, arb, labels, ids)
+                errors += check_page(page, guide, locale, arb, labels, ids, check_bold=locale == 'en')
     for name in ('SKILL.md', 'README.md'):
         errors += check_links(guide / name, guide, ids)
         if name in harmony:

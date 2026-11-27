@@ -153,10 +153,10 @@ def main(argv=None):
     pack = {
         'schema': 1,
         'id': a.id,
-        'name': '小粉鱼',
+        'name': 'Little Pink Fish',
         'author': 'ccch1mneyyy',
-        'license': 'dsh-go 原创形象，作者授权 dsh-go 使用',
-        'source': 'AI 生成的原图，动画帧由 GPT 生图逐帧绘制',
+        'license': 'Original dsh-go character, used with the author’s permission',
+        'source': 'AI-generated original art; animation frames drawn frame by frame',
         'pixelArt': False,
         'scale': a.scale,
         'canvas': {'w': canvas, 'h': canvas},

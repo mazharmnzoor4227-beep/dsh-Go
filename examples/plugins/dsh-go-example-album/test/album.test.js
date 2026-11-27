@@ -53,7 +53,7 @@ test('a tap puts the sticker in the composer; clear and restore switch the looks
     assert.deepEqual(host.registrations().panels, ['album'])
     assert.ok((await host.view('album')).view.children.some((n) => n.type === 'gallery'))
     const picked = await host.invoke('album', { surface: 'panel', action: 'pick', value: { id: 'sunset' } })
-    assert.deepEqual(picked.effects[0], { type: 'insert', text: '[日落]' })
+    assert.deepEqual(picked.effects[0], { type: 'insert', text: '[Sunset]' })
     assert.deepEqual((await host.invoke('album', { surface: 'panel', action: 'pick', value: { id: 'nope' } })).effects, [])
     await host.invoke('album', { surface: 'panel', action: 'clear' })
     assert.ok((await host.view('album', {}, { locale: 'en' })).view.children.some((n) => n.type === 'emptyState'))

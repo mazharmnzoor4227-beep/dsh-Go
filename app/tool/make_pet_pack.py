@@ -123,18 +123,18 @@ CATCH = 0.9               # every animation's hit box holds at least this share 
 PACKS = {
     'deepy-whale': dict(
         kind='clawd', dir='deepy-whale',
-        name='Deepy 小鲸鱼',
+        name='Deepy the Whale',
         author='DSH-TUI',
-        license='DSH-TUI 吉祥物，作者授权 dsh-go 使用',
-        source='DSH-TUI（Clawd on Desk 主题包 v1.0.0）',
+        license='DSH-TUI mascot, used with the author’s permission',
+        source='DSH-TUI (Clawd on Desk theme pack v1.0.0)',
         faces='left',
         preview_zoom=2, preview_per_row=24,
     ),
     'whale-girl': dict(
         kind='whale-girl', dir='whale-girl',
-        name='鲸娘',
+        name='Whale Girl',
         author='DSH-TUI',
-        license='DSH-TUI 吉祥物，作者授权 dsh-go 使用',
+        license='DSH-TUI mascot, used with the author’s permission',
         source='https://dshtui.com/pets/whale-girl-emoji/',
         faces='front',     # she faces the viewer: never mirrored
         preview_zoom=3, preview_per_row=12,

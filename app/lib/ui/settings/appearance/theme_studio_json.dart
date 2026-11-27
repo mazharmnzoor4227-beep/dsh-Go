@@ -6,7 +6,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../l10n/l10n.dart';
 import '../../common/app_sheet.dart';
 import '../../common/field_paste.dart';
 import '../../theme/app_icons.dart';
