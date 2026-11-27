@@ -66,7 +66,10 @@ jobs:
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;28.2.13676358"
 
       - name: Build APK
-        run: tooling/build-apk.sh --no-companion --no-star
+        run: |
+          ls "$ANDROID_HOME/ndk/"
+          export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/28.2.13676358"
+          tooling/build-apk.sh --no-companion --no-star
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
