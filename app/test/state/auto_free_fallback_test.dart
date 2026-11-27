@@ -60,6 +60,7 @@ void main() {
       final snapshot = _snapshot();
       final tried = <String>{};
       var current = autoFreePick(snapshot);
+      if (current != null) tried.add('${current.provider}|${current.model}');
       var steps = 0;
       while (true) {
         final chain = autoFreeFallbackChain(snapshot, current, tried);
