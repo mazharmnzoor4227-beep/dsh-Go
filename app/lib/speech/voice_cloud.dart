@@ -12,6 +12,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
 import '../state/account_state.dart';
+import '../state/provider_keys.dart';
+import '../state/providers_state.dart';
 import '../state/connection_state.dart';
 import '../state/settings_state.dart';
 import '../state/voice_settings.dart';
@@ -120,6 +122,83 @@ class OpenAiVoiceCloud implements VoiceCloud {
   }
 }
 
+
+/// The user's Gemini API key, from the Gemini provider he connected (the
+/// local key vault copy). Null when no Gemini provider/key exists.
+final geminiApiKeyProvider = FutureProvider<String?>((ref) async {
+  final snapshot = await ref.watch(customProvidersProvider.future);
+  if (snapshot == null) return null;
+  final keys = await ref.read(providerKeyVaultProvider).readAll();
+  for (final p in snapshot.providers) {
+    if (p.host.toLowerCase().contains('generativelanguage.googleapis.com')) {
+      final key = keys[p.id];
+      if (key != null && key.trim().isNotEmpty) return key.trim();
+    }
+  }
+  return null;
+});
+
+/// Gemini recognizer: the recording goes to Gemini as inline audio and the
+/// transcript comes back as text. Uses the user's own Gemini key (free tier
+/// works).
+class GeminiVoiceCloud implements VoiceCloud {
+  GeminiVoiceCloud(this._key, this._client);
+  final String _key;
+  final http.Client Function() _client;
+
+  @override
+  int get maxSeconds => 300;
+
+  @override
+  Future<String> transcribe(Uint8List wav) async {
+    final client = _client();
+    try {
+      final response = await client
+          .post(
+            Uri.parse('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent'),
+            headers: {'x-goog-api-key': _key, 'content-type': 'application/json'},
+            body: jsonEncode({
+              'contents': [
+                {
+                  'parts': [
+                    {'text': 'Transcribe this audio exactly as spoken. Reply with only the transcript text, nothing else.'},
+                    {
+                      'inline_data': {'mime_type': 'audio/wav', 'data': base64Encode(wav)},
+                    },
+                  ],
+                },
+              ],
+            }),
+          )
+          .timeout(const Duration(seconds: 90));
+      if (response.statusCode != 200) {
+        throw DeepSeekSpeechError(
+          switch (response.statusCode) {
+            401 || 403 => DeepSeekSpeechFailure.unauthorized,
+            429 => DeepSeekSpeechFailure.rateLimited,
+            >= 500 => DeepSeekSpeechFailure.busy,
+            _ => DeepSeekSpeechFailure.rejected,
+          },
+          'gemini ${response.statusCode}',
+        );
+      }
+      final json = jsonDecode(utf8.decode(response.bodyBytes));
+      final parts = (((json as Map)['candidates'] as List?)?.firstOrNull as Map?)?['content']?['parts'] as List?;
+      final text = [for (final part in parts ?? const []) if (part is Map && part['text'] is String) part['text'] as String].join().trim();
+      if (text.isEmpty) throw const DeepSeekSpeechError(DeepSeekSpeechFailure.protocol, 'gemini empty transcript');
+      return text;
+    } on TimeoutException {
+      throw const DeepSeekSpeechError(DeepSeekSpeechFailure.busy, 'timeout');
+    } on DeepSeekSpeechError {
+      rethrow;
+    } on Object catch (error) {
+      throw DeepSeekSpeechError(DeepSeekSpeechFailure.network, error.toString().split('\n').first);
+    } finally {
+      client.close();
+    }
+  }
+}
+
 /// The cloud recognizer for [mode]: DeepSeek's for deepseek (and for auto,
 /// when someone can pay for it), the person's own service for cloud; null
 /// when there is none (auto then uses the phone's or the engine's).
@@ -129,6 +208,8 @@ final voiceCloudProvider = Provider<VoiceCloudResolver>((ref) {
   return (mode) async {
     switch (mode) {
       case VoiceMode.deepseek || VoiceMode.auto:
+        final geminiKey = await ref.read(geminiApiKeyProvider.future);
+        if (geminiKey != null) return GeminiVoiceCloud(geminiKey, ref.read(deepSeekSpeechHttpProvider));
         final resolve = ref.read(deepSeekSpeechProvider);
         final speech = await resolve();
         if (speech == null) return null;
@@ -198,10 +279,12 @@ final callRecognizerProvider = Provider<Future<VoiceCloud?> Function()>((ref) {
       return null;
     }
 
+    final geminiKey = await ref.read(geminiApiKeyProvider.future);
+    final gemini = geminiKey == null ? null : GeminiVoiceCloud(geminiKey, ref.read(deepSeekSpeechHttpProvider));
     return switch (mode) {
-      VoiceMode.engine => await engine() ?? await cloud(VoiceMode.deepseek),
-      VoiceMode.cloud => await cloud(VoiceMode.cloud) ?? await cloud(VoiceMode.deepseek) ?? await engine(),
-      VoiceMode.auto || VoiceMode.deepseek || VoiceMode.system => await cloud(VoiceMode.deepseek) ?? await engine(),
+      VoiceMode.engine => await engine() ?? gemini ?? await cloud(VoiceMode.deepseek),
+      VoiceMode.cloud => await cloud(VoiceMode.cloud) ?? gemini ?? await cloud(VoiceMode.deepseek) ?? await engine(),
+      VoiceMode.auto || VoiceMode.deepseek || VoiceMode.system => gemini ?? await cloud(VoiceMode.deepseek) ?? await engine(),
     };
   };
 });

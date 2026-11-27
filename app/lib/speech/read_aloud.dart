@@ -11,6 +11,7 @@ import '../companion/companion_voice_source.dart';
 import 'deepseek_speech.dart';
 import 'speech_audio.dart';
 import 'speech_out.dart';
+import 'voice_cloud.dart';
 import 'speech_settings.dart';
 
 enum ReadAloudPhase { idle, loading, playing }
@@ -72,6 +73,7 @@ class ReadAloudController extends Notifier<ReadAloudState> {
       audio: ref.read(speechAudioProvider),
       speaker: speaker,
       gap: ref.read(deepSeekSpeechGapProvider),
+      geminiKey: await ref.read(geminiApiKeyProvider.future),
     );
     _out = out;
     _sub = out.events.listen((event) {

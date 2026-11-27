@@ -8,10 +8,13 @@
 // the same speaker as her voice in 伙伴小屋 (companion_voice.dart).
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:collection';
 import 'dart:io' show Platform;
 import 'dart:math';
 import 'dart:typed_data';
+
+import 'package:http/http.dart' as http;
 
 import '../diagnostics/diagnostics_channel.dart';
 import '../companion/companion_voice.dart';
@@ -661,7 +664,13 @@ SpeechOut speechOutFor(
   bool call = false,
   bool levels = false,
   DeepSeekSpeechFailure Function()? gap,
+  String? geminiKey,
 }) {
+  // A connected Gemini key speaks first: it works on the free tier and does
+  // not depend on a DeepSeek credential being present.
+  if (geminiKey != null && Platform.operatingSystem != 'ohos') {
+    return GeminiOut(geminiKey, audio, call: call, levels: levels);
+  }
   if (Platform.operatingSystem == 'ohos' && settings is OhosSpeechVoiceSettings) {
     return _OhosDeepSeekOut(deepseek, audio, voice: settings.voice, call: call, levels: levels, gap: gap);
   }
@@ -679,4 +688,228 @@ SpeechOut speechOutFor(
     return out;
   }
   return SpeakerOut(speaker, onPlaying: call ? (on) => unawaited(audio.playing(on)) : null);
+}
+
+/// Gemini's voice: each sentence piece is synthesized by the Gemini TTS API
+/// (PCM16 mono 24 kHz) and streamed into the same native PCM player the
+/// DeepSeek voice uses. Needs the user's Gemini key.
+class GeminiOut implements SpeechOut {
+  GeminiOut(this._key, this._audio, {this.call = false, this.levels = false}) {
+    _sub = _audio.events.listen(_heard);
+  }
+
+  final String _key;
+  final SpeechAudio _audio;
+  final bool call;
+  final bool levels;
+
+  final id = 'gm${++_streams}';
+  final _chunker = SpeechChunker();
+  final _pieces = Queue<String>();
+  final _events = StreamController<SpeechOutEvent>.broadcast();
+  late final StreamSubscription<SpeechAudioEvent> _sub;
+  bool _finished = false;
+  bool _stopped = false;
+  bool _ended = false;
+  bool _opened = false;
+  bool _writing = false;
+  bool _endSent = false;
+  final _spans = <_Span>[];
+  int _written = 0;
+  int _played = 0;
+
+  static const _tickBytes = 24000 * 2 * 40 ~/ 1000;
+
+  @override
+  Stream<SpeechOutEvent> get events => _events.stream;
+
+  @override
+  bool get ended => _ended;
+
+  @override
+  void add(String text) {
+    if (_finished || _stopped) return;
+    _chunker.add(text);
+    _pieces.addAll(_chunker.take());
+    unawaited(_write());
+  }
+
+  @override
+  void finish() {
+    if (_finished || _stopped) return;
+    _finished = true;
+    _pieces.addAll(_chunker.take(final_: true));
+    if (_pieces.isEmpty && !_writing) _end();
+    unawaited(_write());
+  }
+
+  Future<Uint8List> _synthesize(String text) async {
+    final client = http.Client();
+    try {
+      final response = await client
+          .post(
+            Uri.parse('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent'),
+            headers: {'x-goog-api-key': _key, 'content-type': 'application/json'},
+            body: jsonEncode({
+              'contents': [
+                {
+                  'parts': [
+                    {'text': text},
+                  ],
+                },
+              ],
+              'generationConfig': {
+                'responseModalities': ['AUDIO'],
+                'speechConfig': {
+                  'voiceConfig': {
+                    'prebuiltVoiceConfig': {'voiceName': 'Kore'},
+                  },
+                },
+              },
+            }),
+          )
+          .timeout(const Duration(seconds: 60));
+      if (response.statusCode != 200) {
+        throw DeepSeekSpeechError(
+          switch (response.statusCode) {
+            401 || 403 => DeepSeekSpeechFailure.unauthorized,
+            429 => DeepSeekSpeechFailure.rateLimited,
+            >= 500 => DeepSeekSpeechFailure.busy,
+            _ => DeepSeekSpeechFailure.rejected,
+          },
+          'gemini tts ${response.statusCode}',
+        );
+      }
+      final json = jsonDecode(utf8.decode(response.bodyBytes));
+      final parts = (((json as Map)['candidates'] as List?)?.firstOrNull as Map?)?['content']?['parts'] as List?;
+      for (final part in parts ?? const []) {
+        if (part is Map && part['inlineData'] is Map && (part['inlineData'] as Map)['data'] is String) {
+          return base64Decode((part['inlineData'] as Map)['data'] as String);
+        }
+      }
+      throw const DeepSeekSpeechError(DeepSeekSpeechFailure.protocol, 'gemini tts empty');
+    } finally {
+      client.close();
+    }
+  }
+
+  Future<void> _write() async {
+    if (_writing) return;
+    _writing = true;
+    try {
+      while (_pieces.isNotEmpty && !_stopped) {
+        final text = _pieces.first;
+        final span = _Span(text, _written);
+        _spans.add(span);
+        final Uint8List pcm;
+        try {
+          pcm = await _synthesize(text);
+        } catch (error) {
+          if (!_stopped) _fail(error);
+          return;
+        }
+        if (_stopped) return;
+        if (!_opened) {
+          _opened = true;
+          if (!await _audio.open(id, call: call, levels: levels)) {
+            _fail(const DeepSeekSpeechError(DeepSeekSpeechFailure.protocol, 'no audio output'));
+            return;
+          }
+        }
+        _written += pcm.length;
+        span.end = _written;
+        span.closed = true;
+        var waiting = await _audio.write(id, pcm);
+        while (waiting > 24000 * 2 * 3 && !_stopped) {
+          await Future<void>.delayed(const Duration(milliseconds: 150));
+          waiting = await _audio.waiting(id);
+        }
+        _pieces.removeFirst();
+      }
+    } finally {
+      _writing = false;
+    }
+    if (_finished && _pieces.isEmpty && !_stopped) _end();
+  }
+
+  void _end() {
+    if (_endSent) return;
+    _endSent = true;
+    if (_opened) {
+      unawaited(_audio.end(id));
+    } else {
+      _close(const SpeechOutDone());
+    }
+  }
+
+  void _fail(Object error) {
+    if (_ended) return;
+    _stopped = true;
+    if (_opened) unawaited(_audio.stop());
+    _close(SpeechOutFailed(error));
+  }
+
+  void _close(SpeechOutEvent event) {
+    if (_ended) return;
+    _ended = true;
+    unawaited(_sub.cancel());
+    if (!_events.isClosed) {
+      _events.add(event);
+      unawaited(_events.close());
+    }
+  }
+
+  @override
+  void stop() {
+    if (_stopped || _ended) return;
+    _stopped = true;
+    _pieces.clear();
+    if (_opened) unawaited(_audio.stop());
+    _close(const SpeechOutDone());
+  }
+
+  @override
+  String get heard {
+    final out = <String>[];
+    for (final span in _spans) {
+      final n = span.heardBy(_played);
+      if (n == span.text.length) {
+        out.add(span.text);
+        continue;
+      }
+      if (n > 0) out.add(span.text.substring(0, n));
+      break;
+    }
+    return _joined(out);
+  }
+
+  @override
+  void duck(bool on) {
+    if (_opened && !_stopped) unawaited(_audio.duck(id, on));
+  }
+
+  @override
+  bool get canDuck => true;
+
+  void _heard(SpeechAudioEvent event) {
+    switch (event) {
+      case PlayEvent(id: final which, :final phase) when which == id:
+        switch (phase) {
+          case PlayPhase.start:
+            if (!_events.isClosed) _events.add(const SpeechOutStarted());
+          case PlayPhase.done:
+            _played = _written;
+            _close(const SpeechOutDone());
+          case PlayPhase.stopped:
+            _close(const SpeechOutDone());
+          case PlayPhase.error:
+            _close(const SpeechOutFailed('playback'));
+        }
+      case PlayLevel(id: final which, :final value) when which == id:
+        _played += _tickBytes;
+        if (!_events.isClosed) _events.add(SpeechOutLevel(value));
+      default:
+        break;
+    }
+  }
 }

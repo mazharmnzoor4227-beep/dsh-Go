@@ -31,6 +31,7 @@ import '../../speech/read_aloud.dart';
 import '../../speech/speech_audio.dart';
 import '../../speech/speech_out.dart';
 import '../../speech/speech_settings.dart';
+import '../../speech/speech_out.dart';
 import '../../speech/voice_cloud.dart';
 import '../../state/account_state.dart';
 import '../../state/app_notes.dart';
@@ -169,6 +170,7 @@ class _VoiceCallPageState extends ConsumerState<VoiceCallPage> with WidgetsBindi
     final voices = ref.read(speechVoiceSettingsProvider.notifier);
     // The chosen voice, as soon as the settings have been read (the first reply comes later).
     _voice = ref.read(speechVoiceSettingsProvider) ?? voices.defaults;
+    unawaited(ref.read(geminiApiKeyProvider.future).then((key) => _geminiKey = key));
     final speaker = ref.read(speechSpeakerProvider);
     final audio = ref.read(speechAudioProvider);
     final deepseek = ref.read(deepSeekSpeechProvider);
@@ -186,15 +188,19 @@ class _VoiceCallPageState extends ConsumerState<VoiceCallPage> with WidgetsBindi
         if (!mounted) return null;
         return ref.read(callRecognizerProvider)();
       },
-      voice: () => speechOutFor(
-        _voice,
-        deepseek: deepseek,
-        audio: audio,
-        speaker: speaker,
-        call: true,
-        levels: true,
-        gap: ref.read(deepSeekSpeechGapProvider),
-      ),
+      voice: () {
+        final geminiKey = _geminiKey;
+        if (geminiKey != null) return GeminiOut(geminiKey, audio, call: true, levels: true);
+        return speechOutFor(
+          _voice,
+          deepseek: deepseek,
+          audio: audio,
+          speaker: speaker,
+          call: true,
+          levels: true,
+          gap: ref.read(deepSeekSpeechGapProvider),
+        );
+      },
       // The saved ones, not the defaults shown while they load (a first call after launch).
       choices: () async {
         final saved = await callSettings.ready();
@@ -227,6 +233,10 @@ class _VoiceCallPageState extends ConsumerState<VoiceCallPage> with WidgetsBindi
 
   /// Her voice for the next reply.
   late CompanionVoiceSettings _voice;
+
+  /// The user's Gemini key when connected: the call then hears and speaks
+  /// through Gemini.
+  String? _geminiKey;
 
   /// [_voice] from the settings: DeepSeek's with nobody to pay for it here
   /// becomes the phone's own; the phone's own warms up.
