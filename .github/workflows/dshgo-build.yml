@@ -68,6 +68,9 @@ jobs:
             gh release create "$RTAG" --prerelease --title "DSH Go runtime ${RTAG#runtime-}" \
               --notes "Linux runtime archive for slim DSH Go builds. The app downloads it once on a fresh install or a runtime change; updates reuse the copy already on the phone."
           gh release upload "$RTAG" "runtime/out/arm64-v8a/assets/runtime/$ROOTFS" "$MANIFEST" --clobber
+          # Slim APK: keep the archive out of the package (uploaded above).
+          mkdir -p /tmp/runtime-archives
+          mv runtime/out/arm64-v8a/assets/runtime/*.tar.xz /tmp/runtime-archives/
 
       - name: Decode keystore
         env:
@@ -94,8 +97,6 @@ jobs:
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;28.2.13676358"
 
       - name: Build APK (slim, no bundled rootfs)
-        env:
-          DSH_SLIM_RUNTIME: '1'
         run: |
           ls "$ANDROID_HOME/ndk/"
           export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/28.2.13676358"
