@@ -1,4 +1,3 @@
-import 'dart:async';
 
 import 'package:dsh_app/l10n/l10n.dart';
 import 'package:dsh_app/state/android_features.dart';

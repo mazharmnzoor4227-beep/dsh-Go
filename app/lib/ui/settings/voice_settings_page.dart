@@ -5,16 +5,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../companion/companion_voice_source.dart';
 import '../../l10n/l10n.dart';
-import '../../speech/speech_audio.dart';
 import '../../speech/speech_settings.dart';
 import '../../state/streaming_asr_model_state.dart';
 import '../../state/streaming_asr_state.dart' show SystemAsrReadiness, ohosStreamingAsrReadyProvider;
 import '../../state/voice_model_state.dart';
 import '../../state/voice_settings.dart';
-import '../../state/voice_state.dart';
 import '../common/app_dialog.dart';
 import '../companion/companion_voice_page.dart';
-import '../providers/provider_widgets.dart';
 import '../shell/page_frame.dart';
 import '../theme/app_icons.dart';
 import '../theme/theme.dart';
