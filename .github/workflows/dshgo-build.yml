@@ -88,7 +88,7 @@ jobs:
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null 2>&1 || true
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;28.2.13676358"
 
-      - name: Build APK (slim: no bundled rootfs)
+      - name: Build APK (slim, no bundled rootfs)
         env:
           DSH_SLIM_RUNTIME: '1'
         run: |
