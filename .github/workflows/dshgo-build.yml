@@ -60,6 +60,11 @@ jobs:
           flutter pub get
           flutter analyze
 
+      - name: Install NDK for tawcroot
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null 2>&1 || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;28.2.13676358"
+
       - name: Build APK
         run: tooling/build-apk.sh --no-companion --no-star
 
