@@ -8,13 +8,16 @@ import 'package:dsh_client/dsh_client.dart' show ModelSelection;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../ui/providers/quick_connect.dart' show QuickProvider, bestModelId, isFreeModel, matchQuickProvider;
+import '../ui/providers/quick_connect.dart'
+    show QuickProvider, bestModelId, isFreeModel, matchQuickProvider;
 import 'providers_state.dart';
 
 const _autoFreeKey = 'auto_free_model';
 
 /// Whether Auto (Free) is on. On by default once a key connects.
-final autoFreeProvider = NotifierProvider<AutoFreeNotifier, bool>(AutoFreeNotifier.new);
+final autoFreeProvider = NotifierProvider<AutoFreeNotifier, bool>(
+  AutoFreeNotifier.new,
+);
 
 class AutoFreeNotifier extends Notifier<bool> {
   @override
@@ -45,14 +48,22 @@ typedef AutoCandidate = ({String providerId, String model, QuickProvider kind});
 List<AutoCandidate> autoFreeCandidates(ProvidersSnapshot? snapshot) {
   if (snapshot == null) return const [];
   final out = <AutoCandidate>[];
-  for (final kind in const [QuickProvider.gemini, QuickProvider.openrouter, QuickProvider.custom]) {
+  for (final kind in const [
+    QuickProvider.gemini,
+    QuickProvider.openrouter,
+    QuickProvider.custom,
+  ]) {
     final providers = kind == QuickProvider.custom
         ? [
             for (final p in snapshot.providers)
-              if (matchQuickProvider(snapshot, QuickProvider.gemini)?.id != p.id &&
-                  matchQuickProvider(snapshot, QuickProvider.openrouter)?.id != p.id &&
-                  matchQuickProvider(snapshot, QuickProvider.grok)?.id != p.id &&
-                  matchQuickProvider(snapshot, QuickProvider.deepseek)?.id != p.id)
+              if (matchQuickProvider(snapshot, QuickProvider.gemini)?.id !=
+                      p.id &&
+                  matchQuickProvider(snapshot, QuickProvider.openrouter)?.id !=
+                      p.id &&
+                  matchQuickProvider(snapshot, QuickProvider.grok)?.id !=
+                      p.id &&
+                  matchQuickProvider(snapshot, QuickProvider.deepseek)?.id !=
+                      p.id)
                 p,
           ]
         : [?matchQuickProvider(snapshot, kind)];
@@ -64,7 +75,7 @@ List<AutoCandidate> autoFreeCandidates(ProvidersSnapshot? snapshot) {
       ];
       final best = bestModelId(kind, free);
       final ordered = [
-        if (best != null) best,
+        ?best,
         for (final id in free)
           if (id != best) id,
       ];
@@ -75,9 +86,15 @@ List<AutoCandidate> autoFreeCandidates(ProvidersSnapshot? snapshot) {
   }
   final healthy = [
     for (final c in out)
-      if (snapshot.healthOf(snapshot.byId(c.providerId)!) == ProviderHealth.ready) c,
+      if (snapshot.healthOf(snapshot.byId(c.providerId)!) ==
+          ProviderHealth.ready)
+        c,
   ];
-  return [...healthy, for (final c in out) if (!healthy.contains(c)) c];
+  return [
+    ...healthy,
+    for (final c in out)
+      if (!healthy.contains(c)) c,
+  ];
 }
 
 /// The model Auto uses now, or null when no free model is connected.
@@ -89,10 +106,15 @@ ModelSelection? autoFreePick(ProvidersSnapshot? snapshot) {
 }
 
 /// The next Auto candidate after [current] (for fallback), or null.
-ModelSelection? autoFreeNext(ProvidersSnapshot? snapshot, ModelSelection? current) {
+ModelSelection? autoFreeNext(
+  ProvidersSnapshot? snapshot,
+  ModelSelection? current,
+) {
   final candidates = autoFreeCandidates(snapshot);
   for (final c in candidates) {
-    if (current == null || c.providerId != current.provider || c.model != current.model) {
+    if (current == null ||
+        c.providerId != current.provider ||
+        c.model != current.model) {
       return ModelSelection(provider: c.providerId, model: c.model);
     }
   }
