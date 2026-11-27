@@ -20320,25 +20320,19 @@ abstract class L10n {
   /// No description provided for @hubAboutAuthor.
   ///
   /// In zh, this message translates to:
-  /// **'DSH Go 原作者'**
+  /// **'Mazhar Ansari'**
   String get hubAboutAuthor;
 
-  /// No description provided for @hubAboutBilibili.
+  /// No description provided for @hubAboutInstagram.
   ///
   /// In zh, this message translates to:
-  /// **'B站主页'**
-  String get hubAboutBilibili;
-
-  /// No description provided for @hubAboutX.
-  ///
-  /// In zh, this message translates to:
-  /// **'X 主页'**
-  String get hubAboutX;
+  /// **'Instagram'**
+  String get hubAboutInstagram;
 
   /// No description provided for @hubAboutGithub.
   ///
   /// In zh, this message translates to:
-  /// **'GitHub 主页'**
+  /// **'GitHub'**
   String get hubAboutGithub;
 
   /// No description provided for @hubAboutNewVersion.

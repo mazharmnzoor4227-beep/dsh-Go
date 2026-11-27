@@ -11086,16 +11086,13 @@ class L10nZh extends L10n {
   String get hubAbout => '关于 DSH Go';
 
   @override
-  String get hubAboutAuthor => 'DSH Go 原作者';
+  String get hubAboutAuthor => 'Mazhar Ansari';
 
   @override
-  String get hubAboutBilibili => 'B站主页';
+  String get hubAboutInstagram => 'Instagram';
 
   @override
-  String get hubAboutX => 'X 主页';
-
-  @override
-  String get hubAboutGithub => 'GitHub 主页';
+  String get hubAboutGithub => 'GitHub';
 
   @override
   String get hubAboutNewVersion => '有新版本';

@@ -6,7 +6,7 @@ import '../l10n/l10n.dart';
 /// constant kept in sync with `pubspec.yaml` (checked by tooling tests). Release builds can
 /// override it with `--dart-define=DSH_APP_VERSION=1.2.0+7`.
 abstract final class AppInfo {
-  static const version = String.fromEnvironment('DSH_APP_VERSION', defaultValue: '1.4.1+1');
+  static const version = String.fromEnvironment('DSH_APP_VERSION', defaultValue: '1.4.6+3');
 
   /// "1.0.0 (1)" for display.
   static String get displayVersion {
@@ -29,13 +29,15 @@ abstract final class AppInfo {
   /// The line under the brand mark (welcome page, 关于 dsh-go).
   static String get slogan => appL10n.appSlogan;
 
-  /// The original DSH Go author and their personal profiles, not project pages.
-  static const author = 'ccch1mneyyy';
-  static const authorBilibiliName = 'ccchimneyyy';
-  static const authorBilibiliUrl = 'https://b23.tv/9WBns6Y';
-  static const authorXHandle = '@cccch1mneyyyy';
-  static const authorXUrl = 'https://x.com/cccch1mneyyyy';
-  static const authorGithubUrl = 'https://github.com/ccch1mneyyy';
+  /// This fork's owner and his profiles, shown on the About page.
+  static const owner = 'Mazhar Ansari';
+  static const ownerInstagramHandle = '@mazhar_ansari34';
+  static const ownerInstagramUrl = 'https://www.instagram.com/mazhar_ansari34';
+  static const ownerGithubName = 'mazharmnzoor4227-beep/dsh-Go';
+  static const ownerGithubUrl = 'https://github.com/mazharmnzoor4227-beep/dsh-Go';
+
+  /// The original DSH Go author, credited in the open-source licences only.
+  static const originalAuthor = 'ccch1mneyyy';
 
   static const deepseekPlatform = 'https://platform.deepseek.com/api_keys';
   static const remoteConsole = 'https://dsh.r2049.cn/app';
