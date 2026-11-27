@@ -12,12 +12,10 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'support.dart';
 
-const _api = 'https://api.github.com/repos/ccch1mneyyy/dsh-go/releases/latest';
+const _api = 'https://api.github.com/repos/mazharmnzoor4227-beep/dsh-Go/releases/latest';
 const _apk = 'dsh-go-0.9.0-arm64.apk';
-const _githubApk = 'https://github.com/ccch1mneyyy/dsh-go/releases/download/v0.9.0/$_apk';
-const _manifest = 'https://github.com/ccch1mneyyy/dsh-go/releases/latest/download/update.json';
-const _dlFeed = 'https://dl.dshtui.com/update.json';
-const _dlApk = 'https://dl.dshtui.com/download/0.9.0/$_apk';
+const _githubApk = 'https://github.com/mazharmnzoor4227-beep/dsh-Go/releases/download/v0.9.0/$_apk';
+const _manifest = 'https://github.com/mazharmnzoor4227-beep/dsh-Go/releases/latest/download/update.json';
 const _mirror = 'https://dl.example.com';
 const _mirrorFeed = '$_mirror/update.json';
 const _mirrorApk = '$_mirror/download/0.9.0/$_apk';
@@ -26,22 +24,21 @@ void main() {
   group('defaults', () {
     final sources = buildUpdateSources();
 
-    test('dl.dshtui.com and GitHub first; nothing on go.dshtui.com', () {
+    test('GitHub first; no feed and nothing on go.dshtui.com', () {
       expect(sources.channel, isNull);
-      expect(sources.feed.toString(), _dlFeed);
-      expect(sources.mirrors.map((m) => m.id), ['dshgo', 'github', 'ghfast', 'gh-proxy']);
+      expect(sources.feed, isNull);
+      expect(sources.mirrors.map((m) => m.id), ['github', 'ghfast', 'gh-proxy']);
       final endpoints = sources.metadataEndpoints();
-      expect(endpoints.map((e) => e.id), ['feed', 'manifest:github', 'api', 'manifest:ghfast', 'manifest:gh-proxy']);
-      expect(endpoints.map((e) => e.url.toString()).take(3), [_dlFeed, _manifest, _api]);
+      expect(endpoints.map((e) => e.id), ['manifest:github', 'api', 'manifest:ghfast', 'manifest:gh-proxy']);
+      expect(endpoints.map((e) => e.url.toString()).take(2), [_manifest, _api]);
       expect(endpoints.every((e) => e.headers.isEmpty), isTrue);
       final urls = sources.downloadUrls([Uri.parse(_githubApk)]);
       expect(urls.map((u) => u.url.toString()), [
-        _dlApk,
         _githubApk,
         'https://ghfast.top/$_githubApk',
         'https://gh-proxy.com/$_githubApk',
       ]);
-      expect(urls.first.label, 'dl.dshtui.com');
+      expect(urls.first.label, 'GitHub');
       expect(urls.every((u) => u.headers.isEmpty), isTrue);
       expect([for (final e in endpoints) e.url.host], isNot(contains('go.dshtui.com')));
     });
@@ -49,16 +46,15 @@ void main() {
     test('the shipped configuration (no token in tests) is the same', () {
       final shipped = defaultUpdateSources();
       expect(shipped.channel, isNull);
-      expect(shipped.feed.toString(), _dlFeed);
+      expect(shipped.feed, isNull);
       expect(shipped.metadataEndpoints().map((e) => e.id), sources.metadataEndpoints().map((e) => e.id));
       expect(shipped.mirrors.map((m) => m.id), sources.mirrors.map((m) => m.id));
     });
 
     test('preference cannot move an accelerator ahead of official sources', () {
-      expect(sources.metadataEndpoints(preferred: 'api').map((e) => e.id).first, 'feed');
-      expect(sources.metadataEndpoints(preferred: 'api')[2].id, 'api');
+      expect(sources.metadataEndpoints(preferred: 'api').map((e) => e.id).first, 'manifest:github');
+      expect(sources.metadataEndpoints(preferred: 'api')[1].id, 'api');
       expect(sources.metadataEndpoints(preferred: 'manifest:gh-proxy').map((e) => e.id), [
-        'feed',
         'manifest:github',
         'api',
         'manifest:gh-proxy',
@@ -66,44 +62,40 @@ void main() {
       ]);
     });
 
-    test('our update.json and GitHub agree: prefer our APK URL', () async {
+    test('GitHub update.json is the manifest source', () async {
       final manifest = jsonEncode({
         'schema': 1,
         'version': '0.9.0+10251518',
         'tag': 'v0.9.0',
         'assets': {
-          'arm64': {'name': _apk, 'size': 185254217, 'sha256': '1c' * 32, 'url': _dlApk},
+          'arm64': {'name': _apk, 'size': 185254217, 'sha256': '1c' * 32, 'url': _githubApk},
         },
       });
-      final http = FakeHttp({_dlFeed: (_, _) => textResponse(manifest), _manifest: (_, _) => textResponse(manifest)});
+      final http = FakeHttp({_manifest: (_, _) => textResponse(manifest)});
       final result = await UpdateChecker(http: http, sources: sources).check(preferred: 'api');
-      expect(http.urls, [_dlFeed, _manifest]);
+      expect(http.urls, [_manifest]);
       final found = result as CheckFound;
-      expect(found.endpoint.id, 'feed');
+      expect(found.endpoint.id, 'manifest:github');
       final urls = sources.downloadUrls([found.release.apks[ApkFlavor.arm64]!.url, Uri.parse(_githubApk)]);
-      expect(urls.map((u) => u.url.toString()).take(2), [_dlApk, _githubApk]);
+      expect(urls.map((u) => u.url.toString()).take(1), [_githubApk]);
     });
 
-    test('ours is down: GitHub\'s update.json, then the API, then accelerators', () async {
-      var http = FakeHttp({_manifest: (_, _) => textResponse(fixture('update.json'))});
+    test('GitHub manifest down: the API, then accelerators', () async {
+      var http = FakeHttp({_api: (_, _) => textResponse(fixture('github_release.json'))});
       var result = await UpdateChecker(http: http, sources: sources).check();
-      expect(http.urls, [_dlFeed, _manifest]);
-      expect((result as CheckFound).endpoint.id, 'manifest:github');
+      expect(http.urls, [_manifest, _api]);
+      expect((result as CheckFound).endpoint.id, 'api');
 
       // ghfast.top refusing a network (403) costs one request.
       http = FakeHttp({
-        _dlFeed: (_, _) => textResponse('<html>502</html>', status: 502),
+        _manifest: (_, _) => textResponse('<html>502</html>', status: 502),
+        _api: (_, _) => textResponse('<html>502</html>', status: 502),
         'https://ghfast.top/$_manifest': (_, _) => textResponse('Forbidden', status: 403),
         'https://gh-proxy.com/$_manifest': (_, _) => textResponse(fixture('update.json')),
       });
       result = await UpdateChecker(http: http, sources: sources).check();
       expect((result as CheckFound).endpoint.id, 'manifest:gh-proxy');
-      expect(http.urls, [_dlFeed, _manifest, _api, 'https://ghfast.top/$_manifest', 'https://gh-proxy.com/$_manifest']);
-
-      http = FakeHttp({_api: (_, _) => textResponse(fixture('github_release.json'))});
-      result = await UpdateChecker(http: http, sources: sources).check();
-      expect(http.urls, [_dlFeed, _manifest, _api]);
-      expect((result as CheckFound).endpoint.id, 'api');
+      expect(http.urls, [_manifest, _api, 'https://ghfast.top/$_manifest', 'https://gh-proxy.com/$_manifest']);
     });
   });
 
@@ -195,11 +187,11 @@ void main() {
   });
 
   group('overrides', () {
-    test('another feed; downloads still try our copy first', () {
+    test('another feed; downloads still try GitHub first', () {
       final sources = buildUpdateSources(feed: 'https://update.example.com/dsh/update.json');
       expect(sources.feed.toString(), 'https://update.example.com/dsh/update.json');
       expect(sources.metadataEndpoints().first.id, 'feed');
-      expect(sources.mirrors.first.id, 'dshgo');
+      expect(sources.mirrors.first.id, 'github');
       expect(buildUpdateSources(feed: '').feed, isNull);
       expect(buildUpdateSources(mirror: _mirror, feed: '').feed, isNull);
     });
@@ -218,11 +210,10 @@ void main() {
 
     test('accelerators replaced or dropped', () {
       expect(buildUpdateSources(accelerators: 'https://a.example/').mirrors.map((m) => m.id), [
-        'dshgo',
         'github',
         'custom0',
       ]);
-      expect(buildUpdateSources(accelerators: '').mirrors.map((m) => m.id), ['dshgo', 'github']);
+      expect(buildUpdateSources(accelerators: '').mirrors.map((m) => m.id), ['github']);
     });
   });
 }

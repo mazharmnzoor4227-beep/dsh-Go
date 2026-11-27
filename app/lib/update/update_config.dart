@@ -16,8 +16,9 @@
 ///   replaces the public GitHub accelerator list (empty string = none).
 library;
 
-/// GitHub repository the releases live in.
-const updateRepo = 'ccch1mneyyy/dsh-go';
+/// GitHub repository the releases live in (Mazhar's fork; updates must never
+/// point at upstream, whose builds carry a different package and signer).
+const updateRepo = 'mazharmnzoor4227-beep/dsh-Go';
 
 /// `releases/latest` of the REST API: tag, notes, assets with sizes and
 /// SHA-256 digests. Unauthenticated: 60 requests per hour per IP.
@@ -34,14 +35,13 @@ Uri githubLatestAsset(String name) => Uri.parse('https://github.com/$updateRepo/
 Uri githubReleaseAsset(String tag, String name) =>
     Uri.parse('https://github.com/$updateRepo/releases/download/$tag/$name');
 
-/// The share host (services/share-worker). It serves the beta channel under
-/// `/beta/`; public files come from [updateDownloadOrigin].
-const updateMirrorOrigin = 'https://go.dshtui.com';
+/// No share host in this fork: the beta channel stays off (no token is
+/// compiled in) and there is no self-hosted copy of the release files.
+/// GitHub Releases of [updateRepo] are the only update source.
+const updateMirrorOrigin = '';
 
-/// Our public copy of the release files (an R2 bucket): `/update.json`, the
-/// latest public manifest with absolute asset URLs, and
-/// `/download/<version>/<file>` for every file of every release.
-const updateDownloadOrigin = 'https://dl.dshtui.com';
+/// Empty: no public copy of the release files (see [updateMirrorOrigin]).
+const updateDownloadOrigin = '';
 
 /// The beta channel: `<origin>/beta/update.json` and `<origin>/beta/<version>/<file>`,
 /// both behind `Authorization: Bearer <token>`. The token is compiled into beta

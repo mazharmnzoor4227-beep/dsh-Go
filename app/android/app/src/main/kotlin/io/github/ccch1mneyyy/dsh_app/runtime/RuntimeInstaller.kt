@@ -69,7 +69,10 @@ class RuntimeInstaller(
         if (resumeRootfsInstall(baseDir, manifest.runtimeVersion, manifest.abi, manifest.raw,
                 keepDir, dropKept, sync)) return
         val archives = manifest.archivesForInstall(Files.exists(rootfs.toPath(), java.nio.file.LinkOption.NOFOLLOW_LINKS))
-        checkFreeSpace(archives)
+        // Slim builds do not bundle the archives: an already-current runtime never
+        // reaches here, and a missing archive is downloaded once (see downloadArchive).
+        val bundled = archives.map { archiveBundled("${RuntimeManifest.ASSET_DIR}/${it.asset}") }
+        checkFreeSpace(archives, archives.filterIndexed { i, _ -> !bundled[i] }.sumOf { it.bytes.coerceAtLeast(0) })
         staging.mkdirs()
 
         val assetLengths = archives.map { assetLength("${RuntimeManifest.ASSET_DIR}/${it.asset}") }
@@ -87,10 +90,13 @@ class RuntimeInstaller(
                     onProgress(aggregate, total)
                 }
             }
+            val downloaded = if (bundled[index]) null else downloadArchive(archive, progress)
             timed("verify") {
-                // Parallel readers revisit compressed bytes; hash each selected asset once, in order.
+                // Parallel readers revisit compressed bytes; hash each selected archive once, in order.
                 val digest = MessageDigest.getInstance("SHA-256")
-                DigestInputStream(context.assets.open(assetPath, AssetManager.ACCESS_STREAMING), digest).use { input ->
+                val source = downloaded?.inputStream()
+                    ?: context.assets.open(assetPath, AssetManager.ACCESS_STREAMING)
+                DigestInputStream(source, digest).use { input ->
                     val buffer = ByteArray(1 shl 16)
                     while (input.read(buffer) >= 0) {}
                 }
@@ -98,12 +104,15 @@ class RuntimeInstaller(
                 val expected = archive.sha256
                 if (expected != null && !expected.equals(actual, ignoreCase = true)) {
                     staging.deleteRecursivelySafely()
+                    downloaded?.delete()
                     throw IllegalStateException(AppStrings.get(context, R.string.service_package_checksum_failed))
                 }
             }
             timed("extract") {
                 val extractor = TarExtractor(staging, progress)
-                if (archive.asset.endsWith(".xz") && assetLengths[index] > 0) {
+                if (downloaded != null) {
+                    downloaded.inputStream().use { raw -> extractor.extract(raw, archive.asset) }
+                } else if (archive.asset.endsWith(".xz") && assetLengths[index] > 0) {
                     val decoded = ParallelXZInputStream.open(
                         { AssetSeekableInputStream(context.assets.openFd(assetPath)) }, progress,
                     )
@@ -114,6 +123,7 @@ class RuntimeInstaller(
                     }
                 }
             }
+            downloaded?.delete()
             completed += totals[index]
         }
         onProgress(total, total)
@@ -138,13 +148,62 @@ class RuntimeInstaller(
         }
     }
 
-    private fun checkFreeSpace(archives: List<RuntimeArchive>) {
-        val need = requiredRuntimeInstallSpace(archives)
+    private fun checkFreeSpace(archives: List<RuntimeArchive>, downloadBytes: Long = 0) {
+        val need = requiredRuntimeInstallSpace(archives) + downloadBytes
         val free = context.filesDir.usableSpace
         if (free < need) {
             val mb = { b: Long -> b / (1024 * 1024) }
             throw IllegalStateException(AppStrings.get(context, R.string.service_storage_insufficient, mb(need), mb(free)))
         }
+    }
+
+    private fun archiveBundled(path: String): Boolean = try {
+        context.assets.open(path).use { }
+        true
+    } catch (_: Exception) {
+        false
+    }
+
+    /**
+     * Fetches an archive the APK does not bundle (slim builds) into runtime/downloads.
+     * The caller verifies its SHA-256 before extracting, exactly like a bundled asset.
+     */
+    private fun downloadArchive(archive: RuntimeArchive, progress: (Long) -> Unit): File {
+        val url = archive.downloadUrl
+            ?: throw IllegalStateException("runtime archive ${archive.asset} is not bundled and has no download URL")
+        val dir = File(baseDir, "downloads").apply { mkdirs() }
+        val target = File(dir, archive.asset)
+        val part = File(dir, "${archive.asset}.part")
+        onLog("[dsh-app] downloading runtime archive ${archive.asset} (${archive.bytes} bytes)")
+        val connection = (java.net.URL(url).openConnection() as java.net.HttpURLConnection).apply {
+            connectTimeout = 30_000
+            readTimeout = 60_000
+            setRequestProperty("User-Agent", "DSH-Go")
+        }
+        try {
+            val code = connection.responseCode
+            if (code !in 200..299) throw IllegalStateException("runtime download failed: HTTP $code")
+            connection.inputStream.use { input ->
+                part.outputStream().use { output ->
+                    val buffer = ByteArray(1 shl 16)
+                    var read = 0L
+                    while (true) {
+                        val n = input.read(buffer)
+                        if (n < 0) break
+                        output.write(buffer, 0, n)
+                        read += n
+                        progress(read)
+                    }
+                }
+            }
+        } finally {
+            connection.disconnect()
+        }
+        if (!part.renameTo(target)) {
+            part.copyTo(target, overwrite = true)
+            part.delete()
+        }
+        return target
     }
 
     /** Deletes the runtime; [keep] (paths under the rootfs) waits in runtime-keep for the next install. */

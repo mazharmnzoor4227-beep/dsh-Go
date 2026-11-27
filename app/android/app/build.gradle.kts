@@ -42,6 +42,11 @@ abstract class SideShortcuts : DefaultTask() {
     }
 }
 
+// Slim builds (DSH_SLIM_RUNTIME=1) leave the rootfs archives out of the APK:
+// the runtime already extracted on the phone is reused, and a fresh install
+// downloads the archive from the manifest's URL instead (RuntimeInstaller).
+val slimRuntime = providers.environmentVariable("DSH_SLIM_RUNTIME").orNull == "1"
+
 // Per-ABI runtime bundles produced by runtime/build-runtime.sh.
 val runtimeOut = rootProject.file("../../runtime/out")
 // libtawcroot.so for the opt-in tawcroot launch method (runtime/tawcroot/build.py; missing = unavailable).
@@ -102,10 +107,12 @@ android {
         }
         getByName("arm64") {
             assets.srcDir(File(runtimeOut, "arm64-v8a/assets"))
+            if (slimRuntime) assets.exclude("runtime/*.tar.xz", "runtime/*.tar.gz")
             jniLibs.srcDir(File(runtimeOut, "arm64-v8a/jniLibs"))
         }
         getByName("x64") {
             assets.srcDir(File(runtimeOut, "x86_64/assets"))
+            if (slimRuntime) assets.exclude("runtime/*.tar.xz", "runtime/*.tar.gz")
             jniLibs.srcDir(File(runtimeOut, "x86_64/jniLibs"))
         }
     }

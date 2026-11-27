@@ -40,7 +40,7 @@ from build_number import MAX_VERSION_CODE, decode
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 FLAVORS = ("arm64", "x64")
 FLAVOR_ABI = {"arm64": "arm64-v8a", "x64": "x86_64"}
-REPO = "ccch1mneyyy/dsh-go"
+REPO = "mazharmnzoor4227-beep/dsh-Go"
 VERSION_RE = re.compile(r"^(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)(?:\+(\d+))?$")
 BADGING_RE = re.compile(r"^package: .*?\bversionCode='(\d*)' versionName='([^']*)'", re.MULTILINE)
 CACHE = pathlib.Path.home() / ".cache" / "dshgo-release" / "apk"
@@ -140,7 +140,8 @@ def previous_releases(tag: str, count: int) -> list[str]:
     """The tags of the [count] newest published releases other than [tag]."""
     releases = json.loads(gh("release", "list", "--exclude-drafts", "--limit", "50", "--json", "tagName,publishedAt"))
     releases.sort(key=lambda r: r["publishedAt"], reverse=True)
-    return [r["tagName"] for r in releases if r["tagName"] != tag][:count]
+    # Only app releases: runtime-* releases carry the downloadable rootfs, not APKs.
+    return [r["tagName"] for r in releases if r["tagName"] != tag and r["tagName"].startswith("v")][:count]
 
 
 def listed(sums: pathlib.Path, name: str) -> str | None:

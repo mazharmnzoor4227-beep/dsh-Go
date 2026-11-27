@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 env:
   FLUTTER_VERSION: 3.47.7
@@ -41,6 +41,29 @@ jobs:
       - name: Build runtime bundle (arm64)
         run: bash runtime/build-runtime.sh arm64-v8a
 
+      # Slim APKs do not bundle the rootfs: the manifest points at the runtime
+      # release below, and the app reuses the runtime already on the phone.
+      - name: Publish runtime release and point the manifest at it
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          MANIFEST=runtime/out/arm64-v8a/assets/runtime/manifest.json
+          RTAG=$(python3 -c "import json;print('runtime-'+json.load(open('$MANIFEST'))['runtimeVersion'].split('-')[0])")
+          ROOTFS=$(python3 -c "import json;print(json.load(open('$MANIFEST'))['rootfs'])")
+          URL="https://github.com/${{ github.repository }}/releases/download/$RTAG/$ROOTFS"
+          python3 - "$MANIFEST" "$URL" <<'EOF'
+          import json, sys
+          path, url = sys.argv[1], sys.argv[2]
+          m = json.load(open(path))
+          m['rootfsUrl'] = url
+          json.dump(m, open(path, 'w'), indent=1)
+          print('rootfsUrl =', url)
+          EOF
+          gh release view "$RTAG" >/dev/null 2>&1 || \
+            gh release create "$RTAG" --prerelease --title "DSH Go runtime ${RTAG#runtime-}" \
+              --notes "Linux runtime archive for slim DSH Go builds. The app downloads it once on a fresh install or a runtime change; updates reuse the copy already on the phone."
+          gh release upload "$RTAG" "runtime/out/arm64-v8a/assets/runtime/$ROOTFS" "$MANIFEST" --clobber
+
       - name: Decode keystore
         env:
           KS_B64: ${{ secrets.DSHGO_KEYSTORE_B64 }}
@@ -65,11 +88,33 @@ jobs:
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null 2>&1 || true
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;28.2.13676358"
 
-      - name: Build APK
+      - name: Build APK (slim: no bundled rootfs)
+        env:
+          DSH_SLIM_RUNTIME: '1'
         run: |
           ls "$ANDROID_HOME/ndk/"
           export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/28.2.13676358"
           tooling/build-apk.sh --no-companion --no-star
+
+      - name: Publish app release (APK + update.json for in-app updates)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=$(sed -n 's/^version: \([0-9][0-9.]*\).*/\1/p' app/pubspec.yaml)
+          cat > notes.md <<EOF
+          ## DSH Go $VERSION
+
+          - In-app updates: future versions download inside the app (Settings → About → Check for updates), with small delta patches when possible. No more full-size downloads for every update.
+          - Smaller APK: the Linux runtime is no longer bundled in every update. The copy already on your phone is reused; a fresh install downloads it once.
+          - All 1.4.3 features kept: provider strip, one-tap key connect with automatic free-model selection, Gemini voice call, Antigravity setup.
+          EOF
+          python3 tooling/release_assets.py --notes notes.md --delta-from 3
+          ls -la dist/
+          if gh release view "v$VERSION" >/dev/null 2>&1; then
+            gh release upload "v$VERSION" dist/* --clobber
+          else
+            gh release create "v$VERSION" dist/* --title "DSH Go $VERSION" --notes-file notes.md
+          fi
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
