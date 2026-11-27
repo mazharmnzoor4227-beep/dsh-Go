@@ -21,10 +21,7 @@ import '../../../plugins/native/native_state.dart';
 import '../../../ui_config/ui_config_model.dart';
 import '../../../ui_config/ui_config_state.dart';
 import '../../common/edge_fade.dart';
-import '../../pets/pet_perch.dart';
-import '../../theme/app_icons.dart';
 import '../../theme/theme.dart';
-import 'chat_plugins_sheet.dart';
 import 'native_taps.dart';
 import 'rise_reveal.dart';
 
@@ -269,17 +266,11 @@ class _ComposerCapsuleBarState extends ConsumerState<ComposerCapsuleBar> {
   Widget build(BuildContext context) {
     final quick = ref.watch(uiOverridesProvider.select((o) => o.config.quickActions)) ?? const <UiQuickAction>[];
     final plugins = ref.watch(nativeComposerActionsProvider);
-    final hidePluginCapsule = ref.watch(uiHiddenProvider(UiHideItem.pluginCapsule));
     final session = widget.sessionId;
+    // No Plugins capsule here: plugins live in the composer's + menu, and a
+    // chip above the message box pushed the pet up the screen.
     final items = [
       ...composerCapsules(context, ref, sessionId: session, quick: quick, plugins: plugins),
-      if (!hidePluginCapsule && session != null && ref.watch(chatPluginsHaveContentProvider(session)))
-        CapsuleItem(
-          id: chatPluginsCapsuleId,
-          label: context.l10n.plugslotsChatEntry,
-          icon: AppIcons.plugin,
-          onTap: () => unawaited(showChatPluginsSheet(context, sessionId: session)),
-        ),
     ];
     final leading = widget.leading;
     final open = widget.visible && (items.isNotEmpty || leading != null);
@@ -291,13 +282,9 @@ class _ComposerCapsuleBarState extends ConsumerState<ComposerCapsuleBar> {
       open: open,
       child: _last.isEmpty && _lastLeading == null
           ? const SizedBox(width: double.infinity)
-          // The chat page's pet stands on the row's top edge, above the
-          // capsules (never on them); not while the row sinks.
-          : PetPerch(
-              kind: PerchKind.plugin,
-              active: open,
-              child: ComposerCapsuleRow(items: _last, leading: _lastLeading),
-            ),
+          // Not a pet perch: the pet stays anchored on the message box
+          // below instead of floating up on this row.
+          : ComposerCapsuleRow(items: _last, leading: _lastLeading),
     );
   }
 }
