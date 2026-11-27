@@ -78,16 +78,104 @@ class LocalizedText {
 
   /// Word-level replacements for counted/labelled Chinese strings.
   static const _enWords = <String, String>{
-    '个服务': ' services',
-    '个已连接': ' connected',
-    '个工具': ' tools',
+    '连接你的第一个 MCP 服务': 'Connect your first MCP service',
+    '添加服务器地址或本地启动程序，连接后自动发现工具。':
+        'Add a server address or a local launcher; tools are discovered after connecting.',
+    '重新连接': 'Reconnect',
+    '正在连接': 'Connecting',
+    '连接失败': 'Connection failed',
+    '服务器列表': 'Server list',
+    '工具列表': 'Tool list',
+    '环境变量': 'Environment variables',
+    '工作目录': 'Working directory',
+    '暂无服务器': 'No servers yet',
     '添加服务器': 'Add server',
+    '个已连接': ' connected',
+    '已连接': 'Connected',
+    '未连接': 'Not connected',
+    '个服务': ' services',
+    '个工具': ' tools',
     '服务器': 'Servers',
     '管理器': 'Manager',
     '刷新': 'Refresh',
     '连接': 'Connect',
+    '断开': 'Disconnect',
     '工具': 'tools',
     '服务': 'services',
+    '添加': 'Add',
+    '删除': 'Delete',
+    '编辑': 'Edit',
+    '保存': 'Save',
+    '取消': 'Cancel',
+    '确认': 'Confirm',
+    '关闭': 'Close',
+    '打开': 'Open',
+    '查看': 'View',
+    '详情': 'Details',
+    '设置': 'Settings',
+    '状态': 'Status',
+    '名称': 'Name',
+    '地址': 'Address',
+    '命令': 'Command',
+    '参数': 'Arguments',
+    '超时': 'Timeout',
+    '失败': 'Failed',
+    '成功': 'Success',
+    '错误': 'Error',
+    '加载中': 'Loading',
+    '暂无': 'None',
+    '搜索': 'Search',
+    '返回': 'Back',
+    '启用': 'Enable',
+    '禁用': 'Disable',
+    '已启用': 'Enabled',
+    '已禁用': 'Disabled',
+    '本地': 'Local',
+    '远程': 'Remote',
+    '启动': 'Start',
+    '停止': 'Stop',
+    '重启': 'Restart',
+    '日志': 'Logs',
+    '测试': 'Test',
+    '自动': 'Auto',
+    '手动': 'Manual',
+    '列表': 'List',
+    '全部': 'All',
+    '默认': 'Default',
+    '自定义': 'Custom',
+    '类型': 'Type',
+    '描述': 'Description',
+    '发现': 'Discover',
+    '可用': 'Available',
+    '不可用': 'Unavailable',
+    '运行中': 'Running',
+    '已停止': 'Stopped',
+    '进程': 'Process',
+    '密钥': 'Key',
+    '令牌': 'Token',
+    '授权': 'Authorize',
+    '权限': 'Permission',
+    '通知': 'Notifications',
+    '更新': 'Update',
+    '版本': 'Version',
+    '关于': 'About',
+    '帮助': 'Help',
+    '文档': 'Docs',
+    '示例': 'Example',
+    '输入': 'Input',
+    '输出': 'Output',
+    '结果': 'Result',
+    '数量': 'Count',
+    '总计': 'Total',
+    '当前': 'Current',
+    '选择': 'Select',
+    '点击': 'Tap',
+    '还没有': 'No',
+    '没有': 'No',
+    '请': '',
+    '的': '',
+    '了': '',
+    '个': '',
   };
 
   static String _englishOnly(String text) {
@@ -98,6 +186,27 @@ class LocalizedText {
       out = out.replaceAll(e.key, e.value);
     }
     return _han.hasMatch(out) ? '' : out;
+  }
+
+  /// [text] with Chinese UI wording converted to English: known phrases and
+  /// words are replaced, any remaining Han characters are dropped, and the
+  /// spacing/punctuation is tidied. Text without Han is returned unchanged.
+  /// For plugin-authored display strings in the English UI.
+  static String englishText(String text) {
+    if (!_han.hasMatch(text)) return text;
+    final exact = _enOverrides[text.trim()];
+    if (exact != null) return exact;
+    var out = text;
+    final words = _enWords.entries.toList()..sort((a, b) => b.key.length.compareTo(a.key.length));
+    for (final e in words) {
+      out = out.replaceAll(e.key, e.value);
+    }
+    out = out
+        .replaceAll(RegExp(r'[\u3400-\u9fff]+'), ' ')
+        .replaceAll(RegExp(r'[，。；：、！？]'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+    return out;
   }
 
   /// Best text for [locale]: exact id, then its language, then any variant

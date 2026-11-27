@@ -10,6 +10,8 @@ import 'dart:convert';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
+import 'package:dsh_client/dsh_client.dart' show LocalizedText;
+
 import '../../../l10n/l10n.dart';
 import '../../../plugins/native/native_icons.dart' show nativeIcon;
 import 'dsh_ui_bind.dart';
@@ -625,10 +627,11 @@ DshUiNode _layout(Map<String, Object?> raw, String path, int depth, _Ctx ctx, {r
 }
 
 DshUiNode _text(Map<String, Object?> raw, String path, _Ctx ctx) {
-  final text = _string(raw['text']);
-  if (text == null) {
+  final rawText = _string(raw['text']);
+  if (rawText == null) {
     return ctx.broken('$path.text', appL10n.viewUiExpectedString, type: 'text');
   }
+  final text = AppLocale.isEnglish ? LocalizedText.englishText(rawText) : rawText;
   final max = ctx.p.text;
   final clipped = text.length > max;
   if (clipped) {
@@ -979,10 +982,11 @@ DshUiNode _steps(Map<String, Object?> raw, String path, _Ctx ctx) {
 }
 
 DshUiNode _callout(Map<String, Object?> raw, String path, _Ctx ctx) {
-  final text = _string(raw['text']);
-  if (text == null) {
+  final rawText = _string(raw['text']);
+  if (rawText == null) {
     return ctx.broken('$path.text', appL10n.viewUiExpectedString, type: 'callout');
   }
+  final text = AppLocale.isEnglish ? LocalizedText.englishText(rawText) : rawText;
   final rawTone = raw['tone'];
   var tone = switch (rawTone) {
     null || DshUiMissing() || 'info' || 'note' => DshUiCalloutTone.info,
@@ -1039,7 +1043,7 @@ DshUiNode _options(Map<String, Object?> raw, String path, _Ctx ctx) {
     }
     // 插件视图：点按回传 value（缺省 label）。
     final rawValue = ctx.p.plugin && item is Map ? item['value'] : null;
-    final value = rawValue is String && rawValue.isNotEmpty ? _clip(rawValue, DshUiLimits.label) : null;
+    final value = rawValue is String && rawValue.isNotEmpty ? _clipRaw(rawValue, DshUiLimits.label) : null;
     // 回复只带 label（插件视图带 value）：同名的两项分不出来，后一项丢掉。
     if (!seen.add(value ?? label)) {
       ctx.note('$at.label', appL10n.viewUiDuplicateLabel(_show(label)));
@@ -1109,6 +1113,17 @@ String _show(Object? value) => switch (value) {
 };
 
 String? _clip(String? text, int max) {
+  if (text == null) return null;
+  // Display text in the English UI: plugin/engine Chinese wording is
+  // converted so no Chinese reaches the screen.
+  final shown = AppLocale.isEnglish ? LocalizedText.englishText(text) : text;
+  if (shown.length <= max) return shown;
+  return '${shown.substring(0, max)}…';
+}
+
+/// [_clip] without the English conversion, for values that round-trip
+/// back to the plugin and must stay byte-identical.
+String? _clipRaw(String? text, int max) {
   if (text == null || text.length <= max) return text;
   return '${text.substring(0, max)}…';
 }

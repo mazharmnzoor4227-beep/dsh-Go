@@ -27666,7 +27666,7 @@ class L10nEn extends L10n {
 
   @override
   String get tavernStThemeNote =>
-      'With 「ST」 as the colours, quotes and *actions* take its colours; one too faint to read here is adjusted until it reads.';
+      'With “ST” as the colours, quotes and *actions* take its colours; one too faint to read here is adjusted until it reads.';
 
   @override
   String get tavernStThemeImport => 'Import an ST theme';
@@ -27680,7 +27680,7 @@ class L10nEn extends L10n {
 
   @override
   String get tavernStThemeCssSubtitle =>
-      'With 「ST」 as the colours, it goes into the whole-story canvas and overrides the default look, as in ST. Turn it off if the page comes apart; the colours stay.';
+      'With “ST” as the colours, it goes into the whole-story canvas and overrides the default look, as in ST. Turn it off if the page comes apart; the colours stay.';
 
   @override
   String get tavernStThemeRemove => 'Remove';

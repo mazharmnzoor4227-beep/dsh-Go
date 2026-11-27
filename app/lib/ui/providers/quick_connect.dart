@@ -1,8 +1,9 @@
-// Provider strip on the chat screen: Gemini, Grok, OpenRouter, DeepSeek and
-// Custom are always visible above the composer. One tap on a connected
-// provider makes its best free/standard model the active one; one tap on an
-// unconnected one opens a single key field — paste the key, tap Connect, and
-// models are fetched, the best free one is chosen, and the chat runs on it.
+// Quick connect, in Settings → Providers only: Gemini, Grok, OpenRouter,
+// DeepSeek, Antigravity and Custom. One tap on a connected provider makes
+// its best free/standard model the default for new chats; one tap on an
+// unconnected one opens a single key field — paste the key, tap Connect,
+// and models are fetched and the best free one is chosen automatically.
+// Nothing here appears on the home/chat screen.
 
 import 'dart:async';
 
@@ -10,7 +11,6 @@ import 'package:dsh_client/dsh_client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../state/chat_state.dart';
 import '../../state/composer_insert.dart';
 import '../../state/engine_settings_state.dart';
 import '../../state/model_defaults_state.dart';
@@ -18,6 +18,9 @@ import '../../state/models_state.dart';
 import '../../state/providers_state.dart';
 import '../../state/read_list_identity.dart';
 import '../common/app_sheet.dart';
+import '../common/list_page_row.dart';
+import '../common/status_chip.dart';
+import 'provider_widgets.dart';
 
 enum QuickProvider { gemini, grok, openrouter, deepseek, antigravity, custom }
 
@@ -126,61 +129,44 @@ List<ProviderModelSpec> rankedSpecs(QuickProvider kind, List<DiscoveredModel> mo
   return specs.take(50).toList();
 }
 
-class ProviderStrip extends ConsumerWidget {
-  const ProviderStrip({super.key, this.sessionId});
-
-  final String? sessionId;
+/// The Quick connect card on the Providers settings page.
+class QuickConnectCard extends ConsumerWidget {
+  const QuickConnectCard({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final snapshot = ref.watch(customProvidersProvider).value;
-    final colors = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            for (final kind in QuickProvider.values) ...[
-              _chip(context, ref, kind, snapshot, colors),
-              const SizedBox(width: 8),
-            ],
-          ],
-        ),
+      padding: const EdgeInsets.only(bottom: 24),
+      child: ListPageCard(
+        title: 'Quick connect',
+        children: [for (final kind in QuickProvider.values) _row(context, ref, kind, snapshot)],
       ),
     );
   }
 
-  Widget _chip(BuildContext context, WidgetRef ref, QuickProvider kind, ProvidersSnapshot? snapshot, ColorScheme colors) {
+  Widget _row(BuildContext context, WidgetRef ref, QuickProvider kind, ProvidersSnapshot? snapshot) {
     final provider = matchQuickProvider(snapshot, kind);
     final connected = provider != null && snapshot!.keyStored(provider) && provider.models.isNotEmpty;
-    return Material(
-      color: connected ? colors.primary : colors.surfaceContainerHigh,
-      borderRadius: BorderRadius.circular(999),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(999),
-        onTap: () => unawaited(_tap(context, ref, kind, provider, connected)),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(connected ? Icons.check_circle : Icons.key, size: 15, color: connected ? colors.onPrimary : colors.onSurfaceVariant),
-              const SizedBox(width: 6),
-              Text(
-                kind.label,
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: connected ? colors.onPrimary : colors.onSurface),
-              ),
-            ],
-          ),
-        ),
-      ),
+    final best = connected ? bestModelId(kind, [for (final m in provider.models) m.id]) : null;
+    final subtitle = switch (kind) {
+      QuickProvider.antigravity => 'Install the agy CLI and sign in with Google',
+      _ when connected => 'Connected${best == null ? '' : ' · $best'}',
+      _ => 'Tap to connect with an API key',
+    };
+    return ListPageRow(
+      leading: Monogram(kind.label),
+      title: kind.label,
+      subtitle: subtitle,
+      trailing: ProviderDot(connected ? StatusTone.ok : StatusTone.idle),
+      chevron: true,
+      onTap: () => unawaited(_tap(context, ref, kind, provider, connected)),
     );
   }
 
   Future<void> _tap(BuildContext context, WidgetRef ref, QuickProvider kind, CustomProvider? provider, bool connected) async {
     if (kind == QuickProvider.antigravity) {
-      await showAppSheet<void>(context, builder: (_) => _AntigravitySheet(sessionId: sessionId));
+      await showAppSheet<void>(context, builder: (_) => const _AntigravitySheet());
       return;
     }
     if (connected && provider != null) {
@@ -194,14 +180,9 @@ class ProviderStrip extends ConsumerWidget {
     );
   }
 
-  /// Makes [model] of [providerId] the default for new chats and, when a
-  /// chat is open, its current model too.
+  /// Makes [model] of [providerId] the default for new chats.
   Future<void> _activate(WidgetRef ref, String providerId, String model) async {
     final selection = ModelSelection(provider: providerId, model: model);
-    final id = sessionId;
-    if (id != null) {
-      await ref.read(chatProvider(id).notifier).setModel(selection);
-    }
     final settings = ref.read(engineSettingsProvider).value;
     if (settings == null || !canEditDefaultModel(settings)) return;
     if (!isValidModelSelection(ref.read(currentModelCatalogProvider), selection)) return;
@@ -307,9 +288,7 @@ class _QuickConnectSheetState extends ConsumerState<_QuickConnectSheet> {
 /// runtime and walks through Google sign-in. The install runs through the
 /// bundled antigravity-cli skill in chat, so the sign-in link appears there.
 class _AntigravitySheet extends ConsumerWidget {
-  const _AntigravitySheet({required this.sessionId});
-
-  final String? sessionId;
+  const _AntigravitySheet();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -329,8 +308,10 @@ class _AntigravitySheet extends ConsumerWidget {
           const SizedBox(height: 16),
           FilledButton(
             onPressed: () {
-              ref.read(composerInsertProvider.notifier).request(ComposerInsert.skill('antigravity-cli', sessionId: sessionId));
-              Navigator.of(context).pop();
+              // Back to the chat first, then the request: the composer
+              // takes focus on the route now on top.
+              Navigator.of(context).popUntil((route) => route.isFirst);
+              ref.read(composerInsertProvider.notifier).request(const ComposerInsert.skill('antigravity-cli', sessionId: null));
             },
             child: const Text('Install & sign in'),
           ),

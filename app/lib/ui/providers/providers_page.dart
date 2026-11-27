@@ -30,6 +30,7 @@ import 'new_chat_defaults_card.dart';
 import 'provider_detail_page.dart';
 import 'provider_form_page.dart';
 import 'provider_widgets.dart';
+import 'quick_connect.dart';
 import 'subscription_page.dart';
 import 'subscription_sheet.dart';
 
@@ -68,6 +69,7 @@ class ProvidersPage extends ConsumerWidget {
           : Text(summary),
       children: [
         const NewChatDefaultsCard(),
+        if (snapshot != null && snapshot.supported) const QuickConnectCard(),
         _OfficialAccounts(openAi: official, openAiReady: officialReady),
         if (legacy.isNotEmpty) _SubscriptionAccounts(statuses: legacy),
         if (view.value?.supported == false)

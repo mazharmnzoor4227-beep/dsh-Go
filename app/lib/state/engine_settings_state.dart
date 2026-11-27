@@ -618,7 +618,7 @@ class EngineSettingsController extends AsyncNotifier<EngineSettings?> {
     _acceptCredentialRead(credentialRead, credentials);
     _confirmed = described.namespaces;
     _writable = described.writable;
-    return EngineSettings(
+    final settings = EngineSettings(
       namespaces: described.namespaces,
       writable: described.writable,
       credentials: _credentialsFor(described.namespaces),
@@ -626,6 +626,19 @@ class EngineSettingsController extends AsyncNotifier<EngineSettings?> {
       hostLabel: conn.label,
       origin: origin,
     );
+    // English-only build: keep the engine's own locale on English so
+    // engine-served pages and plugin content render in English too.
+    if (conn.isLocal && described.writable) {
+      const field = FieldRef('locale', ['preference']);
+      final node = settings.nodeOf(field);
+      if (node != null && settings.valueOf(field) != 'en') {
+        unawaited(Future<void>.microtask(() async {
+          if (!_accepts(origin)) return;
+          await write('locale', [SettingsOp.set(field.path, 'en')], fields: const [field]);
+        }));
+      }
+    }
+    return settings;
   }
 
   static Future<Map<String, CredentialStatus>?> _readCredentials(DshClient client, Set<String> refs) async {

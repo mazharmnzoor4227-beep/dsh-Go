@@ -93,7 +93,6 @@ import 'balance_widgets.dart';
 import 'chat_header.dart';
 import 'chat_list.dart';
 import 'composer.dart';
-import '../providers/provider_strip.dart';
 import 'composer_toast.dart';
 import 'dock/chat_dock.dart';
 import 'dock/dock_stack.dart';
@@ -2089,7 +2088,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
                               mainAxisSize: MainAxisSize.min,
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                ProviderStrip(sessionId: sessionId),
                                 // Banners are capsules too: the pet stands on
                                 // the topmost one (an empty slot is 0 high).
                                 PetPerch(

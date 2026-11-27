@@ -11,7 +11,7 @@ const replayViewerPage = r'''<!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="referrer" content="no-referrer">
 <meta name="robots" content="noindex">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-SQx9DjHcIv7KDXzxussj4x+ZyUAaCegGkYXT1lOZc8A='; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-0G8V7MSm3EynYHt3oTQ8+ov8uoE2caPHaBKuoBmIEOo='; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="color-scheme" content="light dark">
 <title>__DSHGO_TITLE__</title>
 <style>/* dsh-go conversation viewer (viewer.js). Shared by the landing page and the
@@ -262,9 +262,8 @@ const replayViewerPage = r'''<!doctype html>
 'use strict';
 
 (function (root) {
-  // A non-browser runtime may expose a default navigator; keep tests in Chinese.
-  var browserLanguage = typeof document !== 'undefined' && typeof navigator !== 'undefined' ? navigator.language || '' : '';
-  var lang = !browserLanguage || /^zh/i.test(browserLanguage) ? 'zh' : 'en';
+  // English-only build: the viewer always renders in English.
+  var lang = 'en';
   if (typeof document !== 'undefined' && document.documentElement) document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
   var I18N = {
     "zh": {
@@ -1891,4 +1890,4 @@ DshgoViewer.boot();
 ''';
 
 /// What the page was built from (test/share_code/replay_viewer_sync_test.dart).
-const replayViewerSourceHash = '676f55f8a99ddb882587d2a928116e5ee77900c9c399b08085815875c23b881b';
+const replayViewerSourceHash = '67090d896b11a1cb052ea0561c7854dac4a4fd2e27fefae2c56b70effe3a9447';

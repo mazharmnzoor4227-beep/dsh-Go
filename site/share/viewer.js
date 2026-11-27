@@ -16,9 +16,8 @@
 'use strict';
 
 (function (root) {
-  // A non-browser runtime may expose a default navigator; keep tests in Chinese.
-  var browserLanguage = typeof document !== 'undefined' && typeof navigator !== 'undefined' ? navigator.language || '' : '';
-  var lang = !browserLanguage || /^zh/i.test(browserLanguage) ? 'zh' : 'en';
+  // English-only build: the viewer always renders in English.
+  var lang = 'en';
   if (typeof document !== 'undefined' && document.documentElement) document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
   var I18N = {
     "zh": {
