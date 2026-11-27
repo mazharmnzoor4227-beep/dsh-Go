@@ -161,9 +161,13 @@ class GeminiVoiceCloud implements VoiceCloud {
               'contents': [
                 {
                   'parts': [
-                    {'text': 'Transcribe this audio exactly as spoken. Reply with only the transcript text, nothing else.'},
                     {
-                      'inline_data': {'mime_type': 'audio/wav', 'data': base64Encode(wav)},
+                      'text':
+                          'Transcribe this audio exactly as spoken. The speaker may use Urdu, Hindi, or English. '
+                          'Reply with only the transcript text, nothing else.',
+                    },
+                    {
+                      'inlineData': {'mimeType': 'audio/wav', 'data': base64Encode(wav)},
                     },
                   ],
                 },
@@ -260,9 +264,35 @@ class EngineVoiceCloud implements VoiceCloud {
   }
 }
 
+/// Tries each recognizer in order; the first transcript wins. A failure
+/// (refused key, rate limit, network) moves to the next instead of ending
+/// the turn in silence.
+class FallbackVoiceCloud implements VoiceCloud {
+  FallbackVoiceCloud(this._chain);
+
+  final List<VoiceCloud> _chain;
+
+  @override
+  int get maxSeconds => _chain.isEmpty ? 0 : _chain.first.maxSeconds;
+
+  @override
+  Future<String> transcribe(Uint8List wav) async {
+    Object? lastError;
+    for (final cloud in _chain) {
+      try {
+        return await cloud.transcribe(wav);
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    throw lastError ?? const DeepSeekSpeechError(DeepSeekSpeechFailure.noCredential);
+  }
+}
+
 /// The recognizer a 语音通话 uses: it needs one that takes a recording (the
-/// phone's own service can't). The chosen mode's first, then DeepSeek's, then
-/// the engine's voice model.
+/// phone's own service can't). Gemini first when its key is connected, then
+/// the chosen mode's, then DeepSeek's, then the engine's voice model — as a
+/// fallback chain, so one refusal does not silence the call.
 final callRecognizerProvider = Provider<Future<VoiceCloud?> Function()>((ref) {
   return () async {
     final mode = await ref.read(voiceSettingsProvider.notifier).ready();
@@ -281,10 +311,17 @@ final callRecognizerProvider = Provider<Future<VoiceCloud?> Function()>((ref) {
 
     final geminiKey = await ref.read(geminiApiKeyProvider.future);
     final gemini = geminiKey == null ? null : GeminiVoiceCloud(geminiKey, ref.read(deepSeekSpeechHttpProvider));
-    return switch (mode) {
-      VoiceMode.engine => await engine() ?? gemini ?? await cloud(VoiceMode.deepseek),
-      VoiceMode.cloud => await cloud(VoiceMode.cloud) ?? gemini ?? await cloud(VoiceMode.deepseek) ?? await engine(),
-      VoiceMode.auto || VoiceMode.deepseek || VoiceMode.system => gemini ?? await cloud(VoiceMode.deepseek) ?? await engine(),
-    };
+    final chain = <VoiceCloud?>[
+      switch (mode) {
+        VoiceMode.engine => await engine(),
+        VoiceMode.cloud => await cloud(VoiceMode.cloud),
+        VoiceMode.auto || VoiceMode.deepseek || VoiceMode.system => null,
+      },
+      gemini,
+      await cloud(VoiceMode.deepseek),
+      await engine(),
+    ].nonNulls.toList();
+    if (chain.isEmpty) return null;
+    return chain.length == 1 ? chain.first : FallbackVoiceCloud(chain);
   };
 });

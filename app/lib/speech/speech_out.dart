@@ -667,9 +667,17 @@ SpeechOut speechOutFor(
   String? geminiKey,
 }) {
   // A connected Gemini key speaks first: it works on the free tier and does
-  // not depend on a DeepSeek credential being present.
+  // not depend on a DeepSeek credential being present. If Gemini's voice
+  // fails before any sound, the phone's own voice takes over so the reply
+  // is still heard.
   if (geminiKey != null && Platform.operatingSystem != 'ohos') {
-    return GeminiOut(geminiKey, audio, call: call, levels: levels);
+    return FallbackSpeechOut(
+      GeminiOut(geminiKey, audio, call: call, levels: levels),
+      () {
+        speaker.settings = settings;
+        return SpeakerOut(speaker, onPlaying: call ? (on) => unawaited(audio.playing(on)) : null);
+      },
+    );
   }
   if (Platform.operatingSystem == 'ohos' && settings is OhosSpeechVoiceSettings) {
     return _OhosDeepSeekOut(deepseek, audio, voice: settings.voice, call: call, levels: levels, gap: gap);
@@ -688,6 +696,97 @@ SpeechOut speechOutFor(
     return out;
   }
   return SpeakerOut(speaker, onPlaying: call ? (on) => unawaited(audio.playing(on)) : null);
+}
+
+/// A voice with a stand-in: if [primary] fails before its first sound,
+/// [fallback] is made and given everything buffered so far, so the reply
+/// is still spoken. A failure after sound started is reported as-is.
+class FallbackSpeechOut implements SpeechOut {
+  FallbackSpeechOut(this._primary, this._makeFallback) {
+    _sub = _primary.events.listen(_onEvent);
+  }
+
+  SpeechOut _primary;
+  final SpeechOut Function() _makeFallback;
+  final _events = StreamController<SpeechOutEvent>.broadcast();
+  final _buffer = StringBuffer();
+  late StreamSubscription<SpeechOutEvent> _sub;
+  bool _started = false;
+  bool _finished = false;
+  bool _ended = false;
+  bool _fellBack = false;
+
+  @override
+  Stream<SpeechOutEvent> get events => _events.stream;
+
+  @override
+  bool get ended => _ended;
+
+  @override
+  String get heard => _primary.heard;
+
+  @override
+  bool get canDuck => _primary.canDuck;
+
+  @override
+  void add(String text) {
+    if (_ended) return;
+    _buffer.write(text);
+    _primary.add(text);
+  }
+
+  @override
+  void finish() {
+    if (_ended) return;
+    _finished = true;
+    _primary.finish();
+  }
+
+  @override
+  void stop() {
+    if (_ended) return;
+    _primary.stop();
+  }
+
+  @override
+  void duck(bool on) => _primary.duck(on);
+
+  void _onEvent(SpeechOutEvent event) {
+    if (_ended) return;
+    switch (event) {
+      case SpeechOutStarted():
+        _started = true;
+        _events.add(event);
+      case SpeechOutLevel():
+        _events.add(event);
+      case SpeechOutDone():
+        _close(event);
+      case SpeechOutFailed(:final error):
+        if (_started || _fellBack) {
+          _close(event);
+          return;
+        }
+        _fellBack = true;
+        unawaited(_sub.cancel());
+        final fallback = _makeFallback();
+        _primary = fallback;
+        _sub = fallback.events.listen(_onEvent);
+        final text = _buffer.toString();
+        if (text.isNotEmpty) fallback.add(text);
+        if (_finished) fallback.finish();
+        if (text.isEmpty) _close(SpeechOutFailed(error));
+    }
+  }
+
+  void _close(SpeechOutEvent event) {
+    if (_ended) return;
+    _ended = true;
+    unawaited(_sub.cancel());
+    if (!_events.isClosed) {
+      _events.add(event);
+      unawaited(_events.close());
+    }
+  }
 }
 
 /// Gemini's voice: each sentence piece is synthesized by the Gemini TTS API

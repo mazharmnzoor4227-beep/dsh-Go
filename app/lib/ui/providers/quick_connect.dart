@@ -11,6 +11,7 @@ import 'package:dsh_client/dsh_client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../state/auto_free_state.dart';
 import '../../state/composer_insert.dart';
 import '../../state/engine_settings_state.dart';
 import '../../state/model_defaults_state.dart';
@@ -112,18 +113,47 @@ String? bestModelId(QuickProvider kind, List<String> ids) {
   };
 }
 
-/// Models to store for [kind]: free ones first for OpenRouter, best first,
-/// capped so the picker stays readable.
+/// Whether [id] is a free model for [kind]. OpenRouter marks free variants
+/// with `:free`; Gemini's free tier covers the Flash line and 2.5 Pro;
+/// Grok and the DeepSeek API have no free tier at all. A custom server's
+/// chat models count as free (the person's own box).
+bool isFreeModel(QuickProvider kind, String id) {
+  final lower = id.toLowerCase();
+  if (!_isChatModel(lower)) return false;
+  return switch (kind) {
+    QuickProvider.openrouter => lower.endsWith(':free') || lower == 'openrouter/free',
+    QuickProvider.gemini =>
+      (lower.contains('flash') && !lower.contains('pro-preview')) ||
+          lower == 'gemini-2.5-pro' ||
+          lower.startsWith('gemma'),
+    QuickProvider.grok || QuickProvider.deepseek || QuickProvider.antigravity => false,
+    QuickProvider.custom => true,
+  };
+}
+
+/// Why [kind] cannot connect free models, in plain English.
+String noFreeModelsMessage(QuickProvider kind) => switch (kind) {
+  QuickProvider.grok =>
+    'Your key works, but Grok has no free API models. xAI needs prepaid credits (console.x.ai → Billing) before chat can run, so nothing was added.',
+  QuickProvider.deepseek =>
+    'Your key works, but the DeepSeek API has no free tier — it spends your account balance. Use the DeepSeek account sign-in above for balance-based chat; nothing was added here.',
+  QuickProvider.gemini => 'No free Gemini models were found for this key. Check the key in Google AI Studio and try again.',
+  QuickProvider.openrouter => 'No free OpenRouter models were found for this key right now. Try again in a little while.',
+  _ => 'No free models were found for this key.',
+};
+
+/// Models to store for [kind]: free models only, best first, capped so the
+/// picker stays readable.
 List<ProviderModelSpec> rankedSpecs(QuickProvider kind, List<DiscoveredModel> models) {
-  final specs = [for (final m in models) m.toSpec()];
-  final best = bestModelId(kind, [for (final m in models) m.id]);
+  final free = [
+    for (final m in models)
+      if (isFreeModel(kind, m.id)) m,
+  ];
+  final specs = [for (final m in free) m.toSpec()];
+  final best = bestModelId(kind, [for (final m in free) m.id]);
   specs.sort((a, b) {
     if (a.id == best) return -1;
     if (b.id == best) return 1;
-    if (kind == QuickProvider.openrouter) {
-      final af = a.id.endsWith(':free'), bf = b.id.endsWith(':free');
-      if (af != bf) return af ? -1 : 1;
-    }
     return 0;
   });
   return specs.take(50).toList();
@@ -136,13 +166,36 @@ class QuickConnectCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final snapshot = ref.watch(customProvidersProvider).value;
+    final auto = ref.watch(autoFreeProvider);
+    final pick = autoFreePick(snapshot);
     return Padding(
       padding: const EdgeInsets.only(bottom: 24),
       child: ListPageCard(
         title: 'Quick connect',
-        children: [for (final kind in QuickProvider.values) _row(context, ref, kind, snapshot)],
+        children: [
+          ListPageRow(
+            leading: const Monogram('Auto'),
+            title: 'Auto (Free)',
+            subtitle: pick == null
+                ? 'Connect a provider below; Auto picks the best free model'
+                : auto
+                ? 'On · using ${pick.model}'
+                : 'Off · tap to let the app pick the best free model',
+            trailing: ProviderDot(auto && pick != null ? StatusTone.ok : StatusTone.idle),
+            chevron: true,
+            onTap: () => unawaited(_toggleAuto(ref, !auto)),
+          ),
+          for (final kind in QuickProvider.values) _row(context, ref, kind, snapshot),
+        ],
       ),
     );
+  }
+
+  Future<void> _toggleAuto(WidgetRef ref, bool on) async {
+    await ref.read(autoFreeProvider.notifier).set(on);
+    if (!on) return;
+    final pick = autoFreePick(ref.read(customProvidersProvider).value);
+    if (pick != null) await _activate(ref, pick.provider, pick.model);
   }
 
   Widget _row(BuildContext context, WidgetRef ref, QuickProvider kind, ProvidersSnapshot? snapshot) {
@@ -151,6 +204,8 @@ class QuickConnectCard extends ConsumerWidget {
     final best = connected ? bestModelId(kind, [for (final m in provider.models) m.id]) : null;
     final subtitle = switch (kind) {
       QuickProvider.antigravity => 'Install the agy CLI and sign in with Google',
+      QuickProvider.grok => 'No free API models — xAI needs prepaid credits',
+      QuickProvider.deepseek => 'No free tier — uses your DeepSeek balance',
       _ when connected => 'Connected${best == null ? '' : ' · $best'}',
       _ => 'Tap to connect with an API key',
     };
@@ -176,7 +231,16 @@ class QuickConnectCard extends ConsumerWidget {
     }
     await showAppSheet<void>(
       context,
-      builder: (_) => _QuickConnectSheet(kind: kind, existing: provider, onConnected: (id, model) => _activate(ref, id, model)),
+      builder: (_) => _QuickConnectSheet(
+        kind: kind,
+        existing: provider,
+        onConnected: (id, model) async {
+          // A fresh key turns Auto (Free) on: the app keeps picking the
+          // best free model from here.
+          await ref.read(autoFreeProvider.notifier).set(true);
+          await _activate(ref, id, model);
+        },
+      ),
     );
   }
 
@@ -232,11 +296,12 @@ class _QuickConnectSheetState extends ConsumerState<_QuickConnectSheet> {
       final result = await actions.discover(api: ProviderApi.openaiCompletions, baseUrl: url, apiKey: key, existingId: widget.existing?.id);
       if (result.models.isEmpty) throw const ProviderFailure('No models found for this key.');
       final specs = rankedSpecs(widget.kind, result.models);
+      if (specs.isEmpty) throw ProviderFailure(noFreeModelsMessage(widget.kind));
       final id = await actions.save(
         ProviderDraft(name: widget.kind.label, api: ProviderApi.openaiCompletions, baseUrl: result.baseUrl, apiKey: key, models: specs),
         existing: widget.existing,
       );
-      final best = bestModelId(widget.kind, [for (final m in result.models) m.id]) ?? specs.first.id;
+      final best = specs.first.id;
       await widget.onConnected(id, best);
       if (mounted) Navigator.of(context).pop();
     } on ProviderFailure catch (failure) {
@@ -260,7 +325,7 @@ class _QuickConnectSheetState extends ConsumerState<_QuickConnectSheet> {
           Text('Connect ${widget.kind.label}', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: colors.onSurface)),
           const SizedBox(height: 6),
           Text(
-            'Paste your API key. Models connect automatically and the best free one is selected.',
+            'Paste your API key. Only free models connect, and the best one is selected automatically.',
             style: TextStyle(fontSize: 13, color: colors.onSurfaceVariant),
           ),
           const SizedBox(height: 14),

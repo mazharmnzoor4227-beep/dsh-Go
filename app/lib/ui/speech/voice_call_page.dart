@@ -187,19 +187,16 @@ class _VoiceCallPageState extends ConsumerState<VoiceCallPage> with WidgetsBindi
         if (!mounted) return null;
         return ref.read(callRecognizerProvider)();
       },
-      voice: () {
-        final geminiKey = _geminiKey;
-        if (geminiKey != null) return GeminiOut(geminiKey, audio, call: true, levels: true);
-        return speechOutFor(
-          _voice,
-          deepseek: deepseek,
-          audio: audio,
-          speaker: speaker,
-          call: true,
-          levels: true,
-          gap: ref.read(deepSeekSpeechGapProvider),
-        );
-      },
+      voice: () => speechOutFor(
+        _voice,
+        deepseek: deepseek,
+        audio: audio,
+        speaker: speaker,
+        call: true,
+        levels: true,
+        gap: ref.read(deepSeekSpeechGapProvider),
+        geminiKey: _geminiKey,
+      ),
       // The saved ones, not the defaults shown while they load (a first call after launch).
       choices: () async {
         final saved = await callSettings.ready();
@@ -266,6 +263,8 @@ class _VoiceCallPageState extends ConsumerState<VoiceCallPage> with WidgetsBindi
   int _settling = 0;
 
   Future<void> _start() async {
+    // The Gemini key must be known before the first reply is voiced.
+    _geminiKey = await ref.read(geminiApiKeyProvider.future);
     final pcm = ref.read(streamingPcmCaptureProvider);
     final asr = ref.read(streamingAsrProvider);
     final found = liveWordsModel(ref);

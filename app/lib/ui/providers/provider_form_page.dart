@@ -25,6 +25,18 @@ import '../theme/app_icons.dart';
 import '../theme/theme.dart';
 import 'provider_model_page.dart';
 import 'provider_widgets.dart';
+import 'quick_connect.dart' show QuickProvider, isFreeModel, noFreeModelsMessage;
+
+/// The known free-tier provider a Base URL belongs to, or null for a
+/// custom server (whose models are all shown).
+QuickProvider? _kindForUrl(String url) {
+  final host = Uri.tryParse(url)?.host.toLowerCase() ?? '';
+  if (host.contains('generativelanguage.googleapis.com')) return QuickProvider.gemini;
+  if (host.contains('openrouter.ai')) return QuickProvider.openrouter;
+  if (host.contains('api.x.ai')) return QuickProvider.grok;
+  if (host.contains('api.deepseek.com')) return QuickProvider.deepseek;
+  return null;
+}
 
 /// What a model added here starts as: most current models take images and
 /// think. 模型设置 keeps both editable per model.
@@ -285,7 +297,16 @@ class _ProviderFormPageState extends ConsumerState<ProviderFormPage> with FieldP
         setState(() => _modelsError = context.l10n.engineProviderNoDiscoveredModels);
         return;
       }
-      final picked = await showModelPicker(context, candidates: result.models, added: {for (final m in _models) m.id});
+      final kind = _kindForUrl(result.baseUrl);
+      final candidates = [
+        for (final m in result.models)
+          if (kind == null || isFreeModel(kind, m.id)) m,
+      ];
+      if (candidates.isEmpty) {
+        setState(() => _modelsError = noFreeModelsMessage(kind!));
+        return;
+      }
+      final picked = await showModelPicker(context, candidates: candidates, added: {for (final m in _models) m.id});
       if (picked == null || picked.isEmpty || !isCurrent()) return;
       setState(() {
         _models = [..._models, for (final m in picked) _withModelDefaults(m.toSpec())];
@@ -354,8 +375,16 @@ class _ProviderFormPageState extends ConsumerState<ProviderFormPage> with FieldP
           setState(() => _modelsError = context.l10n.engineProviderNoDiscoveredModels);
           return;
         }
-        final free = [for (final m in result.models) if (m.id.endsWith(':free')) m];
-        final picked = (free.isNotEmpty ? free : result.models).take(50);
+        final kind = _kindForUrl(result.baseUrl);
+        final free = [
+          for (final m in result.models)
+            if (kind == null || isFreeModel(kind, m.id)) m,
+        ];
+        if (free.isEmpty) {
+          setState(() => _modelsError = noFreeModelsMessage(kind!));
+          return;
+        }
+        final picked = free.take(50);
         setState(() => _models = [for (final m in picked) _withModelDefaults(m.toSpec())]);
       } catch (error) {
         if (mounted) setState(() => _modelsError = describeProviderError(error));

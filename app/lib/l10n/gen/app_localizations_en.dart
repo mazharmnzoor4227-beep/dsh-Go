@@ -23207,7 +23207,7 @@ class L10nEn extends L10n {
 
   @override
   String get speechNoCredential =>
-      'Sign in to DeepSeek or add an API key in Settings first';
+      'Connect a Gemini API key in Settings › Providers first, or sign in to DeepSeek';
 
   @override
   String get speechAccountUnusable =>
@@ -23219,7 +23219,7 @@ class L10nEn extends L10n {
 
   @override
   String get speechUnauthorized =>
-      'The DeepSeek API key was refused. Check it in Settings';
+      'The API key was refused. Check it in Settings › Providers';
 
   @override
   String get speechBalance => 'Not enough DeepSeek balance';
@@ -23288,7 +23288,7 @@ class L10nEn extends L10n {
 
   @override
   String get speechCallHint =>
-      '(This is a voice call; what I say comes through speech recognition. Please answer briefly and conversationally, without Markdown, lists, tables or code blocks.)';
+      '(This is a voice call; what I say comes through speech recognition. Please answer briefly and conversationally, in the same language I speak (Urdu, Hindi, or English), without Markdown, lists, tables or code blocks.)';
 
   @override
   String speechCallCutNote(String heard) {
@@ -23393,11 +23393,11 @@ class L10nEn extends L10n {
 
   @override
   String get speechCallEndNoRecognizerSignedIn =>
-      'A call needs a way to recognize speech. Your signed-in account can\'t pay for DeepSeek speech here (the DSH you\'re connected to is older, or you\'re going through DSH Remote): add a DeepSeek API key in Settings, or download the voice model in Settings › Voice';
+      'A call needs a way to recognize speech. Connect a Gemini API key in Settings › Providers (Quick connect), add a DeepSeek API key, or download the voice model in Settings › Voice';
 
   @override
   String get speechCallEndNoRecognizer =>
-      'A call needs a recognizer that takes recordings: sign in to DeepSeek, add an API key, or download the voice model';
+      'A call needs a recognizer that takes recordings: connect a Gemini API key in Settings › Providers (Quick connect), sign in to DeepSeek, or download the voice model';
 
   @override
   String get speechCallEndBackground =>
