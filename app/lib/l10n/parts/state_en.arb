@@ -103,6 +103,7 @@
   "stateChatAgentBusy": "AI is busy. Try again later.",
   "stateChatWriterHeld": "This chat is in use elsewhere",
   "stateChatModelUnavailable": "This model is unavailable",
+  "stateChatAllFreeFailed": "All free models failed. Check your keys in Settings → Providers.",
   "stateChatAttachmentInvalid": "Can’t send this attachment",
   "stateChatForkUnavailable": "Can’t branch here",
   "stateChatImagesTooLarge": "Images are too large. Send fewer at once.",

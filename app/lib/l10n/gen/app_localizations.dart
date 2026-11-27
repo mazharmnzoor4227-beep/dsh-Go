@@ -37987,6 +37987,18 @@ abstract class L10n {
   /// **'语音通话'**
   String get speechCallSection;
 
+  /// No description provided for @voiceCallAutoTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'Automatic (Gemini)'**
+  String get voiceCallAutoTitle;
+
+  /// No description provided for @voiceCallAutoHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'Tap call and speak Urdu or Hindi. The call uses your Gemini key from Settings → Providers.'**
+  String get voiceCallAutoHint;
+
   /// No description provided for @speechCallFooter.
   ///
   /// In zh, this message translates to:
@@ -39198,6 +39210,12 @@ abstract class L10n {
   /// In zh, this message translates to:
   /// **'这个模型现在用不了'**
   String get stateChatModelUnavailable;
+
+  /// No description provided for @stateChatAllFreeFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'All free models failed. Check your keys in Settings → Providers.'**
+  String get stateChatAllFreeFailed;
 
   /// No description provided for @stateChatAttachmentInvalid.
   ///

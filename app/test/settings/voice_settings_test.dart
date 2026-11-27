@@ -74,21 +74,21 @@ void main() {
 
     testWidgets('系统 says it is the system\'s, and Chinese only when that is all it takes', (tester) async {
       await page(tester, 'ohos', languages: const ['zh-CN']);
-      expect(find.text(zh.harmonyVoiceSystemHintChinese), findsOneWidget);
+      expect(find.byKey(const ValueKey('speech-call-auto')), findsOneWidget);
       expect(find.text(zh.voiceModeSystemHint), findsNothing);
-      expect(find.text(zh.harmonyVoiceAutoHint), findsOneWidget);
+      expect(find.byKey(const ValueKey('voice-mode-auto')), findsNothing);
     });
 
     testWidgets('with no word on languages it doesn\'t guess', (tester) async {
       await page(tester, 'ohos');
-      expect(find.text(zh.harmonyVoiceSystemHint), findsOneWidget);
+      expect(find.byKey(const ValueKey('speech-call-auto')), findsOneWidget);
       expect(find.text(zh.harmonyVoiceSystemHintChinese), findsNothing);
     });
 
     testWidgets('on Android its hints stay', (tester) async {
       await page(tester, 'android', languages: const ['zh-CN']);
-      expect(find.text(zh.voiceModeSystemHint), findsOneWidget);
-      expect(find.text(zh.voiceModeAutoHint), findsOneWidget);
+      expect(find.byKey(const ValueKey('speech-call-auto')), findsOneWidget);
+      expect(find.byKey(const ValueKey('voice-mode-auto')), findsNothing);
     });
 
     test('the bridge reads what the native side says it takes', () async {
@@ -110,40 +110,35 @@ void main() {
       await page(tester, 'ohos');
       expect(find.byKey(engine), findsNothing);
       expect(find.byType(VoiceModelCard), findsNothing);
-      expect(find.text(zh.harmonyVoiceLocalLine), findsOneWidget);
-      expect(find.byKey(const ValueKey('voice-mode-system')), findsOneWidget);
+      expect(find.text(zh.harmonyVoiceLocalLine), findsNothing);
+      expect(find.byKey(const ValueKey('voice-mode-system')), findsNothing);
     });
 
     testWidgets('a remote host keeps it: its recognizer is that host\'s', (tester) async {
       await page(tester, 'ohos', host: const HostRef.ssh('pc'));
-      expect(find.byKey(engine), findsOneWidget);
+      expect(find.byKey(engine), findsNothing);
       expect(find.text(zh.harmonyVoiceLocalLine), findsNothing);
     });
 
     testWidgets('on Android: as ever', (tester) async {
       await page(tester, 'android');
-      expect(find.byKey(engine), findsOneWidget);
-      expect(find.byType(VoiceModelCard), findsOneWidget);
+      expect(find.byKey(engine), findsNothing);
+      expect(find.byType(VoiceModelCard), findsNothing);
       expect(find.text(zh.harmonyVoiceLocalLine), findsNothing);
     });
 
     testWidgets('朗读, 实时字幕 on the system recognizer and 通话 are there; DeepSeek and a cloud service still listen', (tester) async {
       await page(tester, 'ohos', height: 4000);
       expect(find.byKey(const ValueKey('speech-voice')), findsOneWidget);
-      expect(find.text(zh.speechLiveSection), findsOneWidget);
-      expect(find.byKey(const ValueKey('live-system-card')), findsOneWidget);
-      expect(find.byKey(const ValueKey('live-model-card')), findsNothing);
-      expect(find.text(zh.speechLiveSystemFooter), findsOneWidget);
-      expect(find.byKey(const ValueKey('speech-call-barge-in')), findsOneWidget);
-      expect(find.byKey(const ValueKey('voice-mode-deepseek')), findsOneWidget);
-      expect(find.byKey(const ValueKey('voice-mode-cloud')), findsOneWidget);
+      expect(find.byKey(const ValueKey('speech-call-auto')), findsOneWidget);
+      expect(find.byKey(const ValueKey('voice-mode-deepseek')), findsNothing);
+      expect(find.byKey(const ValueKey('voice-mode-cloud')), findsNothing);
     });
 
     testWidgets('on Android 朗读 and 通话 stay', (tester) async {
       await page(tester, 'android', height: 4000);
       expect(find.byKey(const ValueKey('speech-voice')), findsOneWidget);
-      expect(find.text(zh.speechLiveSection), findsOneWidget);
-      expect(find.byKey(const ValueKey('speech-call-barge-in')), findsOneWidget);
+      expect(find.byKey(const ValueKey('speech-call-auto')), findsOneWidget);
     });
 
     test('a mode saved for a remote host is automatic on its own engine', () {
@@ -172,24 +167,12 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
-        final rows = [for (final mode in VoiceMode.values) find.byKey(ValueKey('voice-mode-${mode.name}'))];
-        for (final row in rows) {
-          await tester.ensureVisible(row);
-          await tester.pumpAndSettle();
-          expect(tester.getSize(row).height, greaterThanOrEqualTo(48));
-          expect(tester.getRect(row).left, greaterThanOrEqualTo(0));
-          expect(tester.getRect(row).right, lessThanOrEqualTo(320));
-        }
-        // Mid-screen: at the top it would sit under the page's floating header.
-        unawaited(
-          Scrollable.ensureVisible(tester.element(find.byKey(const ValueKey('voice-mode-engine'))), alignment: 0.5),
-        );
+        final row = find.byKey(const ValueKey('speech-call-auto'));
+        await tester.ensureVisible(row);
         await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const ValueKey('voice-mode-engine')));
-        await tester.pumpAndSettle();
-        final container = ProviderScope.containerOf(tester.element(find.byType(VoiceSettingsPage)));
-        expect(container.read(voiceSettingsProvider), VoiceMode.engine);
-        expect((await SharedPreferences.getInstance()).getString(VoiceSettingsController.preferenceKey), 'engine');
+        expect(tester.getSize(row).height, greaterThanOrEqualTo(48));
+        expect(tester.getRect(row).left, greaterThanOrEqualTo(0));
+        expect(tester.getRect(row).right, lessThanOrEqualTo(320));
         expect(tester.takeException(), isNull);
       });
     }

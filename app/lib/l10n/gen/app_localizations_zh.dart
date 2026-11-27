@@ -20919,6 +20919,13 @@ class L10nZh extends L10n {
   String get speechCallSection => '语音通话';
 
   @override
+  String get voiceCallAutoTitle => 'Automatic (Gemini)';
+
+  @override
+  String get voiceCallAutoHint =>
+      'Tap call and speak Urdu or Hindi. The call uses your Gemini key from Settings → Providers.';
+
+  @override
   String get speechCallFooter => '通话时说完一句停一下，就会发出去；回答边写边读。';
 
   @override
@@ -21552,6 +21559,10 @@ class L10nZh extends L10n {
 
   @override
   String get stateChatModelUnavailable => '这个模型现在用不了';
+
+  @override
+  String get stateChatAllFreeFailed =>
+      'All free models failed. Check your keys in Settings → Providers.';
 
   @override
   String get stateChatAttachmentInvalid => '这个附件发不了';

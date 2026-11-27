@@ -7,7 +7,6 @@ import '../../companion/companion_voice_source.dart';
 import '../../l10n/l10n.dart';
 import '../../speech/speech_audio.dart';
 import '../../speech/speech_settings.dart';
-import '../../state/android_features.dart';
 import '../../state/streaming_asr_model_state.dart';
 import '../../state/streaming_asr_state.dart' show SystemAsrReadiness, ohosStreamingAsrReadyProvider;
 import '../../state/voice_model_state.dart';
@@ -16,7 +15,6 @@ import '../../state/voice_state.dart';
 import '../common/app_dialog.dart';
 import '../companion/companion_voice_page.dart';
 import '../providers/provider_widgets.dart';
-import '../speech/call/call_backdrop.dart';
 import '../shell/page_frame.dart';
 import '../theme/app_icons.dart';
 import '../theme/theme.dart';
@@ -125,14 +123,6 @@ class _VoiceSettingsPageState extends ConsumerState<VoiceSettingsPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final harmonyLocal = ref.watch(harmonyLocalVoiceProvider);
-    final stored = ref.watch(voiceSettingsProvider);
-    final selected = harmonyLocal ? voiceModeOnHarmonyLocal(stored) : stored;
-    final ohos = ref.watch(operatingSystemProvider) == 'ohos';
-    final languages = ohos ? ref.watch(voiceCapabilitiesProvider).value?.languages : null;
-    final chineseOnly = languages != null && languages.isNotEmpty && languages.every((l) => l.startsWith('zh'));
-    final call = ref.watch(callSettingsProvider);
-    final calls = ref.read(callSettingsProvider.notifier);
     return AppPage.list(
       title: l10n.voiceSettingsTitle,
       children: [
@@ -153,104 +143,12 @@ class _VoiceSettingsPageState extends ConsumerState<VoiceSettingsPage> {
           ],
         ),
         SettingsSection(
-          title: l10n.voiceModeSection,
-          footer: harmonyLocal ? Text(l10n.harmonyVoiceLocalLine, key: const ValueKey('voice-local-line')) : null,
-          children: [
-            if (wordsForIos)
-              SettingsTile(title: voiceModeLabel(l10n, VoiceMode.system), subtitle: l10n.iosVoiceSystemHint),
-            if (!wordsForIos)
-              for (final mode in VoiceMode.values)
-                if (!harmonyLocal || mode != VoiceMode.engine)
-                  Semantics(
-                    checked: selected == mode,
-                    inMutuallyExclusiveGroup: true,
-                    child: SettingsTile(
-                      key: ValueKey('voice-mode-${mode.name}'),
-                      title: voiceModeLabel(l10n, mode),
-                      subtitle: switch (mode) {
-                        VoiceMode.auto => harmonyLocal ? l10n.harmonyVoiceAutoHint : l10n.voiceModeAutoHint,
-                        VoiceMode.deepseek => l10n.voiceModeDeepseekHint,
-                        VoiceMode.system =>
-                          !ohos
-                              ? l10n.voiceModeSystemHint
-                              : chineseOnly
-                              ? l10n.harmonyVoiceSystemHintChinese
-                              : l10n.harmonyVoiceSystemHint,
-                        VoiceMode.engine => l10n.voiceModeEngineHint,
-                        VoiceMode.cloud => l10n.voiceModeCloudHint,
-                      },
-                      trailing: SizedBox.square(
-                        dimension: 32,
-                        child: Icon(selected == mode ? AppIcons.radioOn : AppIcons.radioOff, size: 24),
-                      ),
-                      onTap: () => unawaited(ref.read(voiceSettingsProvider.notifier).setMode(mode)),
-                    ),
-                  ),
-          ],
-        ),
-        if (!wordsForIos && selected == VoiceMode.cloud) const _CloudAsrForm(),
-        if (!harmonyLocal && !wordsForIos)
-          SettingsSection(
-            title: l10n.voiceModelSection,
-            footer: Text(l10n.voiceModelFooter),
-            children: const [VoiceModelCard()],
-          ),
-        if (!wordsForIos)
-          SettingsSection(
-            title: l10n.speechLiveSection,
-            footer: Text(ohos ? l10n.speechLiveSystemFooter : l10n.speechLiveFooter),
-            // HarmonyOS captions use its own recognizer: nothing to download.
-            children: [ohos ? const SystemAsrCard() : const StreamingAsrModelCard()],
-          ),
-        SettingsSection(
           title: l10n.speechCallSection,
-          footer: Text(l10n.speechCallFooter),
           children: [
             SettingsTile(
-              key: const ValueKey('speech-call-backdrop'),
-              title: l10n.speechBackdropTitle,
-              value: Text(switch (call.backdrop) {
-                CallBackdrop.sea => l10n.speechBackdropSea,
-                CallBackdrop.image => l10n.speechBackdropImage,
-                CallBackdrop.companion => l10n.speechBackdropCompanion,
-              }),
-              onTap: () => unawaited(showCallBackdropSheet(context)),
-            ),
-            SettingsSwitchTile(
-              key: const ValueKey('speech-call-barge-in'),
-              title: l10n.speechCallBargeIn,
-              subtitle: l10n.speechCallBargeInHint,
-              value: call.bargeIn,
-              onChanged: (on) => unawaited(calls.edit((saved) => saved.copyWith(bargeIn: on))),
-            ),
-            SettingsSegmentTile<CallPause>(
-              key: const ValueKey('speech-call-pause'),
-              title: l10n.speechCallPause,
-              subtitle: l10n.speechCallPauseHint,
-              segments: callPauseSegments(l10n),
-              selected: call.pause,
-              onChanged: (pause) => unawaited(calls.edit((saved) => saved.copyWith(pause: pause))),
-            ),
-            SettingsSwitchTile(
-              key: const ValueKey('speech-call-spoken'),
-              title: l10n.speechCallSpoken,
-              subtitle: l10n.speechCallSpokenHint,
-              value: call.spoken,
-              onChanged: (on) => unawaited(calls.edit((saved) => saved.copyWith(spoken: on))),
-            ),
-            SettingsSwitchTile(
-              key: const ValueKey('speech-call-speaker'),
-              title: l10n.speechCallSpeaker,
-              subtitle: l10n.speechCallSpeakerHint,
-              value: call.speaker,
-              onChanged: (on) => unawaited(calls.edit((saved) => saved.copyWith(speaker: on))),
-            ),
-            SettingsSwitchTile(
-              key: const ValueKey('speech-call-cue'),
-              title: l10n.speechCallCue,
-              subtitle: l10n.speechCallCueHint,
-              value: call.cue,
-              onChanged: (on) => unawaited(calls.edit((saved) => saved.copyWith(cue: on))),
+              key: const ValueKey('speech-call-auto'),
+              title: l10n.voiceCallAutoTitle,
+              subtitle: l10n.voiceCallAutoHint,
             ),
           ],
         ),
@@ -259,111 +157,6 @@ class _VoiceSettingsPageState extends ConsumerState<VoiceSettingsPage> {
   }
 }
 
-/// The person's own cloud recognizer (OpenAI-compatible): saved as typed.
-class _CloudAsrForm extends ConsumerStatefulWidget {
-  const _CloudAsrForm();
-
-  @override
-  ConsumerState<_CloudAsrForm> createState() => _CloudAsrFormState();
-}
-
-class _CloudAsrFormState extends ConsumerState<_CloudAsrForm> {
-  final _base = TextEditingController();
-  final _key = TextEditingController();
-  final _model = TextEditingController();
-  late final CloudAsrController _store = ref.read(cloudAsrProvider.notifier);
-  Timer? _save;
-  bool _filled = false;
-  bool _obscure = true;
-
-  @override
-  void initState() {
-    super.initState();
-    unawaited(
-      _store.ready().then((s) {
-        if (!mounted) return;
-        _base.text = s.base;
-        _key.text = s.key;
-        _model.text = s.model;
-        setState(() => _filled = true);
-      }),
-    );
-  }
-
-  CloudAsrSettings get _typed =>
-      CloudAsrSettings(base: _base.text.trim(), key: _key.text.trim(), model: _model.text.trim());
-
-  @override
-  void dispose() {
-    final pending = _save?.isActive ?? false;
-    _save?.cancel();
-    if (pending) {
-      final next = _typed;
-      scheduleMicrotask(() => unawaited(_store.update(next)));
-    }
-    _base.dispose();
-    _key.dispose();
-    _model.dispose();
-    super.dispose();
-  }
-
-  void _edited() {
-    if (!_filled) return;
-    _save?.cancel();
-    _save = Timer(const Duration(milliseconds: 400), () => unawaited(_store.update(_typed)));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    Widget field(TextEditingController c, String hint, {bool secret = false, bool url = false}) => TextField(
-      controller: c,
-      // Not before the saved values are in: they would replace what was typed.
-      enabled: _filled,
-      onChanged: (_) => _edited(),
-      obscureText: secret && _obscure,
-      obscuringCharacter: '•',
-      autocorrect: false,
-      enableSuggestions: !secret,
-      enableIMEPersonalizedLearning: !secret,
-      keyboardType: secret ? TextInputType.visiblePassword : (url ? TextInputType.url : TextInputType.text),
-      decoration: InputDecoration(
-        hintText: hint,
-        suffixIcon: secret
-            ? IconButton(
-                tooltip: _obscure ? l10n.engineFieldShow : l10n.commonHide,
-                icon: Icon(_obscure ? AppIcons.showSecret : AppIcons.hideSecret, size: 20),
-                onPressed: () => setState(() => _obscure = !_obscure),
-              )
-            : null,
-      ),
-    );
-    return SettingsSection(
-      key: const ValueKey('voice-cloud-form'),
-      title: l10n.voiceCloudSection,
-      footer: Text(l10n.voiceCloudFooter),
-      children: [
-        FormFieldGroup(
-          children: [
-            FormFieldBlock(
-              label: l10n.companionVoiceBase,
-              helper: l10n.voiceCloudBaseHelper,
-              child: field(_base, 'https://api.siliconflow.cn/v1', url: true),
-            ),
-            FormFieldBlock(label: 'API Key', child: field(_key, 'sk-…', secret: true)),
-            FormFieldBlock(
-              label: l10n.companionVoiceModel,
-              helper: l10n.voiceCloudModelHelper,
-              child: field(_model, 'FunAudioLLM/SenseVoiceSmall'),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-/// The model's status, progress and actions, inside the settings card.
 class VoiceModelCard extends ConsumerWidget {
   const VoiceModelCard({super.key});
 

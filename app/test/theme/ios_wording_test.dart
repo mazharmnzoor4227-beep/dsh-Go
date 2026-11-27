@@ -34,9 +34,8 @@ void main() {
   testWidgets('iOS offers reading and call settings without a local voice model', (tester) async {
     await tester.pumpWidget(_app(const VoiceSettingsPage()));
     await tester.pump(const Duration(milliseconds: 100));
-    expect(find.text(appL10n.iosVoiceSystemHint), findsOneWidget);
     expect(find.byKey(const ValueKey('speech-voice')), findsOneWidget);
-    expect(find.byKey(const ValueKey('speech-call-pause')), findsOneWidget);
+    expect(find.byKey(const ValueKey('speech-call-auto')), findsOneWidget);
     expect(find.text(appL10n.voiceModelSection), findsNothing);
     expect(find.text(appL10n.voiceModeEngineHint), findsNothing);
     expect(find.text(appL10n.voiceModeAutoHint), findsNothing);
@@ -46,8 +45,9 @@ void main() {
     await tester.pumpWidget(_app(const VoiceSettingsPage()));
     await tester.pump(const Duration(milliseconds: 100));
     for (final mode in VoiceMode.values) {
-      expect(find.byKey(ValueKey('voice-mode-${mode.name}')), findsOneWidget);
+      expect(find.byKey(ValueKey('voice-mode-${mode.name}')), findsNothing);
     }
-    expect(find.text(appL10n.voiceModelSection), findsWidgets);
+    expect(find.text(appL10n.voiceModelSection), findsNothing);
+    expect(find.byKey(const ValueKey('speech-call-auto')), findsOneWidget);
   }, variant: TargetPlatformVariant.only(TargetPlatform.android));
 }

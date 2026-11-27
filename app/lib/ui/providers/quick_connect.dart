@@ -200,12 +200,14 @@ class QuickConnectCard extends ConsumerWidget {
 
   Widget _row(BuildContext context, WidgetRef ref, QuickProvider kind, ProvidersSnapshot? snapshot) {
     final provider = matchQuickProvider(snapshot, kind);
-    final connected = provider != null && snapshot!.keyStored(provider) && provider.models.isNotEmpty;
+    final connected = provider != null && snapshot!.keyStored(provider);
     final best = connected ? bestModelId(kind, [for (final m in provider.models) m.id]) : null;
     final subtitle = switch (kind) {
       QuickProvider.antigravity => 'Install the agy CLI and sign in with Google',
-      QuickProvider.grok => 'No free API models — xAI needs prepaid credits',
-      QuickProvider.deepseek => 'No free tier — uses your DeepSeek balance',
+      QuickProvider.grok =>
+        connected ? 'Connected · no free API models (xAI needs prepaid credits)' : 'No free API models — xAI needs prepaid credits',
+      QuickProvider.deepseek =>
+        connected ? 'Connected · no free tier (uses your DeepSeek balance)' : 'No free tier — uses your DeepSeek balance',
       _ when connected => 'Connected${best == null ? '' : ' · $best'}',
       _ => 'Tap to connect with an API key',
     };
@@ -226,8 +228,12 @@ class QuickConnectCard extends ConsumerWidget {
     }
     if (connected && provider != null) {
       final best = bestModelId(kind, [for (final m in provider.models) m.id]);
-      if (best != null) await _activate(ref, provider.id, best);
-      return;
+      if (best != null) {
+        await _activate(ref, provider.id, best);
+        return;
+      }
+      // Connected with no free model (Grok/DeepSeek): fall through to the
+      // sheet so the key can be replaced.
     }
     await showAppSheet<void>(
       context,
@@ -296,7 +302,20 @@ class _QuickConnectSheetState extends ConsumerState<_QuickConnectSheet> {
       final result = await actions.discover(api: ProviderApi.openaiCompletions, baseUrl: url, apiKey: key, existingId: widget.existing?.id);
       if (result.models.isEmpty) throw const ProviderFailure('No models found for this key.');
       final specs = rankedSpecs(widget.kind, result.models);
-      if (specs.isEmpty) throw ProviderFailure(noFreeModelsMessage(widget.kind));
+      if (specs.isEmpty) {
+        // Grok/DeepSeek: the key is valid (discovery answered) but there are
+        // no free models. Save the connection so it visibly connects; the
+        // row explains the missing free tier instead of failing silently.
+        if (widget.kind == QuickProvider.grok || widget.kind == QuickProvider.deepseek) {
+          await actions.save(
+            ProviderDraft(name: widget.kind.label, api: ProviderApi.openaiCompletions, baseUrl: result.baseUrl, apiKey: key, models: const []),
+            existing: widget.existing,
+          );
+          if (mounted) Navigator.of(context).pop();
+          return;
+        }
+        throw ProviderFailure(noFreeModelsMessage(widget.kind));
+      }
       final id = await actions.save(
         ProviderDraft(name: widget.kind.label, api: ProviderApi.openaiCompletions, baseUrl: result.baseUrl, apiKey: key, models: specs),
         existing: widget.existing,

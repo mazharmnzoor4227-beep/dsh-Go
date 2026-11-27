@@ -32,6 +32,8 @@
   "speechCloudNotSetUp": "还没设置云端识别服务",
   "speechCallTile": "语音通话",
   "speechCallSection": "语音通话",
+  "voiceCallAutoTitle": "Automatic (Gemini)",
+  "voiceCallAutoHint": "Tap call and speak Urdu or Hindi. The call uses your Gemini key from Settings → Providers.",
   "speechCallFooter": "通话时说完一句停一下，就会发出去；回答边写边读。",
   "speechCallBargeIn": "插话打断",
   "speechCallBargeInHint": "AI 说话时你一开口，它先轻下来；「嗯」「对」它接着说，说别的它就停下听你",

@@ -23260,6 +23260,13 @@ class L10nEn extends L10n {
   String get speechCallSection => 'Voice calls';
 
   @override
+  String get voiceCallAutoTitle => 'Automatic (Gemini)';
+
+  @override
+  String get voiceCallAutoHint =>
+      'Tap call and speak Urdu or Hindi. The call uses your Gemini key from Settings → Providers.';
+
+  @override
   String get speechCallFooter =>
       'In a call, pause after you speak and it is sent; the answer is read while it is written.';
 
@@ -23928,6 +23935,10 @@ class L10nEn extends L10n {
 
   @override
   String get stateChatModelUnavailable => 'This model is unavailable';
+
+  @override
+  String get stateChatAllFreeFailed =>
+      'All free models failed. Check your keys in Settings → Providers.';
 
   @override
   String get stateChatAttachmentInvalid => 'Can’t send this attachment';

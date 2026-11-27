@@ -9,11 +9,13 @@ import '../diagnostics/app_error_log.dart';
 import '../l10n/l10n.dart';
 import '../usage/usage_stats.dart';
 import 'attachments.dart';
+import 'auto_free_state.dart';
 import 'chat_error_text.dart';
 import 'connection_state.dart';
 import 'hosts_state.dart';
 import 'models_state.dart';
 import 'notify_state.dart' show appForegroundProvider;
+import 'providers_state.dart' show customProvidersProvider;
 import 'run_pulse.dart';
 import 'sessions_state.dart';
 
@@ -493,6 +495,11 @@ class ChatController extends Notifier<ChatState> {
   final _claimedAt = <String, int>{};
   final _retryingFailed = <String>{};
 
+  /// Auto (Free) fallback: `requestId|provider|model` already tried for a
+  /// prompt whose turn died on balance/quota/503, so each free candidate is
+  /// tried once and the chain always ends.
+  final _autoTried = <String>{};
+
   /// Sends still waiting for the Host to answer the prompt RPC. A prompt
   /// here may well have landed; anything else with no inbox slot after a
   /// fresh baseline did not.
@@ -892,6 +899,7 @@ class ChatController extends Notifier<ChatState> {
             };
             for (final end in endings) {
               _settleClaims(end);
+              _maybeAutoFallback(end);
             }
             if (event is UserMessageEvent) {
               _dropEchoed([event]);
@@ -1005,6 +1013,36 @@ class ChatController extends Notifier<ChatState> {
     } else {
       _withdrawn.addAll(settled);
     }
+  }
+
+  /// Auto (Free) fallback: a turn that died on balance, quota or a 503 is
+  /// resent on the next free model instead of leaving the failure on
+  /// screen. Each candidate is tried once per prompt; when none are left,
+  /// one clear line says so.
+  void _maybeAutoFallback(TurnEndedEvent end) {
+    if (!end.reason.isError || !isRetryableModelFailure(end.reason.error)) return;
+    if (!ref.read(autoFreeProvider)) return;
+    final prompt = _pending.where((p) => p.failed && p.failureSeq == end.seq && p.attachments.isEmpty).firstOrNull;
+    if (prompt == null || prompt.text.trim().isEmpty) return;
+    final tried = {
+      for (final key in _autoTried)
+        if (key.startsWith('${prompt.requestId}|')) key.substring(prompt.requestId.length + 1),
+    };
+    if (state.model case final current?) tried.add('${current.provider}|${current.model}');
+    final chain = autoFreeFallbackChain(ref.read(customProvidersProvider).value, state.model, tried);
+    if (chain.isEmpty) {
+      state = state.copyWith(error: appL10n.stateChatAllFreeFailed);
+      return;
+    }
+    final next = chain.first;
+    _autoTried.add('${prompt.requestId}|${next.provider}|${next.model}');
+    unawaited(_autoRetry(prompt, next));
+  }
+
+  Future<void> _autoRetry(PendingPrompt prompt, ModelSelection next) async {
+    if (!await setModel(next)) return;
+    if (!ref.mounted) return;
+    await send(prompt.text, originalRequestId: prompt.requestId);
   }
 
   /// Estimates [ChatState.clockSkew] from live durable events: arrival time

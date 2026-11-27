@@ -63,6 +63,19 @@ Future<void> openChatCall(
   required Future<String?> Function() session,
 }) async {
   final container = ProviderScope.containerOf(context, listen: false);
+  // One tap, no choices: the call runs on the connected Gemini key with
+  // the voice picked automatically. Without a key, say so in one line.
+  final geminiKey = await container.read(geminiApiKeyProvider.future);
+  if (geminiKey == null) {
+    if (context.mounted) {
+      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+        const SnackBar(content: Text('Add your Gemini key in Settings → Providers to use voice call.')),
+      );
+    }
+    return;
+  }
+  await container.read(voiceSettingsProvider.notifier).setMode(VoiceMode.auto);
+  if (!context.mounted) return;
   await openVoiceCall(context, title: title, conversation: ChatCallConversation(container, session));
 }
 

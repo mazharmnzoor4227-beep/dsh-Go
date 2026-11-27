@@ -103,6 +103,7 @@
   "stateChatAgentBusy": "AI 正忙，稍后再试",
   "stateChatWriterHeld": "这个对话正在别处使用",
   "stateChatModelUnavailable": "这个模型现在用不了",
+  "stateChatAllFreeFailed": "All free models failed. Check your keys in Settings → Providers.",
   "stateChatAttachmentInvalid": "这个附件发不了",
   "stateChatForkUnavailable": "这里不能分叉",
   "stateChatImagesTooLarge": "图片太大，少选几张再发",

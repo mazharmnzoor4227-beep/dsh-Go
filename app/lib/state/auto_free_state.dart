@@ -4,7 +4,7 @@
 // the DeepSeek API have no free tier (paid per token), so they never enter
 // Auto; a custom server's chat models count as free (the person's own box).
 
-import 'package:dsh_client/dsh_client.dart' show ModelSelection;
+import 'package:dsh_client/dsh_client.dart' show LlmFailure, ModelSelection;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -119,4 +119,43 @@ ModelSelection? autoFreeNext(
     }
   }
   return null;
+}
+
+/// Whether a failed turn is worth retrying on another free model: the
+/// provider could not serve it (no balance, quota spent, rate limited,
+/// overloaded, 5xx), as opposed to the request itself being wrong.
+bool isRetryableModelFailure(LlmFailure? failure) {
+  if (failure == null) return false;
+  final status = failure.status;
+  if (status == 402 || status == 429 || (status != null && status >= 500)) {
+    return true;
+  }
+  final text = '${failure.code} ${failure.message}'.toLowerCase();
+  return text.contains('insufficient') ||
+      text.contains('balance') ||
+      text.contains('quota') ||
+      text.contains('rate limit') ||
+      text.contains('rate_limit') ||
+      text.contains('overload') ||
+      text.contains('high demand') ||
+      text.contains('unavailable') ||
+      text.contains('busy') ||
+      text.contains('503');
+}
+
+/// The fallback order after [current] fails: every other free candidate,
+/// best first, skipping the ones in [tried] (`provider|model` keys).
+List<ModelSelection> autoFreeFallbackChain(
+  ProvidersSnapshot? snapshot,
+  ModelSelection? current,
+  Set<String> tried,
+) {
+  return [
+    for (final c in autoFreeCandidates(snapshot))
+      if ((current == null ||
+              c.providerId != current.provider ||
+              c.model != current.model) &&
+          !tried.contains('${c.providerId}|${c.model}'))
+        ModelSelection(provider: c.providerId, model: c.model),
+  ];
 }

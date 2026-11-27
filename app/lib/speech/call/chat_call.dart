@@ -31,8 +31,7 @@ class ChatCallConversation implements CallConversation {
   bool _tracking = false;
   bool _sawRunning = false;
   String _last = '';
-  String _sentText = '';
-  bool _retried = false;
+  int _fallbackWaits = 0;
   Timer? _idle;
 
   @override
@@ -77,8 +76,7 @@ class ChatCallConversation implements CallConversation {
     _tracking = true;
     _sawRunning = state.running;
     _last = '';
-    _sentText = text;
-    _retried = false;
+    _fallbackWaits = 0;
     final bool ok;
     if (state.singleQuestion case final request? when state.openApproval == null) {
       ok = await chat.answer(request, [QuestionAnswer(request.questions.single.id, custom: text)]);
@@ -115,36 +113,23 @@ class ChatCallConversation implements CallConversation {
 
   void _done() {
     if (!_tracking) return;
-    // Auto (Free) fallback: the turn failed with no reply (rate limit, dead
-    // provider) — switch to the next free model and send once more.
+    // Auto (Free) fallback lives in the chat state: a turn that dies on
+    // balance/quota/503 is resent there on the next free model. While a
+    // fallback can still come, keep following instead of ending the call
+    // turn with silence.
     final id = _id;
-    if (!_retried && _last.isEmpty && id != null && _container.read(autoFreeProvider)) {
+    if (_last.isEmpty && id != null && _fallbackWaits < 6 && _container.read(autoFreeProvider)) {
       final state = _container.read(chatProvider(id));
-      if (state.error != null) {
-        final next = autoFreeNext(_container.read(customProvidersProvider).value, state.model);
-        if (next != null) {
-          _retried = true;
-          unawaited(_retry(id, next));
-          return;
-        }
+      final next = autoFreeNext(_container.read(customProvidersProvider).value, state.model);
+      if (next != null && state.error == null) {
+        _fallbackWaits++;
+        _sawRunning = false;
+        return;
       }
     }
     _tracking = false;
     _idle?.cancel();
     if (!_replies.isClosed) _replies.add(CallReply(_last, done: true));
-  }
-
-  Future<void> _retry(String id, ModelSelection next) async {
-    final chat = _container.read(chatProvider(id).notifier);
-    await chat.setModel(next);
-    if (_disposed) return;
-    _before = {
-      for (final item in _container.read(chatProvider(id)).items)
-        if (item is AssistantChatItem) item.key,
-    };
-    _sawRunning = false;
-    final ok = await chat.send(_sentText);
-    if (!ok && !_disposed) _done();
   }
 
   @override
