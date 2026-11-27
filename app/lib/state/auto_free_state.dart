@@ -9,7 +9,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../ui/providers/quick_connect.dart' show QuickProvider, bestModelId, isFreeModel, matchQuickProvider;
-import 'models_state.dart';
 import 'providers_state.dart';
 
 const _autoFreeKey = 'auto_free_model';
