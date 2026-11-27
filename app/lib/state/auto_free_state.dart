@@ -4,6 +4,7 @@
 // the DeepSeek API have no free tier (paid per token), so they never enter
 // Auto; a custom server's chat models count as free (the person's own box).
 
+import 'package:dsh_client/dsh_client.dart' show ModelSelection;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
