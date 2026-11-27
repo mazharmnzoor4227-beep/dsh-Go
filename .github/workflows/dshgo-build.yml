@@ -114,7 +114,10 @@ jobs:
 
           - In-app updates: future versions download inside the app (Settings → About → Check for updates), with small delta patches when possible. No more full-size downloads for every update.
           - Smaller APK: the Linux runtime is no longer bundled in every update. The copy already on your phone is reused; a fresh install downloads it once.
-          - All 1.4.3 features kept: provider strip, one-tap key connect with automatic free-model selection, Gemini voice call, Antigravity setup.
+          - Home screen restored: provider chips removed from chat; providers now live in Settings only.
+          - Settings quick connect keeps one-tap key setup, shows free models only, and Auto (Free) picks the best available free model with fallback.
+          - Voice call fixes: Gemini transcription/TTS path repaired, with clear English errors and fallback voice if Gemini voice fails.
+          - English sweep: plugin and engine-served UI text is forced to English.
           EOF
           python3 tooling/release_assets.py --notes notes.md --delta-from 3
           ls -la dist/
