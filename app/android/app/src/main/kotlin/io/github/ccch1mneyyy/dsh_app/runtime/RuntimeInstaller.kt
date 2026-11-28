@@ -174,30 +174,67 @@ class RuntimeInstaller(
         val dir = File(baseDir, "downloads").apply { mkdirs() }
         val target = File(dir, archive.asset)
         val part = File(dir, "${archive.asset}.part")
-        onLog("[dsh-app] downloading runtime archive ${archive.asset} (${archive.bytes} bytes)")
-        val connection = (java.net.URL(url).openConnection() as java.net.HttpURLConnection).apply {
-            connectTimeout = 30_000
-            readTimeout = 60_000
-            setRequestProperty("User-Agent", "DSH-Go")
+        // A finished download from an earlier attempt (the caller still checks its
+        // SHA-256): fetching 150+ MB again on mobile data is what stranded upgrades.
+        if (archive.bytes > 0 && target.length() == archive.bytes) {
+            progress(archive.bytes)
+            return target
         }
-        try {
-            val code = connection.responseCode
-            if (code !in 200..299) throw IllegalStateException("runtime download failed: HTTP $code")
-            connection.inputStream.use { input ->
-                part.outputStream().use { output ->
-                    val buffer = ByteArray(1 shl 16)
-                    var read = 0L
-                    while (true) {
-                        val n = input.read(buffer)
-                        if (n < 0) break
-                        output.write(buffer, 0, n)
-                        read += n
-                        progress(read)
+        onLog("[dsh-app] downloading runtime archive ${archive.asset} (${archive.bytes} bytes)")
+        // Mobile connections drop mid-download: keep the .part file and resume with
+        // a Range request instead of restarting from zero on every failure.
+        var attempt = 0
+        while (true) {
+            attempt++
+            var have = if (part.isFile) part.length() else 0L
+            if (archive.bytes > 0 && have >= archive.bytes) {
+                if (have == archive.bytes) break
+                part.delete()
+                have = 0
+            }
+            val connection = (java.net.URL(url).openConnection() as java.net.HttpURLConnection).apply {
+                connectTimeout = 30_000
+                readTimeout = 60_000
+                setRequestProperty("User-Agent", "DSH-Go")
+                if (have > 0) setRequestProperty("Range", "bytes=$have-")
+            }
+            try {
+                val code = connection.responseCode
+                if (code == 416) {
+                    // The kept bytes no longer fit the served file: start over once.
+                    part.delete()
+                    if (attempt >= MAX_DOWNLOAD_ATTEMPTS) throw IllegalStateException("runtime download failed: HTTP 416")
+                    continue
+                }
+                if (code !in 200..299) throw IllegalStateException("runtime download failed: HTTP $code")
+                val append = code == 206 && have > 0
+                if (!append) have = 0
+                progress(have)
+                connection.inputStream.use { input ->
+                    java.io.FileOutputStream(part, append).use { output ->
+                        val buffer = ByteArray(1 shl 16)
+                        var read = have
+                        while (true) {
+                            val n = input.read(buffer)
+                            if (n < 0) break
+                            output.write(buffer, 0, n)
+                            read += n
+                            progress(read)
+                        }
                     }
                 }
+                if (archive.bytes > 0 && part.length() < archive.bytes) {
+                    throw java.io.IOException("runtime download incomplete: ${part.length()} of ${archive.bytes} bytes")
+                }
+                break
+            } catch (e: Exception) {
+                val http = e is IllegalStateException && e.message?.contains("HTTP 4") == true
+                if (http || attempt >= MAX_DOWNLOAD_ATTEMPTS) throw e
+                onLog("[dsh-app] runtime download attempt $attempt failed (${e.message}); resuming")
+                Thread.sleep(minOf(attempt * 2_000L, 15_000L))
+            } finally {
+                connection.disconnect()
             }
-        } finally {
-            connection.disconnect()
         }
         if (!part.renameTo(target)) {
             part.copyTo(target, overwrite = true)
@@ -367,6 +404,9 @@ private fun finishRootfsInstall(
 internal fun syncDirectory(directory: File) {
     FileChannel.open(directory.toPath(), StandardOpenOption.READ).use { it.force(true) }
 }
+
+/** Bounded retries for one runtime archive download; each resumes from the kept .part file. */
+private const val MAX_DOWNLOAD_ATTEMPTS = 8
 
 /** What 「重置运行环境」 can keep of the user's /root (paths under the rootfs). */
 enum class ResetKeep(val wire: String, val paths: List<String>) {
