@@ -50,14 +50,14 @@ test('manifest: a live strip that opens a live panel', () => {
   assert.equal(row.state, 'ok')
   assert.deepEqual(row.issues, [])
   assert.deepEqual(row.contributes['composer.strip'], [{ id: 'today', icon: 'chart', text: null, panel: 'usage', tappable: true, live: true, ready: true }])
-  assert.deepEqual(row.contributes.panels, [{ id: 'usage', title: '用量', icon: 'chart', placement: ['session.tab', 'features'], ready: true, live: true }])
+  assert.deepEqual(row.contributes.panels, [{ id: 'usage', title: 'Usage', icon: 'chart', placement: ['session.tab', 'features'], ready: true, live: true }])
 })
 
 test('panel in a chat: this chat first; data follows new model calls', async () => {
   const s1 = fakeSession('s1', [call(U(1200, 3000, 400))])
   const h = host([s1])
   const { view, stats } = await h.view('usage', { sessionId: 's1' })
-  assert.deepEqual(view.children[0].children.map((m) => m.label), ['本对话', '今日', '缓存命中'])
+  assert.deepEqual(view.children[0].children.map((m) => m.label), ['This chat', 'Today', 'Cache hits'])
   assert.deepEqual(view.children.map((c) => c.type), ['row', 'chart', 'keyValue', 'text', 'list', 'actions'])
   assert.ok(stats.nodes <= 120 && stats.depth <= 8)
 
@@ -91,12 +91,12 @@ test('strip: one short line, this chat and today', () => {
   const s1 = fakeSession('s1', [call(U(10_000, 2_000, 400))])
   const h = host([s1])
   const strip = h.subscribe('today', { sessionId: 's1' })
-  assert.deepEqual(strip.data, { text: '本对话 12.4k · 今日 12.4k', icon: 'chart' })
+  assert.deepEqual(strip.data, { text: 'Chat 12.4k · Today 12.4k', icon: 'chart' })
   h.emitEvent('session/event', s1, call(U(100_000, 80_000, 6_000)))
-  assert.equal(strip.data.text, '本对话 198k · 今日 198k')
+  assert.equal(strip.data.text, 'Chat 198k · Today 198k')
   assert.ok([...strip.data.text].length <= 24)
   const unknown = h.subscribe('today', { sessionId: 'not-loaded' })
-  assert.equal(unknown.data.text, '今日 198k')
+  assert.equal(unknown.data.text, 'Today 198k')
 })
 
 test('copy summary: clipboard text plus a toast', async () => {
@@ -104,8 +104,8 @@ test('copy summary: clipboard text plus a toast', async () => {
   const { effects, issues } = await host([s1]).invoke('usage', { surface: 'panel', action: 'copy', scope: { sessionId: 's1' } })
   assert.deepEqual(issues, [])
   assert.equal(effects[0].type, 'copy')
-  assert.match(effects[0].text, /^本对话: 4\.6k tokens/)
-  assert.deepEqual(effects[1], { type: 'toast', text: '已复制' })
+  assert.match(effects[0].text, /^This chat: 4\.6k tokens/)
+  assert.deepEqual(effects[1], { type: 'toast', text: 'Copied' })
 })
 
 test('ledger: survives a restart, keeps 30 days', () => {
@@ -136,20 +136,20 @@ test('today: a chat\'s earlier calls count once — from its log, live, after a 
   const s1 = fakeSession('s1', log)
   const h = host([s1])
   const strip = h.subscribe('today', { sessionId: 's1' })
-  assert.equal(strip.data.text, '本对话 6k · 今日 5k', 'yesterday stays in yesterday')
+  assert.equal(strip.data.text, 'Chat 6k · Today 5k', 'yesterday stays in yesterday')
 
   // The log already holds the call the event announces: no second count.
   h.emitEvent('session/event', s1, b)
-  assert.equal(strip.data.text, '本对话 6k · 今日 5k')
+  assert.equal(strip.data.text, 'Chat 6k · Today 5k')
   const c = call(U(4_000, 0, 0))
   log.push(c)
   h.emitEvent('session/event', s1, c)
-  assert.equal(strip.data.text, '本对话 10k · 今日 9k')
+  assert.equal(strip.data.text, 'Chat 10k · Today 9k')
 
   // A session first met through a live event: its earlier calls come first.
   const s2 = fakeSession('s2', [call(U(500, 0, 0))])
   h.emitEvent('session/event', s2, call(U(700, 0, 0)))
-  assert.equal(strip.data.text, '本对话 10k · 今日 10.2k')
+  assert.equal(strip.data.text, 'Chat 10k · Today 10.2k')
 
   const home = mkdtempSync(join(tmpdir(), 'usage-'))
   const path = join(home, 'days.json')

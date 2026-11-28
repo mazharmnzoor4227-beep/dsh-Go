@@ -70,10 +70,10 @@ void main() {
         _url,
       );
       expect(index.title.resolve('zh'), 'dshfind · DSH Plugin Directory');
-      expect(index.description!.resolve('zh'), '社区插件');
+      expect(index.description!.resolve('zh'), 'Community plugins');
       expect(index.categories.keys, ['tools', 'skin']);
-      expect(index.categories['tools']!.title.resolve('zh'), '工具集成');
-      expect(index.labels['featured']!.title.resolve('zh'), '编辑推荐');
+      expect(index.categories['tools']!.title.resolve('zh'), 'Tools & Integrations');
+      expect(index.labels['featured']!.title.resolve('zh'), "Editor's pick");
       expect(index.sortKeys['stars']!.descending, isTrue);
       expect(index.issues, isEmpty);
 

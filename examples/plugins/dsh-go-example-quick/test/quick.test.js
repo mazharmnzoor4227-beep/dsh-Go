@@ -23,12 +23,12 @@ test('manifest: two capsules and two menu items, all ready, no issues', () => {
   assert.equal(row.state, 'ok')
   assert.deepEqual(row.issues, [])
   assert.deepEqual(row.contributes['composer.actions'].map((a) => [a.id, a.label, a.ready, a.effect?.[0]?.type]), [
-    ['summarize', '总结', true, 'insert'],
-    ['translate', '译成英文', true, undefined],
+    ['summarize', 'Summarize', true, 'insert'],
+    ['translate', 'To English', true, undefined],
   ])
   assert.deepEqual(row.contributes['message.actions'].map((a) => [a.id, a.label]), [
-    ['copy-md', '复制为 Markdown'],
-    ['save-note', '存进笔记'],
+    ['copy-md', 'Copy as MD'],
+    ['save-note', 'Save note'],
   ])
   const en = host().contributions({ locale: 'en-US' })
   assert.deepEqual(en.issues, [], 'English labels fit too')
@@ -41,9 +41,9 @@ test('the static capsule never invokes', async () => {
 
 test('译成英文: clipboard into a translation request, never sent', async () => {
   const { effects } = await host().invoke('translate', { context: { clipboard: '今天天气不错' } })
-  assert.deepEqual(effects, [{ type: 'insert', text: '把下面这段译成英文，只给译文：\n\n今天天气不错' }])
+  assert.deepEqual(effects, [{ type: 'insert', text: 'Translate this into English. Reply with the translation only:\n\n今天天气不错' }])
   const empty = await host().invoke('translate', { context: {} })
-  assert.deepEqual(empty.effects, [{ type: 'toast', text: '剪贴板里没有文字' }])
+  assert.deepEqual(empty.effects, [{ type: 'toast', text: 'Nothing to translate on the clipboard' }])
   const long = await host().invoke('translate', { context: { clipboard: '字'.repeat(3000) }, locale: 'en' })
   assert.equal(long.effects[0].type, 'insert')
   assert.equal([...long.effects[0].text].length, 2000)
@@ -85,7 +85,7 @@ test('译成英文 with a model: pending at once, the translation lands later', 
   const h = host(services)
   const r = await h.invoke('translate', { context: { clipboard: '今天天气不错' } })
   assert.deepEqual(r.effects, [])
-  assert.deepEqual({ label: r.pending.label, timeoutMs: r.pending.timeoutMs }, { label: '正在翻译', timeoutMs: 60000 })
+  assert.deepEqual({ label: r.pending.label, timeoutMs: r.pending.timeoutMs }, { label: 'Translating', timeoutMs: 60000 })
   assert.deepEqual(await r.settled, { t: 'done', effects: [{ type: 'insert', text: 'The weather is nice today.' }] })
   assert.deepEqual(calls[0].config, { provider: 'deepseek', model: 'deepseek-chat', maxTokens: 2048 })
   assert.deepEqual(calls[0].options.messages, [{ role: 'user', content: [{ type: 'text', text: '今天天气不错' }] }])
@@ -103,14 +103,14 @@ test('a failed or cancelled translation settles void and inserts nothing', async
 test('the bridge drops context the manifest did not ask for', async () => {
   // draft is not in wants: the handler never sees it.
   const { effects } = await host().invoke('translate', { context: { draft: 'secret draft' } })
-  assert.deepEqual(effects, [{ type: 'toast', text: '剪贴板里没有文字' }])
+  assert.deepEqual(effects, [{ type: 'toast', text: 'Nothing to translate on the clipboard' }])
 })
 
 test('复制为 Markdown drops dsh-ui cards', async () => {
   const message = '结论如下。\n\n```dsh-ui\n{"type":"metric","label":"a","value":1}\n```\n\n\n\n- 第一点  \n- 第二点'
   assert.equal(toMarkdown(message), '结论如下。\n\n- 第一点\n- 第二点')
   const { effects } = await host().invoke('copy-md', { context: { message } })
-  assert.deepEqual(effects, [{ type: 'copy', text: '结论如下。\n\n- 第一点\n- 第二点' }, { type: 'toast', text: '已复制' }])
+  assert.deepEqual(effects, [{ type: 'copy', text: '结论如下。\n\n- 第一点\n- 第二点' }, { type: 'toast', text: 'Copied' }])
 })
 
 test('存进笔记 appends to notes/<today>.md in the chat folder', async () => {
@@ -122,7 +122,7 @@ test('存进笔记 appends to notes/<today>.md in the chat folder', async () => 
     await h.invoke('save-note', { scope: { sessionId: 's1' }, context: { message: '第二条' } })
     const today = new Date()
     const day = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
-    assert.deepEqual(r1.effects, [{ type: 'toast', text: `已存到 notes/${day}.md` }])
+    assert.deepEqual(r1.effects, [{ type: 'toast', text: `Saved to notes/${day}.md` }])
     const body = readFileSync(join(cwd, 'notes', `${day}.md`), 'utf8')
     assert.match(body, /## \d\d:\d\d\n\n第一条\n\n## \d\d:\d\d\n\n第二条\n$/)
   } finally {

@@ -208,7 +208,7 @@ void main() {
       ]);
       expect(sections[1].label?.resolve('zh'), 'Desktop pet');
       expect(sections[1].label?.resolve('en'), 'Desktop pet');
-      expect(inventory.slots!['conversation.input.dock']!.first.label?.resolve('zh'), '用量');
+      expect(inventory.slots!['conversation.input.dock']!.first.label?.resolve('zh'), '', reason: 'Chinese-only label never surfaces');
       expect(inventory.slots!.containsKey(''), isFalse);
     });
 

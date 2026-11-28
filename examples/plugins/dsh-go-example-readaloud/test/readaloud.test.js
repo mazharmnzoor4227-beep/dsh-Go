@@ -23,7 +23,7 @@ test('manifest: one reply action that needs audio; everything declared, no issue
   assert.equal(row.state, 'ok')
   assert.deepEqual(row.issues, [])
   assert.deepEqual(row.capabilities, ALL)
-  assert.deepEqual(row.contributes['message.actions'].map((a) => [a.id, a.label, a.ready, a.requires]), [['read', '朗读', true, ['audio']]])
+  assert.deepEqual(row.contributes['message.actions'].map((a) => [a.id, a.label, a.ready, a.requires]), [['read', 'Read aloud', true, ['audio']]])
   assert.deepEqual(row.contributes.overlays, [{ id: 'subtitle', channel: 'caption' }])
   assert.equal(host().contributions({ locale: 'en' }).contributes['message.actions'][0].label, 'Read aloud')
 })
@@ -48,7 +48,7 @@ test('朗读: play, listen and caption on one instance; the clip is a WAV of the
   assert.equal(clip.body.subarray(0, 4).toString(), 'RIFF')
   await assert.rejects(h.media('speech', { sessionId: 's1' }, { key: 'someone-else' }))
   const empty = await h.invoke('read', { context: { message: '```js\nx\n```' }, scope: { sessionId: 's1' } })
-  assert.deepEqual(empty.effects, [{ type: 'toast', text: '这条回复没有可读的文字' }])
+  assert.deepEqual(empty.effects, [{ type: 'toast', text: 'Nothing to read in this reply' }])
 })
 
 test('the caption follows the sound, stops when the person speaks, and idles without a timer', async () => {
